@@ -6,10 +6,27 @@
 	objectVersion = 50;
 	objects = {
 
+/* Begin PBXFileReference section */
+		EA4BB2E52397C9A300E4EBC1 /* main.f90 */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.fortran.f90; path = main.f90; sourceTree = "<group>"; };
+		EA4BB2E62397C9A300E4EBC1 /* sgt.f90 */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.fortran.f90; path = sgt.f90; sourceTree = "<group>"; };
+		EA4BB2E72397C9A300E4EBC1 /* module.f90 */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.fortran.f90; path = module.f90; sourceTree = "<group>"; };
+		EA4BB2E82397C9A300E4EBC1 /* others.f90 */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.fortran.f90; path = others.f90; sourceTree = "<group>"; };
+		EA4BB2E92397C9B700E4EBC1 /* makefile */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.make; path = makefile; sourceTree = "<group>"; };
+		EA4BB2EB2397CA4900E4EBC1 /* NewMetaFile.inf */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = NewMetaFile.inf; sourceTree = "<group>"; };
+		EA4BB2EC2397CA5200E4EBC1 /* sol173metafile.inf */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = sol173metafile.inf; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
 /* Begin PBXGroup section */
 		EA4BB2DA2397C92B00E4EBC1 = {
 			isa = PBXGroup;
 			children = (
+				EA4BB2E52397C9A300E4EBC1 /* main.f90 */,
+				EA4BB2E72397C9A300E4EBC1 /* module.f90 */,
+				EA4BB2EB2397CA4900E4EBC1 /* NewMetaFile.inf */,
+				EA4BB2E82397C9A300E4EBC1 /* others.f90 */,
+				EA4BB2EC2397CA5200E4EBC1 /* sol173metafile.inf */,
+				EA4BB2E62397C9A300E4EBC1 /* sgt.f90 */,
+				EA4BB2E92397C9B700E4EBC1 /* makefile */,
 			);
 			sourceTree = "<group>";
 		};

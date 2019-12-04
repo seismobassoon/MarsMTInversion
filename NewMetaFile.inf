@@ -1,0 +1,50 @@
+# 
+# This is the meta information file for MT inversion for one station 3-component seismograms 
+# 
+# The use should sample with the same dt and should not filter the seismograms beforehand
+#
+#                                                                     Nov. 2019 N. Fuji
+#
+#   usage:   ./MarsInversion metafile.inf ../data result testInv
+#       or   ./MarsInversion metafile.inf ../RSGT result testInv
+#
+# synthetics <moment tensor>_sta_<station_number>.txt, col 1 = time, col 2 = N, col 3 = E, col 4 = Z 
+# computation mode (normal:normal; test:filter the GF and stop: fort.11-14)
+#   versionSGT is completely different
+versionSGT
+#
+# first SGTinfo
+../database.inf
+# parentDIr
+../databaseDWAKr/RSGT/
+# eventName
+sol173
+# stationName
+ELSE
+# stla, stlo
+34.54 -116.39
+#
+# 
+0.1d0  # delta t in seconds
+1000.0d0 # window width in seconds (this should be equal or inferior to the total length of synthetics tlen in DSM)
+100.0d0 # moving window step in seconds (normally smaller than the dominant period?)
+# butterworth filters (order, fmin, fmax)
+4 # order (integer)
+0.01 # min frequency (in Hz)
+0.05 # max frequency (in Hz)
+# SGT version has window cutting option
+0.0 1000.0
+# number of taper windows 
+1
+# t1, t2, t3, t4
+#400.0 410.0 480.0 500.0
+0.0 200.0 800.0 1000.0
+# 
+# seismic data (N E Z) 
+#
+800.0d0 # total length of the seismic data in seconds, this should be bigger than the synthetic window length described above
+resam.BHZ
+resam.BHN
+resam.BHE
+# 
+end # this meta file should end with "end"
