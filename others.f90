@@ -7,222 +7,247 @@
 !
 subroutine pinput
 
-  use parameters
-  implicit none
+    use parameters
+    implicit none
+    character(200) :: argv
+    integer :: argc
+    character(200) :: tmpfile,metafile
+    character(200) :: obsfile
+    character(200) :: dummy
+    !integer, external :: getpid
+    real(kind(0d0)) :: movingWindowStep
+    integer :: iloop,it
+    character(200) :: commandline
 
-  character(200) :: argv
-  integer :: argc
-  character(200) :: tmpfile,metafile
-  character(200) :: obsfile
-  character(200) :: dummy
-  !integer, external :: getpid
-  real(kind(0d0)) :: movingWindowStep
-  integer :: iloop,it
-  character(200) :: commandline
-
-  call getarg(1,argv)
-  metafile=argv
-  call getarg(2,argv)
-  workingDir=argv
-  call getarg(3,argv)
-  resultDir=argv
-  call getarg(4,argv)
-  inversionName=argv
+    call getarg(1,argv)
+    metafile=argv
+    call getarg(2,argv)
+    workingDir=argv
+    call getarg(3,argv)
+    resultDir=argv
+    call getarg(4,argv)
+    inversionName=argv
   
-  argc=iargc()
+    argc=iargc()
   
-  if(argc.ne.4) then
-     print *, "you need <metafile> <working directory> <result directory> <inversion name>"
-     print *, "cheers"
-     stop
-  endif
-
-  
+    if(argc.ne.4) then
+        print *, "you need <metafile> <working directory> <result directory> <inversion name>"
+        print *, "cheers"
+        stop
+    endif
 
   
-  !write(tmpfile,"(Z5.5)") getpid()
-  !tmpfile='tmpfileMarsInversion'//tmpfile
-  tmpfile='tmpfileMarsInversion'
-  open(unit=5,file=metafile,status='unknown')
-  open(unit=1,file=tmpfile,status='unknown')
+
+  
+    !write(tmpfile,"(Z5.5)") getpid()
+    !tmpfile='tmpfileMarsInversion'//tmpfile
+    tmpfile='tmpfileMarsInversion'
+    open(unit=5,file=metafile,status='unknown')
+    open(unit=1,file=tmpfile,status='unknown')
 100 continue
-  read(5,110) dummy
+    read(5,110) dummy
 110 format(a200)
-  if(dummy(1:1).eq.'#') goto 100
-  if(dummy(1:3).eq.'end') goto 120
-  write(1,110) dummy
-  goto 100
+    if(dummy(1:1).eq.'#') goto 100
+    if(dummy(1:3).eq.'end') goto 120
+    write(1,110) dummy
+    goto 100
 120 continue
-  close(1)
-  close(5)
+    close(1)
+    close(5)
 
-  open(unit=1,file=tmpfile,status='unknown')
-  calculMode=0
-  nmt=6
+    open(unit=1,file=tmpfile,status='unknown')
+    calculMode=0
+    nmt=6
 
-  read(1,110) dummy ! This dummy string determines i) test mode, ii) Alice normal mode, or iii) versionSGT mode
+    read(1,110) dummy ! This dummy string determines i) test mode, ii) Alice normal, or iii) versionSGT mode
 
-  if(dummy(1:10).eq.'versionSGT') then
-     calculMode=2
-     nmt=6
-     read(1,110) SGTinfo
-     SGTinfo = trim(SGTinfo)
-     read(1,110) parentDir
-     parentDir = trim(parentDir)
-     read(1,110) eventName
-     eventName = trim(eventName)
-     read(1,110) stationName
-     stationName = trim(stationName)
-     read(1,*) stla, stlo
-     read(1,*) dt
-     read(1,*) tlen
-     np=int(tlen/dt)
-     read(1,*) movingWindowStep
-     ntStep=int(movingWindowStep/dt)
+    if(dummy(1:10).eq.'versionSGT') then
+        calculMode=2
+        nmt=6
+        read(1,110) SGTinfo
+        SGTinfo = trim(SGTinfo)
+        read(1,110) parentDir
+        parentDir = trim(parentDir)
+        read(1,110) eventName
+        eventName = trim(eventName)
+        read(1,110) stationName
+        stationName = trim(stationName)
+        read(1,*) stla, stlo
+        read(1,*) dt
+        read(1,*) tlen
+        np=int(tlen/dt)
+        read(1,*) movingWindowStep
+        ntStep=int(movingWindowStep/dt)
 
-     read(1,*) npButterworth
-     read(1,*) fmin
-     read(1,*) fmax
-     read(1,*) start, end ! onllly available for RSGT version
-     read(1,*) ntwin
-     allocate(twin(1:4,1:ntwin))
-     allocate(itwin(1:4,1:ntwin))
-     do iloop=1,ntwin
-        read(1,*) twin(1,iloop),twin(2,iloop),twin(3,iloop),twin(4,iloop)
-     enddo
-     itwin=int(twin/dt)
-     read(1,*) tlenData
-     npData = int(tlenData/dt)
-
-     allocate(obsRaw(1:npData,1:3))
-     allocate(obsFilt(1:npData,1:3))
-
-
-
-     do iloop=1,3
-        read(1,110) obsfile
-        obsfile=trim(workingDir)//"/"//trim(obsfile)
-        open(unit=10,file=obsfile,status='unknown')
-        do it=1,npData
-           read(10,*) obsRaw(it,iloop)
+        read(1,*) npButterworth
+        read(1,*) fmin
+        read(1,*) fmax
+        read(1,*) start, end ! onllly available for RSGT version
+        read(1,*) ntwin
+        allocate(twin(1:4,1:ntwin))
+        allocate(itwin(1:4,1:ntwin))
+        do iloop=1,ntwin
+            read(1,*) twin(1,iloop),twin(2,iloop),twin(3,iloop),twin(4,iloop)
         enddo
-        close(10)
-     enddo
+        itwin=int(twin/dt)
+        read(1,*) tlenData
+        npData = int(tlenData/dt)
 
-     commandline = 'mkdir -p '//trim(parentDir)
-     call system(commandline)
-     call pinputDSM(DSMconfFile,PoutputDir,psvmodel,modelname,tlenFull,rmin_,rmax_,rdelta_,r0min,r0max,r0delta,thetamin,thetamax,thetadelta,imin,imax,rsgtswitch,tsgtswitch,synnswitch,SGTinfo)
-     call readDSMconf(DSMconfFile,re,ratc,ratl,omegai,maxlmax)
+        allocate(obsRaw(1:npData,1:3))
+        allocate(obsFilt(1:npData,1:3))
+
+
+
+        do iloop=1,3
+            read(1,110) obsfile
+            obsfile=trim(workingDir)//"/"//trim(obsfile)
+            open(unit=10,file=obsfile,status='unknown')
+            do it=1,npData
+                read(10,*) obsRaw(it,iloop)
+            enddo
+            close(10)
+        enddo
+
+        read(1,*) ntwinObs
+        allocate(twinObs(1:4,1:ntwinObs))
+        allocate(itwinObs(1:4,1:ntwinObs))
+        do iloop=1,ntwinObs
+            read(1,*) twinObs(1,iloop),twinObs(2,iloop),twinObs(3,iloop),twinObs(4,iloop)
+        enddo
+        itwinObs=int(twinObs/dt)
+
+
+        commandline = 'mkdir -p '//trim(parentDir)
+        call system(commandline)
+        call pinputDSM(DSMconfFile,PoutputDir,psvmodel,modelname,tlenFull,rmin_,rmax_,rdelta_, &
+                r0min,r0max,r0delta,thetamin,thetamax,thetadelta,imin,imax,rsgtswitch,tsgtswitch, &
+                synnswitch,SGTinfo)
+        call readDSMconf(DSMconfFile,re,ratc,ratl,omegai,maxlmax)
      
 
 
-     call readpsvmodel(psvmodel,tmpfile)
-     INFO_TSGT = trim(parentDir)//"/INFO_TSGT.TXT"
-     INFO_RSGT = trim(parentDir)//"/INFO_RSGT.TXT"
-     rsampletxt = trim(parentDir)//"/rsample.txt"
-     modelcard = trim(parentDir)//"/"//trim(modelname)//".card"
+        call readpsvmodel(psvmodel,tmpfile)
+        INFO_TSGT = trim(parentDir)//"/INFO_TSGT.TXT"
+        INFO_RSGT = trim(parentDir)//"/INFO_RSGT.TXT"
+        rsampletxt = trim(parentDir)//"/rsample.txt"
+        modelcard = trim(parentDir)//"/"//trim(modelname)//".card"
 
-     !synnfile = trim(parentDir)//"/"//trim(stationName)//"."//trim(eventName)//"."//trim(compo)//"s.dat"
+        !synnfile = trim(parentDir)//"/"//trim(stationName)//"."//trim(eventName)//"."//trim(compo)//"s.dat"
 
      
-     r_n = int((rmax_-rmin_)/rdelta_)+1
-     allocate(r_(1:r_n))
-     do iloop=1,r_n
-        r_(iloop) = rmin_ + dble(iloop-1)*rdelta_
-     enddo
+        r_n = int((rmax_-rmin_)/rdelta_)+1
+        allocate(r_(1:r_n))
+        do iloop=1,r_n
+            r_(iloop) = rmin_ + dble(iloop-1)*rdelta_
+        enddo
 
-     theta_n = int((thetamax-thetamin)/thetadelta)+1
-     allocate(thetaD(1:theta_n))
-     do iloop=1,theta_n
-        thetaD(iloop) = thetamin + dble(iloop-1)*thetadelta
-     enddo
+        theta_n = int((thetamax-thetamin)/thetadelta)+1
+        allocate(thetaD(1:theta_n))
+        do iloop=1,theta_n
+            thetaD(iloop) = thetamin + dble(iloop-1)*thetadelta
+        enddo
 
-     phi_n=int((phimax-phimin)/phidelta)+1
-     allocate(phiD(1:phi_n))
-     do iloop=1,phi_n
-        phiD(iloop) = phimin + dble(iloop-1)*phidelta
-     enddo
+        phi_n=int((phimax-phimin)/phidelta)+1
+        allocate(phiD(1:phi_n))
+        do iloop=1,phi_n
+            phiD(iloop) = phimin + dble(iloop-1)*phidelta
+        enddo
         
      
-     ! lsmoothfinder for FFT
-     np0=imax
-     call lsmoothfinder(tlenFull,np0,samplingHz,lsmooth)
-     iloop=1
-     do while (iloop<lsmooth)
-        iloop = iloop*2
-     enddo
-     lsmooth = iloop
-     iloop = 0
-     np1 = 1
-     do while (np1<np0)
-        np1 = np1*2
-     enddo
-     np1 = np1*lsmooth
-
-     ! redefinition of samplingHz
-     samplingHz = dble(2*np1)/tlenFull
-     dtn = 1.d0/samplingHz
-     iWindowStart = int(start*samplingHz)
-     iWindowEnd   = int(end*samplingHz)
-
-
-
-     ! allocate SGTs, synthetics in frequency
-     allocate(omega(imin:imax))
-     do iloop = imin, imax
-        omega(iloop) = 2.d0*pi*dble(iloop)/tlenFull
-     enddo
-     
-     nConfiguration=r_n*theta_n*phi_n
-
-  elseif((dummy(1:6).eq.'normal').or.(dummy(1:4).eq.'test')) then
-     if(dummy(1:4).eq.'test') calculMode=1
-     read(1,*) dt
-     read(1,*) tlen
-     np=int(tlen/dt)
-     read(1,*) movingWindowStep
-     ntStep=int(movingWindowStep/dt)
-     
-     read(1,*) npButterworth
-     read(1,*) fmin
-     read(1,*) fmax
-     read(1,*) ntwin
-     allocate(twin(1:4,1:ntwin))
-     allocate(itwin(1:4,1:ntwin))
-     do iloop=1,ntwin
-        read(1,*) twin(1,iloop),twin(2,iloop),twin(3,iloop),twin(4,iloop)
-     enddo
-     itwin=int(twin/dt)
-     read(1,*) tlenData
-     npData = int(tlenData/dt)
-     
-     allocate(obsRaw(1:npData,1:3))
-     allocate(obsFilt(1:npData,1:3))
-     
-     
-     
-     do iloop=1,3
-        read(1,110) obsfile
-        obsfile=trim(workingDir)//"/"//trim(obsfile)
-        open(unit=10,file=obsfile,status='unknown')
-        do it=1,npData
-           read(10,*) obsRaw(it,iloop)
+        ! lsmoothfinder for FFT
+        np0=imax
+        call lsmoothfinder(tlenFull,np0,samplingHz,lsmooth)
+        iloop=1
+        do while (iloop<lsmooth)
+            iloop = iloop*2
         enddo
-        close(10)
-     enddo
+        lsmooth = iloop
+        iloop = 0
+        np1 = 1
+        do while (np1<np0)
+            np1 = np1*2
+        enddo
+        np1 = np1*lsmooth
+
+        ! redefinition of samplingHz
+        samplingHz = dble(2*np1)/tlenFull
+        dtn = 1.d0/samplingHz
+        iWindowStart = int(start*samplingHz)
+        iWindowEnd   = int(end*samplingHz)
+
+
+
+        ! allocate SGTs, synthetics in frequency
+        allocate(omega(imin:imax))
+        do iloop = imin, imax
+            omega(iloop) = 2.d0*pi*dble(iloop)/tlenFull
+        enddo
+     
+        nConfiguration=r_n*theta_n*phi_n
+
+    elseif((dummy(1:6).eq.'normal').or.(dummy(1:4).eq.'test')) then
+        if(dummy(1:4).eq.'test') calculMode=1
+            read(1,*) dt
+            read(1,*) tlen
+            np=int(tlen/dt)
+            read(1,*) movingWindowStep
+            ntStep=int(movingWindowStep/dt)
+     
+            read(1,*) npButterworth
+            read(1,*) fmin
+            read(1,*) fmax
+            read(1,*) ntwin
+            allocate(twin(1:4,1:ntwin))
+            allocate(itwin(1:4,1:ntwin))
+            do iloop=1,ntwin
+                read(1,*) twin(1,iloop),twin(2,iloop),twin(3,iloop),twin(4,iloop)
+            enddo
+            itwin=int(twin/dt)
+            read(1,*) tlenData
+            npData = int(tlenData/dt)
+     
+            allocate(obsRaw(1:npData,1:3))
+            allocate(obsFilt(1:npData,1:3))
      
      
-     read(1,*) nConfiguration
-     allocate(filenames(nConfiguration))
-     do iloop=1,nConfiguration
-        read(1,110) filenames(iloop)
-        filenames(iloop)=trim(workingDir)//"/"//trim(filenames(iloop))
-     enddo
+     
+            do iloop=1,3
+                read(1,110) obsfile
+                obsfile=trim(workingDir)//"/"//trim(obsfile)
+                open(unit=10,file=obsfile,status='unknown')
+                do it=1,npData
+                    read(10,*) obsRaw(it,iloop)
+                enddo
+                close(10)
+            enddo
+            read(1,*) ntwinObs
+
+
+            read(1,110) dummy
+            if(dummy(1:5).eq.'fixed') then
+                
+            elseif(dummy(1:).eq.'independent') then
+
+            endif
+            allocate(twinObs(1:4,1:ntwinObs))
+            allocate(itwinObs(1:4,1:ntwinObs))
+            do iloop=1,ntwinObs
+                read(1,*) twinObs(1,iloop),twinObs(2,iloop),twinObs(3,iloop),twinObs(4,iloop)
+            enddo
+            itwinObs=int(twinObs/dt)
+    
+            read(1,*) nConfiguration
+            allocate(filenames(nConfiguration))
+            do iloop=1,nConfiguration
+                read(1,110) filenames(iloop)
+                filenames(iloop)=trim(workingDir)//"/"//trim(filenames(iloop))
+            enddo
+        endif
      
      
-  endif
+    endif
   
-  close(1)
+    close(1)
 
 end subroutine pinput
 

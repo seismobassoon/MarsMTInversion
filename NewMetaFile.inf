@@ -46,5 +46,13 @@ ELSE
 resam.BHZ
 resam.BHN
 resam.BHE
-# 
+#
+# number of taper windows for observed
+1
+# moving window options. 'fixed': the windows are fixed one to another; 'independent': the windows move independently
+#           attention, 'independent' will take much more time since it will move your windows independently
+fixed
+# t1obs, t2obs, t3obs, t4obs
+#400.0 410.0 480.0 500.0
+160.0 400.0 600.0 800.0
 end # this meta file should end with "end"
