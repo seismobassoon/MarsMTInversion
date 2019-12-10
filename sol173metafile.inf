@@ -13,7 +13,6 @@
 test
 1.d-1  # delta t in seconds
 890.0d0 # window width in seconds (this should be equal or inferior to the total length of synthetics tlen in DSM)
-5.0d0 # moving window step in seconds (normally smaller than the dominant period?)
 # butterworth filters (order, fmin, fmax)
 4 # order (integer)
 0.d0 # min frequency (in Hz)
@@ -34,13 +33,25 @@ resam.BHZ
 resam.BHN
 resam.BHE
 # number of taper windows for observed
-1
+2
 # moving window options. 'fixed': the windows are fixed one to another; 'independent': the windows move independently
-#           attention, 'independent' will take much more time since it will move your windows independently
-fixed
+#        attention, 'independent' will take much more time since it will move your windows independently
+#fixed
+independent
 # t1obs, t2obs, t3obs, t4obs
 #400.0 410.0 480.0 500.0
-160.0 400.0 600.0 800.0
+160.0 200.0 240.0 300.0
+500.0 600.0 700.0 800.0
+#
+#
+5.0d0 # moving window step in seconds (normally smaller than the dominant period?)
+#
+#
+# then you can put the range of window slide for each window (in seconds)
+#
+-100.0 100.0
+-200.0 200.0
+#
 # here we use fake data with MT=/1.d0,2.d0,-10.d0,1.d0,3.d0,-2.d0/
 #1000.d0
 #fakeZ.data.fake

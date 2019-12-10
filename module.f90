@@ -18,8 +18,13 @@ module parameters
     integer :: ntStep
     real(kind(0d0)) :: dt, tlen, tlenData
     real(kind(0d0)), allocatable :: twin(:,:), twinObs(:,:)
+    real(kind(0d0)) :: movingWindowStep
+    integer :: NmovingWindowDimension
     integer, allocatable :: itwin(:,:),iwinObs(:,:)
     integer :: ntwin,ntwinObs
+    real(kind(0d0)), allocatable :: fMovingWindowStart(:), fMovingWindowEnd(:)
+    integer, allocatable :: iMovingWindowStart(:),iMovingWindowEnd(:)
+
     character(200), allocatable :: filenames(:)
     real(kind(0d0)), allocatable :: obsRaw(:,:), obsFilt(:,:)
     integer :: calculMode ! 0=normal; 1=filter and stop

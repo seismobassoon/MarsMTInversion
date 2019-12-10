@@ -15,7 +15,6 @@ subroutine pinput
     character(200) :: obsfile
     character(200) :: dummy
     !integer, external :: getpid
-    real(kind(0d0)) :: movingWindowStep
     integer :: iloop,it
     character(200) :: commandline
 
@@ -76,8 +75,6 @@ subroutine pinput
         read(1,*) dt
         read(1,*) tlen
         np=int(tlen/dt)
-        read(1,*) movingWindowStep
-        ntStep=int(movingWindowStep/dt)
 
         read(1,*) npButterworth
         read(1,*) fmin
@@ -108,13 +105,74 @@ subroutine pinput
             close(10)
         enddo
 
+
+
         read(1,*) ntwinObs
+
+        ! control the multiple moving windows
+        read(1,110) dummy
+        if(dummy(1:5).eq.'fixed') then
+            NmovingWindowDimension=1
+        elseif(dummy(1:).eq.'independent') then
+            NmovingWindowDimension=ntwinObs
+        endif
+
+
+
+
+
         allocate(twinObs(1:4,1:ntwinObs))
         allocate(itwinObs(1:4,1:ntwinObs))
         do iloop=1,ntwinObs
             read(1,*) twinObs(1,iloop),twinObs(2,iloop),twinObs(3,iloop),twinObs(4,iloop)
         enddo
         itwinObs=int(twinObs/dt)
+
+
+
+        read(1,*) movingWindowStep
+        ntStep=int(movingWindowStep/dt)
+
+
+        ! Moving windows
+
+        allocate(fMovingWindowStart(1:NmovingWindowDimension))
+        allocate(fMovingWindowEnd(1:NmovingWindowDimension))
+
+        allocate(iMovingWindowStart(1:NmovingWindowDimension))
+        allocate(iMovingWindowEnd(1:NmovingWindowDimension))
+
+        do iloop=1,NmovingWindowDimension
+            read(1,*) fMovingWindowStart(iloop), fMovingWindowEnd(iloop)
+        enddo
+        iMovingWindowStart=int(fMovingWindowStart/dt)
+        iMovingWindowEnd=int(fMovingWindowEnd/dt)
+        
+        do iloop=1,NmovingWindowDimension
+            iMovingWindowStart(iloop)=itwinObs(1,iloop)+iMovingWindowStart(iloop)
+            iMovingWindowEnd(iloop)=itwinObs(1,iloop)+iMovingWindowEnd(iloop)
+            ! check whether syn and obs are available for these indices
+            if(iMovingWindowEnd(iloop)<1) then
+                print *, "no sufficient data points in syn data for the window", iloop
+                stop
+            endif
+            if(itwinObs(1,iloop)<1) then
+                print *, "no sufficient data points in obs data for the window", iloop
+                stop
+            endif
+            if(iMovingWindowStart(iloop)>np) then
+                print *, "no sufficient data points in syn data for the window", iloop
+                stop
+            endif
+            if(itwinObs(4,iloop)>npData) then
+                print *, "no sufficient data points in obs data for the window", iloop
+                stop
+            endif
+        enddo
+
+
+
+
 
 
         commandline = 'mkdir -p '//trim(parentDir)
@@ -190,8 +248,7 @@ subroutine pinput
             read(1,*) dt
             read(1,*) tlen
             np=int(tlen/dt)
-            read(1,*) movingWindowStep
-            ntStep=int(movingWindowStep/dt)
+            
      
             read(1,*) npButterworth
             read(1,*) fmin
@@ -220,21 +277,70 @@ subroutine pinput
                 enddo
                 close(10)
             enddo
+
+
             read(1,*) ntwinObs
 
-
+            ! control the multiple moving windows
             read(1,110) dummy
             if(dummy(1:5).eq.'fixed') then
-                
+                NmovingWindowDimension=1
             elseif(dummy(1:).eq.'independent') then
-
+                NmovingWindowDimension=ntwinObs
             endif
+
+
+            
+
+
             allocate(twinObs(1:4,1:ntwinObs))
             allocate(itwinObs(1:4,1:ntwinObs))
             do iloop=1,ntwinObs
                 read(1,*) twinObs(1,iloop),twinObs(2,iloop),twinObs(3,iloop),twinObs(4,iloop)
             enddo
             itwinObs=int(twinObs/dt)
+
+            read(1,*) movingWindowStep
+            ntStep=int(movingWindowStep/dt)
+
+
+            ! Moving windows
+
+            allocate(fMovingWindowStart(1:NmovingWindowDimension))
+            allocate(fMovingWindowEnd(1:NmovingWindowDimension))
+
+            allocate(iMovingWindowStart(1:NmovingWindowDimension))
+            allocate(iMovingWindowEnd(1:NmovingWindowDimension))
+
+            do iloop=1,NmovingWindowDimension
+                read(1,*) fMovingWindowStart(iloop), fMovingWindowEnd(iloop)
+            enddo
+            iMovingWindowStart=int(fMovingWindowStart/dt)
+            iMovingWindowEnd=int(fMovingWindowEnd/dt)
+            
+            do iloop=1,NmovingWindowDimension
+                iMovingWindowStart(iloop)=itwinObs(1,iloop)+iMovingWindowStart(iloop)
+                iMovingWindowEnd(iloop)=itwinObs(1,iloop)+iMovingWindowEnd(iloop)
+                ! check whether syn and obs are available for these indices
+                if(iMovingWindowEnd(iloop)<1) then
+                    print *, "no sufficient data points in syn data for the window", iloop
+                    stop
+                endif
+                if(itwinObs(1,iloop)<1) then
+                    print *, "no sufficient data points in obs data for the window", iloop
+                    stop
+                endif
+                if(iMovingWindowStart(iloop)>np) then
+                    print *, "no sufficient data points in syn data for the window", iloop
+                    stop
+                endif
+                if(itwinObs(4,iloop)>npData) then
+                    print *, "no sufficient data points in obs data for the window", iloop
+                    stop
+                endif
+            enddo
+
+
     
             read(1,*) nConfiguration
             allocate(filenames(nConfiguration))
