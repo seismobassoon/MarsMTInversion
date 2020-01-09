@@ -17,10 +17,11 @@ module parameters
     integer :: npData ! integer lenght of observed
     integer :: ntStep
     real(kind(0d0)) :: dt, tlen, tlenData
-    real(kind(0d0)), allocatable :: twin(:,:), twinObs(:,:)
+    real(kind(0d0)), allocatable :: twin(:,:),twinObs(:,:)
     real(kind(0d0)) :: movingWindowStep
     integer :: NmovingWindowDimension
-    integer, allocatable :: itwin(:,:),iwinObs(:,:)
+    integer, allocatable :: itwin(:,:)
+    integer, allocatable :: itwinObs(:,:)
     integer :: ntwin,ntwinObs
     real(kind(0d0)), allocatable :: fMovingWindowStart(:), fMovingWindowEnd(:)
     integer, allocatable :: iMovingWindowStart(:),iMovingWindowEnd(:)
