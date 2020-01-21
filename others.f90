@@ -17,6 +17,7 @@ subroutine pinput
     !integer, external :: getpid
     integer :: iloop,it
     character(200) :: commandline
+    character(200) :: paramName
 
     call getarg(1,argv)
     metafile=argv
@@ -35,19 +36,6 @@ subroutine pinput
         stop
     endif
 
-    open(unit=5,file=metafile,status='unknown')
-    
-
-    close(5)
-    
-
-
-
-
-
-  
-
-  
     !write(tmpfile,"(Z5.5)") getpid()
     !tmpfile='tmpfileMarsInversion'//tmpfile
     tmpfile='tmpfileMarsInversion'
@@ -69,45 +57,137 @@ subroutine pinput
     nmt=6
 
     read(1,110) dummy ! This dummy string determines i) test mode, ii) Alice normal, or iii) versionSGT mode
+    
+
 
     if(dummy(1:10).eq.'versionSGT') then
+        close(1)
         calculMode=2
         nmt=6
-        read(1,110) SGTinfo
-        SGTinfo = trim(SGTinfo)
-        read(1,110) parentDir
-        parentDir = trim(parentDir)
-        read(1,110) eventName
-        eventName = trim(eventName)
-        read(1,110) stationName
-        stationName = trim(stationName)
-        read(1,*) stla, stlo
-        read(1,*) dt
-        read(1,*) tlenDSM
+
+        paramName="SGTinfo"
+        call searchForParams(tmpfile,paramName,SGTinfo,0)
+        print *, "SGTinfo is ", SGTinfo
+
+        paramName="parentDir"
+        call searchForParams(tmpfile,paramName,parentDir,0)
+        print *, "parentDir is ", parentDir
+
+        paramName="eventName"
+        call searchForParams(tmpfile,paramName,eventName,0)
+        print *, "eventName is ", trim(eventName)
+
+        paramName="stationName"
+        call searchForParams(tmpfile,paramName,stationName,0)
+        print *, "stationName is ", stationName
+
+        paramName="stlalo"
+        call searchForParams(tmpfile,paramName,dummy,1)
+        read(dummy, *) stla, stlo
+        print *, "stla is ", stla, " and stlo is", stlo
+
+        paramName="dt"
+        call searchForParams(tmpfile,paramName,dummy,1)
+        read(dummy,*) dt
+        print *, "dt is ", dt, "(s)"
+
+        paramName="tlenDSM"
+        call searchForParams(tmpfile,paramName,dummy,1)
+        read(dummy,*) tlenDSM
+        print *, "tlen in DSM synthetic is ", tlenDSM, " (s)"
         npDSM=int(tlenDSM/dt)
+        print *, "  thus npDSM is ", npDSM
+
+        paramName="tlenData"
+        call searchForParams(tmpfile,paramName,dummy,1)
+        read(dummy,*) tlenData
+        npData = int(tlenData/dt)
+        print *, "tlenData is ", tlenData, " (s) and thus npData is ", npData
 
 
-        read(1,*) movingWindowStep
+
+        paramName="movingWindowStep"
+        call searchForParams(tmpfile,paramName,dummy,1)
+        read(dummy,*) movingWindowStep
+        print *, "movingWindowStep for each MT inversion is ", movingWindowStep, " (s)"
         ntStep=int(movingWindowStep/dt)
+        print *, "  thus npStep is ", ntStep
+
+        paramName="npButterworth"
+        call searchForParams(tmpfile,paramName,dummy,1)
+        read(dummy,*) npButterworth
+
+        paramName="fmin"
+        call searchForParams(tmpfile,paramName,dummy,1)
+        read(dummy,*) fmin
+
+        paramName="fmax"
+        call searchForParams(tmpfile,paramName,dummy,1)
+        read(dummy,*) fmax
+
+        print *, "Butterworth parameters (npButterworth, fmin, fmax) are:"
+        print *, "  ", npButterworth, fmin, fmax
 
 
-        read(1,*) npButterworth
-        read(1,*) fmin
-        read(1,*) fmax
-        read(1,*) start, end ! only available for RSGT version
-        read(1,*) ntwin
+        paramName="effectiveSynWindow"
+        call searchForParams(tmpfile,paramName,dummy,1)
+        read(dummy,*) start, end
+        print *, "effective DSM synthetic window is from ", start, " (s) to ", end, " (s)"
+
+       
+        paramName="numberofWindows"
+        call searchForParams(tmpfile,paramName,dummy,1)
+        read(dummy,*) ntwin
+
+
         allocate(twin(1:4,1:ntwin))
         allocate(itwin(1:4,1:ntwin))
+
+
         do iloop=1,ntwin
-            read(1,*) twin(1,iloop),twin(2,iloop),twin(3,iloop),twin(4,iloop)
+            write(paramName,*) iloop
+            paramName="obsWindow"//trim(adjustl(paramName))
+            
+            call searchForParams(tmpfile,paramName,dummy,1)
+            read(dummy,*) twin(1,iloop),twin(2,iloop),twin(3,iloop),twin(4,iloop)
+            print *, iloop,"-th window in obs is characterised by:", &
+                twin(1,iloop),twin(2,iloop),twin(3,iloop),twin(4,iloop)
         enddo
         itwin=int(twin/dt)
-        read(1,*) tlenData
-        npData = int(tlenData/dt)
+
+
+
 
         allocate(obsRaw(1:npData,1:3))
         allocate(obsFilt(1:npData,1:3))
 
+        paramName="obsZfile"
+        call searchForParams(tmpfile,paramName,obsfile,0)
+        obsfile=trim(workingDir)//"/"//trim(obsfile)
+        print *, "Reading obsZfile: ", obsfile
+        open(unit=10,file=obsfile,status='unknown')
+        do it=1,npData
+            read(10,*) obsRaw(it,1)
+        enddo
+
+        paramName="obsNfile"
+        call searchForParams(tmpfile,paramName,obsfile,0)
+        obsfile=trim(workingDir)//"/"//trim(obsfile)
+        print *, "Reading obsNfile: ", obsfile
+        open(unit=10,file=obsfile,status='unknown')
+        do it=1,npData
+            read(10,*) obsRaw(it,2)
+        enddo
+
+        paramName="obsEfile"
+        call searchForParams(tmpfile,paramName,obsfile,0)
+        obsfile=trim(workingDir)//"/"//trim(obsfile)
+        print *, "Reading obsEfile: ", obsfile
+        open(unit=10,file=obsfile,status='unknown')
+        do it=1,npData
+            read(10,*) obsRaw(it,3)
+        enddo
+        
 
 
         do iloop=1,3
@@ -223,9 +303,8 @@ subroutine pinput
     elseif((dummy(1:6).eq.'normal').or.(dummy(1:4).eq.'test')) then
         if(dummy(1:4).eq.'test') calculMode=1
         read(1,*) dt
-        read(1,*) tlen
-        np=int(tlen/dt)
-            
+        read(1,*) tlenDSM
+        npDSM=int(tlenDSM/dt)
      
         read(1,*) npButterworth
         read(1,*) fmin
@@ -305,36 +384,80 @@ subroutine pinput
                 print *, "no sufficient data points in obs data for the window", iloop
                 stop
             endif
-            if(iMovingWindowEnd(iloop)>np) then
+            if(iMovingWindowEnd(iloop)>npData) then
                 print *, "no sufficient data points in syn data for the window", iloop
                 stop
             endif
             if(itwinObs(4,iloop)>npData) then
                 print *, "no sufficient data points in obs data for the window", iloop
                     stop
-                endif
-            enddo
+            endif
+        enddo
 
 
     
-            read(1,*) nConfiguration
-            allocate(filenames(nConfiguration))
-            do iloop=1,nConfiguration
-                read(1,110) filenames(iloop)
-                filenames(iloop)=trim(workingDir)//"/"//trim(filenames(iloop))
-            enddo
-        endif
-     
+        read(1,*) nConfiguration
+        allocate(filenames(nConfiguration))
+        do iloop=1,nConfiguration
+            read(1,110) filenames(iloop)
+            filenames(iloop)=trim(workingDir)//"/"//trim(filenames(iloop))
+        enddo
+        
+        close(1)
      
     endif
   
-    close(1)
+  
 
 end subroutine pinput
 
-subroutine makingIndependentWindow
+
+
+subroutine searchForParams(filename,ParamName,textParam,paramisText)
     implicit none
+    character(200) :: filename,textParam,text_line
+    integer :: paramLength,textLength,paramisText
+    character(200) :: ParamName
+    integer :: iFind, jtemp, iCut
+    filename=trim(filename)
+    ParamName=trim(ParamName)
+    paramLength=len_trim(ParamName)
+    !print *, paramLength, ParamName
+    iFind=0
+    iCut=0
+    open(20,file=filename,status='unknown')
+    do while(iFind.eq.0)
+        read(20,'(a)') text_line
+        textLength=len_trim(text_line)
+        !print *, text_line(1:textLength)
+        if(text_line(1:paramLength).eq.ParamName(1:paramLength)) then
+            do jtemp = 1,textLength
+                if(text_line(jtemp:jtemp).eq.'=') iCut = jtemp
+            enddo
+            !print *, iCut, textLength
+            iFind=1
+            !print *,text_line(iCut+1:textLength)
+            textParam=text_line(iCut+1:textLength)
+            if(paramisText.eq.0) then
+                textParam=trim(textParam)
+                textParam=adjustl(textParam)
+            endif
+            !print *, textParam
+        endif
+    enddo
+    close(20)
+    if(iFind.eq.0) then
+        print *, ParamName, "is not found."
+        stop
+    endif
+
+end subroutine
+
+
+subroutine makingIndependentWindow
     use parameters
+    implicit none
+    integer :: iloop
 
     ! Moving windows
 
@@ -362,7 +485,7 @@ subroutine makingIndependentWindow
             print *, "no sufficient data points in obs data for the window", iloop
             stop
         endif
-        if(iMovingWindowStart(iloop)>np) then
+        if(iMovingWindowStart(iloop)>npDSM) then
             print *, "no sufficient data points in syn data for the window", iloop
             stop
         endif

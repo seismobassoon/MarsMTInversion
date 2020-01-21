@@ -13,39 +13,64 @@
 #   versionSGT is completely different
 versionSGT
 #
-# first SGTinfo
-../database.inf
-# parentDIr
-../databaseDWAKr/RSGT/
-# eventName
-sol173
-# stationName
-ELSE
-# stla, stlo
-34.54 -116.39
-#
-# 
-0.1d0  # delta t in seconds
-1000.0d0 # window width in seconds (this should be equal or inferior to the total length of synthetics tlen in DSM)
-100.0d0 # moving window step in seconds (normally smaller than the dominant period?)
+# with this versionSGT, the order of parameters in this inf file is no more important.
+# however, always the first declaration of parameters is valid (when you declare them twice or more).
+
+SGTinfo=../database.inf
+
+parentDir=../databaseDWAKr/RSGT/
+
+eventName = sol173
+
+
+# station information
+
+stationName= ELSE
+
+stlalo= 34.54 -116.39
+
+
+
+# synthetic information
+
+tlenDSM= 1000.0d0 # window width in seconds (this should be equal or inferior to the total length of synthetics tlen in DSM)
+
+movingWindowStep= 100.0d0 # moving window step in seconds (normally smaller than the dominant period?)
+
+dt = 0.1d0 # delta t in seconds -> this should be identical in syn and obs
+
+
 # butterworth filters (order, fmin, fmax)
-4 # order (integer)
-0.01 # min frequency (in Hz)
-0.05 # max frequency (in Hz)
+npButterworth =  4 # order (integer)
+fmin= 0.01 # min frequency (in Hz)
+fmax= 0.05 # max frequency (in Hz)
+
+
 # SGT version has window cutting option
-0.0 1000.0
+effectiveSynWindow = 0.0 1000.0
+
+#  observed data information
+
+tlenData= 800.0d0 # total length of the seismic data in seconds, this should be bigger than the synthetic window length described above
+
+
 # number of taper windows 
-1
-# t1, t2, t3, t4
-#400.0 410.0 480.0 500.0
-0.0 200.0 800.0 1000.0
+
+numberofWindows =2
+
+# taper windows in obs should be written as: t1, t2, t3, t4
+obsWindow2 = 500.0 520.0 540.0 580.0
+obsWindow1= 0.0 200.0 800.0 1000.0
 # 
-# seismic data (N E Z) 
+
+
+# observed data files 
 #
-800.0d0 # total length of the seismic data in seconds, this should be bigger than the synthetic window length described above
-resam.BHZ
-resam.BHN
-resam.BHE
+obsZfile= resam.BHZ
+obsEfile= resam.BHE
+obsNfile= resam.BHN
+
+
 #
 # number of taper windows for observed
 2

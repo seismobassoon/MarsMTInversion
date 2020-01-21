@@ -38,8 +38,8 @@ module parameters
     character(200) :: eventName
     character(200) :: stationName
     real(kind(0d0)) :: stla,stlo
-    character(120) :: INFO_TSGT,INFO_RSGT,rsampletxt,modelcard
-    character(120) :: Poutputdir,psvmodel,modelname,DSMconfFile
+    character(200) :: INFO_TSGT,INFO_RSGT,rsampletxt,modelcard
+    character(200) :: Poutputdir,psvmodel,modelname,DSMconfFile
     integer :: imin,imax,maxlmax
     real(kind(0d0)) :: omegai
     real(kind(0d0)) :: r0delta,r0max,r0min,ratc,ratl,rdelta_,re,rmax_,rmin_
@@ -54,6 +54,9 @@ module parameters
     real(kind(0d0)), allocatable :: r_(:),thetaD(:),phiD(:),omega(:)
     real(kind(0d0)) :: dtn,start,end,samplingHz
 end module parameters
+
+
+
 
 
 module tmpSGTs

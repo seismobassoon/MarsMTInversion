@@ -42,9 +42,9 @@ program MarsInversion
   call pinput
   
   !print *, np,ntwin
-  allocate(taper(1:np))
+  allocate(taper(1:npDSM))
 
-  nTimeStep = (npData-np+1)/ntStep+1
+  nTimeStep = (npData-npDSM+1)/ntStep+1
 
   ! nmt = 6
 
@@ -101,13 +101,13 @@ program MarsInversion
   ! we apply the butterworth filter to the Green's functions
 
 
-  allocate(tmparray(1:np,1:3,1:nmt))
-  allocate(GreenArray(1:np,1:3,1:nmt))
-  allocate(obsArray(1:np,1:3),obsRawArray(1:np,1:3))
-  allocate(filtbefore(1:np),filtafter(1:np))
+  allocate(tmparray(1:npDSM,1:3,1:nmt))
+  allocate(GreenArray(1:npDSM,1:3,1:nmt))
+  allocate(obsArray(1:npDSM,1:3),obsRawArray(1:npDSM,1:3))
+  allocate(filtbefore(1:npDSM),filtafter(1:npDSM))
 
-  allocate(modArray(1:np,1:3))
-  allocate(modRawArray(1:np,1:3))
+  allocate(modArray(1:npDSM,1:3))
+  allocate(modRawArray(1:npDSM,1:3))
 
 
   mtInverted=0.d0
@@ -136,7 +136,7 @@ program MarsInversion
            read(1,110) synfile
            synfile=trim(workingDir)//"/"//trim(synfile)
            open(unit=10,file=synfile,status='unknown')
-           do it=1,np
+           do it=1,npDSM
               read(10,*) dummyFloat,tmparray(it,1,mtcomp),tmparray(it,2,mtcomp),tmparray(it,3,mtcomp)
            enddo
            close(10)
@@ -183,10 +183,10 @@ program MarsInversion
      
      do mtcomp=1,nmt
         do icomp=1,3
-           filtbefore(1:np)=tmparray(1:np,icomp,mtcomp)
-           call bwfilt(filtbefore,filtafter,dt,np,1,npButterworth,fmin,fmax)
-           tmparray(1:np,icomp,mtcomp)=filtafter(1:np)
-           GreenArray(1:np,icomp,mtcomp)=filtafter(1:np)*taper(1:np)
+           filtbefore(1:npDSM)=tmparray(1:npDSM,icomp,mtcomp)
+           call bwfilt(filtbefore,filtafter,dt,npDSM,1,npButterworth,fmin,fmax)
+           tmparray(1:npDSM,icomp,mtcomp)=filtafter(1:npDSM)
+           GreenArray(1:npDSM,icomp,mtcomp)=filtafter(1:npDSM)*taper(1:npDSM)
         enddo
      enddo
      
@@ -200,7 +200,7 @@ program MarsInversion
      ata=0.d0
      do mtcomp=1,nmt
         do jmtcomp=1,mtcomp
-           ata(mtcomp,jmtcomp)=sum(GreenArray(1:np,1:3,mtcomp)*GreenArray(1:np,1:3,jmtcomp))
+           ata(mtcomp,jmtcomp)=sum(GreenArray(1:npDSM,1:3,mtcomp)*GreenArray(1:npDSM,1:3,jmtcomp))
         enddo
      enddo
      
@@ -258,14 +258,14 @@ program MarsInversion
      do iMovingWindowStep=1,nTimeStep
         iMovingWindow=(iMovingWindowStep-1)*ntStep+1
         do icomp=1,3
-           obsRawArray(1:np,icomp)=obsFilt(iMovingWindow:iMovingWindow+np-1,icomp)
-           obsArray(1:np,icomp)=obsRawArray(1:np,icomp)*taper(1:np)
+           obsRawArray(1:npDSM,icomp)=obsFilt(iMovingWindow:iMovingWindow+npDSM-1,icomp)
+           obsArray(1:npDSM,icomp)=obsRawArray(1:npDSM,icomp)*taper(1:npDSM)
         enddo
         atd=0.d0
         ! Atd construction
         
         do mtcomp=1,nmt
-           atd(mtcomp)=sum(GreenArray(1:np,1:3,mtcomp)*obsArray(1:np,1:3))
+           atd(mtcomp)=sum(GreenArray(1:npDSM,1:3,mtcomp)*obsArray(1:npDSM,1:3))
         enddo
        
       
@@ -288,10 +288,10 @@ program MarsInversion
         modRawArray=0.d0
         modArray=0.d0
         do mtcomp=1,nmt
-           modRawArray(1:np,1:3)=modRawArray(1:np,1:3) &
-                +tmparray(1:np,1:3,mtcomp)*mtInverted(mtcomp,iMovingWindowStep,iConfiguration)
-           modArray(1:np,1:3)=modArray(1:np,1:3) &
-                +GreenArray(1:np,1:3,mtcomp)*mtInverted(mtcomp,iMovingWindowStep,iConfiguration)
+           modRawArray(1:npDSM,1:3)=modRawArray(1:npDSM,1:3) &
+                +tmparray(1:npDSM,1:3,mtcomp)*mtInverted(mtcomp,iMovingWindowStep,iConfiguration)
+           modArray(1:npDSM,1:3)=modArray(1:npDSM,1:3) &
+                +GreenArray(1:npDSM,1:3,mtcomp)*mtInverted(mtcomp,iMovingWindowStep,iConfiguration)
         enddo
 
         write(list,'(I7,".",I7)') iConfiguration,iMovingWindowStep
@@ -324,7 +324,7 @@ program MarsInversion
         modRawN(iMovingWindowStep,iConfiguration)=0.d0
         modRawE(iMovingWindowStep,iConfiguration)=0.d0
 
-        do it=1,np
+        do it=1,npDSM
 
            write(21,*) dt*dble(it), modRawArray(it,1), modRawArray(it,2), modRawArray(it,3)
            write(22,*) dt*dble(it), modArray(it,1), modArray(it,2), modArray(it,3)
