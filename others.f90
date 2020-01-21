@@ -35,6 +35,16 @@ subroutine pinput
         stop
     endif
 
+    open(unit=5,file=metafile,status='unknown')
+    
+
+    close(5)
+    
+
+
+
+
+
   
 
   
@@ -73,13 +83,18 @@ subroutine pinput
         stationName = trim(stationName)
         read(1,*) stla, stlo
         read(1,*) dt
-        read(1,*) tlen
-        np=int(tlen/dt)
+        read(1,*) tlenDSM
+        npDSM=int(tlenDSM/dt)
+
+
+        read(1,*) movingWindowStep
+        ntStep=int(movingWindowStep/dt)
+
 
         read(1,*) npButterworth
         read(1,*) fmin
         read(1,*) fmax
-        read(1,*) start, end ! onllly available for RSGT version
+        read(1,*) start, end ! only available for RSGT version
         read(1,*) ntwin
         allocate(twin(1:4,1:ntwin))
         allocate(itwin(1:4,1:ntwin))
@@ -129,12 +144,11 @@ subroutine pinput
 
 
 
-        read(1,*) movingWindowStep
-        ntStep=int(movingWindowStep/dt)
+
 
         call makingIndependentWindow
 
-
+        
         
         commandline = 'mkdir -p '//trim(parentDir)
         call system(commandline)

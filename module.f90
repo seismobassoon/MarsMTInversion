@@ -13,10 +13,10 @@ module parameters
     real(kind(0d0)) :: fmin,fmax
     real(kind(0d0)) :: eps=1.d-5 ! tolerance during MT inversion
     integer :: nmt
-    integer :: np ! integer length of synthetics (to be considered)
+    integer :: npDSM ! integer length of synthetics (to be considered)
     integer :: npData ! integer lenght of observed
     integer :: ntStep
-    real(kind(0d0)) :: dt, tlen, tlenData
+    real(kind(0d0)) :: dt, tlenDSM, tlenData
     real(kind(0d0)), allocatable :: twin(:,:),twinObs(:,:)
     real(kind(0d0)) :: movingWindowStep
     integer :: NmovingWindowDimension
