@@ -123,8 +123,10 @@ program MarsInversion
 
 
   if(calculMode.eq.2) then
-     allocate(rsgtomega(1:num_rsgtPSV,imin:imax,1:theta_n))
-     allocate(u(iWindowStart:iWindowEnd,1:num_rsgtPSV))
+    allocate(rsgtomega(1:num_rsgtPSV,imin:imax,1:theta_n))
+    allocate(u(iWindowStart:iWindowEnd,1:num_rsgtPSV))
+    !rsgtomega=dcmplx(0.d0)
+    !u=0.d0
   endif
 
 
@@ -134,19 +136,27 @@ program MarsInversion
     iConfTheta=mod((iConfiguration-1),(r_n*theta_n))/phi_n+1
     iConfPhi=mod(mod((iConfiguration-1),(r_n*theta_n)),phi_n)+1
     
-    print *, iConfiguration, iConfR, iConfTheta, iConfPhi, "henlo"
+    !print *, iConfiguration, iConfR, iConfTheta, iConfPhi, "henlo"
 
     
-
+    iConfTheta = 200
     if(iConfPhi.eq.1) then
         ! SSGT reading
         call rdsgtomega(r_(iConfR),0.d0,num_rsgtPSV,num_rsgtPSV,20)
-        call rdsgtomega(r_(iConfR),0.d0,num_rsgtSH,num_rsgtPSV,10)
+        !call rdsgtomega(r_(iConfR),0.d0,num_rsgtSH,num_rsgtPSV,10)
+        !!!!! NF we should include this SH part of couuuuuurse !!!!!!!!!!
+
+        
+        ! here we construct 10 SGTs
+        call tensorFFT_double(num_rsgtPSV,imin,imax,np1,rsgtomega(1:num_rsgtPSV,imin:imax,iConfTheta),u(iWindowStart:iWindowEnd,1:num_rsgtPSV),omegai,tlenFull,iWindowStart,iWindowEnd)
     endif
 
-        ! here we construct 10 SGTs
-    call vectorFFT_double(num_rsgtPSV,imin,imax,np1,rsgtomega(1:num_rsgtPSV,imin:imax,iConfTheta),u(iWindowStart:iWindowEnd,1:num_rsgtPSV),omegai,tlenFull,iWindowStart,iWindowEnd)
+        print *, iConfTheta, tlenFull,omegai,lsmooth,imax,np1
+        do it=iWindowStart,iWindowEnd
+write(14,*) dble(it)*dt,u(it,3),u(it,2),u(it,3),u(it,4)
+        enddo
     stop
+
         ! NF redefine u and reconsider the order of rsgtomega
 
         ! Hey here, we can even rotate with 360 phi!!!
@@ -155,22 +165,7 @@ program MarsInversion
      !
 
 
-     ! Make a fake series of observed waveforms for synthetic inversion
-     ! nothing to do with the inversion, comment out when we are on the production mode
-     !if(iConfiguration.eq.1) then
-     !   fakeMT=(/1.d0,2.d0,-10.d0,1.d0,3.d0,-2.d0/)
-     !   open(unit=4,file="fakeZ.data.fake",status='unknown')
-     !   open(unit=5,file="fakeN.data.fake",status='unknown')
-     !   open(unit=6,file="fakeE.data.fake",status='unknown')
-     !   do it=1,np
-     !      write(4,*) dot_product(fakeMT(1:6),(tmparray(it,1,1:6)))
-     !      write(5,*) dot_product(fakeMT(1:6),(tmparray(it,2,1:6)))
-     !      write(6,*) dot_product(fakeMT(1:6),(tmparray(it,3,1:6)))
-     !   enddo
-     !   close(4)
-     !   close(5)
-     !   close(6)
-     !endif
+  
 
      ! Here we first filter Green's function as a whole and taper them
      

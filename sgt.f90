@@ -52,6 +52,7 @@ subroutine rdsgtomega(rx,ry,num_sgt,num_psv,ipsvorsh)
         !elseif(ipsvorsh.eq.100) then
         !   write(coutfile, '(I7,".",I7,".",I7,".TSGT_SH")') int(rx*1.d3),int(ry*1.d3),i
         endif
+
         
         !if((ipsvorsh.eq.200).or.(ipsvorsh.eq.100)) then ! TSGT
         !   do j = 1,29
@@ -60,12 +61,15 @@ subroutine rdsgtomega(rx,ry,num_sgt,num_psv,ipsvorsh)
         !   coutfile = trim(modelname)//"."//coutfile
         !   coutfile = trim(PoutputDir)//"/TSGT/"//coutfile
         !else
-           do j = 1,21
-              if (coutfile(j:j).eq.' ')coutfile(j:j) = '0'
-           enddo
-           coutfile = trim(modelname)//"."//coutfile
-           coutfile = trim(PoutputDir)//"/RSGT/"//coutfile ! RSGT & SYNN
+        do j = 1,21
+            if (coutfile(j:j).eq.' ')coutfile(j:j) = '0'
+        enddo
+
+        coutfile = trim(modelname)//"."//coutfile
+
+        coutfile = trim(PoutputDir)//"/RSGT/"//coutfile ! RSGT & SYNN
         !endif
+
         open(1,file=coutfile,status='unknown',form='unformatted', &
              access = 'direct', recl=2*num_sgt*kind(0e0)*theta_n)
         read(1,rec=1)sgtsngl(1:num_sgt,1:theta_n)
@@ -147,6 +151,7 @@ subroutine tensorFFT_double(n,imin,imax,np1,ccvec,rvec,omegai,tlen,iWindowStart,
   cvec(1:n,imin:imax)=ccvec(1:n,imin:imax)
 
   samplingHz = dble(2*np1)/tlen
+
   do j = 1,n
      do i = imin, np1-1
         n1 = np1 +i
@@ -161,7 +166,7 @@ subroutine tensorFFT_double(n,imin,imax,np1,ccvec,rvec,omegai,tlen,iWindowStart,
   do j = 1,n
      call cdft(4*np1,cos(pi/(2*np1)),sin(pi/(2*np1)), cvec(j,0:2*np1-1))
      do i = iWindowStart, iWindowEnd
-        rvec(j,i) = dble(dble(cvec(j,i))*dble(exp(omegai*dble(i)/samplingHz))/tlen*1.d3)
+        rvec(i,j) = dble(dble(cvec(j,i))*dble(exp(omegai*dble(i)/samplingHz))/tlen*1.d3)
         
      enddo
   enddo

@@ -33,7 +33,7 @@ stlalo= 34.54 -116.39
 
 # synthetic information
 
-tlenDSM= 1000.0d0 # window width in seconds (this should be equal or inferior to the total length of synthetics tlen in DSM)
+tlenDSM= 3000.0d0 # window width in seconds (this should be equal or inferior to the total length of synthetics tlen in DSM)
 
 movingWindowStep= 100.0d0 # moving window step in seconds (normally smaller than the dominant period?)
 
@@ -47,7 +47,7 @@ fmax= 0.05 # max frequency (in Hz)
 
 
 # SGT version has window cutting option
-effectiveSynWindow = 0.0 1000.0
+effectiveSynWindow = 0.0 3000.0
 
 #  observed data information
 

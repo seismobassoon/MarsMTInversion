@@ -420,7 +420,7 @@ subroutine makingIndependentWindow
         !endif
         totalNumberInWindowDimension(iloop)=(iMovingWindowEnd(iloop)-iMovingWindowStart(iloop))/ntStep+1
         nTimeCombination = nTimeCombination*totalNumberInWindowDimension(iloop)
-        print *, iloop, totalNumberInWindowDimension(iloop)
+        !print *, iloop, totalNumberInWindowDimension(iloop)
     enddo
 
     allocate(iEachWindowStart(1:nTimeCombination,1:NmovingWindowDimension))
@@ -448,7 +448,7 @@ subroutine pinputDSM(DSMconfFile,outputDir,psvmodel, &
     thetamin,thetamax,thetadelta,imin,imax,rsgtswitch,tsgtswitch,synnswitch,SGTinfo)
   implicit none
   !character(120), parameter :: tmpfile='tmpworkingfile_for_SGTcalcul'
-  character(120) :: dummy,outputDir,psvmodel,modelname,DSMconfFile,SGTinfo
+  character(200) :: dummy,outputDir,psvmodel,modelname,DSMconfFile,SGTinfo
   real(kind(0d0)) :: tlen,rmin_,rmax_,rdelta_,r0min,r0max,r0delta
   real(kind(0d0)) :: thetamin,thetamax,thetadelta
   integer :: imin,imax,rsgtswitch,tsgtswitch,synnswitch
@@ -480,6 +480,9 @@ subroutine pinputDSM(DSMconfFile,outputDir,psvmodel, &
   outputDir=trim(outputDir)
   psvmodel=trim(psvmodel)
   modelname=trim(modelname)
+  modelname=adjustl(modelname)
+  outputDir=adjustl(outputDir)
+  psvmodel=adjustl(psvmodel)
   read(1,*) tlen
   read(1,*) rmin_,rmax_,rdelta_
   read(1,*) r0min
