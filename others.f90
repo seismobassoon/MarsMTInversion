@@ -135,7 +135,7 @@ subroutine pinput
         print *, "effective DSM synthetic window is from ", start, " (s) to ", end, " (s)"
 
        
-        paramName="numberofWindows"
+        paramName="numberofSynWindows"
         call searchForParams(tmpfile,paramName,dummy,1)
         read(dummy,*) ntwin
 
@@ -146,11 +146,11 @@ subroutine pinput
 
         do iloop=1,ntwin
             write(paramName,*) iloop
-            paramName="obsWindow"//trim(adjustl(paramName))
+            paramName="synWindow"//trim(adjustl(paramName))
             
             call searchForParams(tmpfile,paramName,dummy,1)
             read(dummy,*) twin(1,iloop),twin(2,iloop),twin(3,iloop),twin(4,iloop)
-            print *, iloop,"-th window in obs is characterised by:", &
+            print *, iloop,"-th window in syn is characterised by:", &
                 twin(1,iloop),twin(2,iloop),twin(3,iloop),twin(4,iloop)
         enddo
         itwin=int(twin/dt)
@@ -189,49 +189,46 @@ subroutine pinput
         enddo
         
 
+        paramName="numberofObsWindows"
+        call searchForParams(tmpfile,paramName,dummy,1)
+        read(dummy,*) ntwinObs
+        
 
-        do iloop=1,3
-            read(1,110) obsfile
-            obsfile=trim(workingDir)//"/"//trim(obsfile)
-            open(unit=10,file=obsfile,status='unknown')
-            do it=1,npData
-                read(10,*) obsRaw(it,iloop)
-            enddo
-            close(10)
-        enddo
-
-
-
-        read(1,*) ntwinObs
-
-        ! control the multiple moving windows
-        read(1,110) dummy
-
+        paramName="obsMovingWindowOption"
+        call searchForParams(tmpfile,paramName,dummy,0)
         if(dummy(1:5).eq.'fixed') then
             NmovingWindowDimension=1
         elseif(dummy(1:).eq.'independent') then
             NmovingWindowDimension=ntwinObs
         endif
 
+        print *, "the number of Obs Windows is ", ntwinObs, " and the dimension is ",  &
+            NmovingWindowDimension, " since you chose ", trim(dummy), " option."
+
+
 
         allocate(twinObs(1:4,1:ntwinObs))
         allocate(itwinObs(1:4,1:ntwinObs))
 
+
         do iloop=1,ntwinObs
-            read(1,*) twinObs(1,iloop),twinObs(2,iloop),twinObs(3,iloop),twinObs(4,iloop)
+            write(paramName,*) iloop
+            paramName="obsWindow"//trim(adjustl(paramName))
+            
+            call searchForParams(tmpfile,paramName,dummy,1)
+            read(dummy,*) twinObs(1,iloop),twinObs(2,iloop),twinObs(3,iloop),twinObs(4,iloop)
+            print *, iloop,"-th window in obs is characterised by:", &
+                twinObs(1,iloop),twinObs(2,iloop),twinObs(3,iloop),twinObs(4,iloop)
         enddo
         itwinObs=int(twinObs/dt)
-
-
-
 
 
         call makingIndependentWindow
 
         
         
-        commandline = 'mkdir -p '//trim(parentDir)
-        call system(commandline)
+        !commandline = 'mkdir -p '//trim(parentDir)
+        !call system(commandline)
         call pinputDSM(DSMconfFile,PoutputDir,psvmodel,&
                 modelname,tlenFull,rmin_,rmax_,rdelta_, &
                 r0min,r0max,r0delta,thetamin,thetamax,thetadelta, &
@@ -268,6 +265,9 @@ subroutine pinput
             phiD(iloop) = phimin + dble(iloop-1)*phidelta
         enddo
         
+
+
+        print *, "r, theta, phi are discretised in ", r_n, theta_n, phi_n
      
         ! lsmoothfinder for FFT
         np0=imax
@@ -301,6 +301,9 @@ subroutine pinput
         nConfiguration=r_n*theta_n*phi_n
 
     elseif((dummy(1:6).eq.'normal').or.(dummy(1:4).eq.'test')) then
+
+
+        print *, "no more support for non RSGT methods. Sorry."
         if(dummy(1:4).eq.'test') calculMode=1
         read(1,*) dt
         read(1,*) tlenDSM
@@ -355,6 +358,10 @@ subroutine pinput
             read(1,*) twinObs(1,iloop),twinObs(2,iloop),twinObs(3,iloop),twinObs(4,iloop)
         enddo
         itwinObs=int(twinObs/dt)
+
+
+
+
         read(1,*) movingWindowStep
         ntStep=int(movingWindowStep/dt)
 
@@ -416,7 +423,7 @@ end subroutine pinput
 subroutine searchForParams(filename,ParamName,textParam,paramisText)
     implicit none
     character(200) :: filename,textParam,text_line
-    integer :: paramLength,textLength,paramisText
+    integer :: paramLength,textLength,paramisText,io
     character(200) :: ParamName
     integer :: iFind, jtemp, iCut
     filename=trim(filename)
@@ -427,7 +434,12 @@ subroutine searchForParams(filename,ParamName,textParam,paramisText)
     iCut=0
     open(20,file=filename,status='unknown')
     do while(iFind.eq.0)
-        read(20,'(a)') text_line
+        read(20,'(a)',IOSTAT=io) text_line
+        if(io>0) then
+            print *, "oh, no"
+            print *, trim(ParamName), " is not found."
+            stop
+        endif
         textLength=len_trim(text_line)
         !print *, text_line(1:textLength)
         if(text_line(1:paramLength).eq.ParamName(1:paramLength)) then
@@ -458,6 +470,7 @@ subroutine makingIndependentWindow
     use parameters
     implicit none
     integer :: iloop
+    character(200) ::  dummy, paramName, tmpfile
 
     ! Moving windows
 
@@ -467,9 +480,18 @@ subroutine makingIndependentWindow
     allocate(iMovingWindowStart(1:NmovingWindowDimension))
     allocate(iMovingWindowEnd(1:NmovingWindowDimension))
 
+    tmpfile='tmpfileMarsInversion'
+
     do iloop=1,NmovingWindowDimension
-        read(1,*) fMovingWindowStart(iloop), fMovingWindowEnd(iloop)
+        write(paramName,*) iloop
+        paramName="movingWindowRange"//trim(adjustl(paramName))
+        
+        call searchForParams(tmpfile,paramName,dummy,1)
+        read(dummy,*) fMovingWindowStart(iloop), fMovingWindowEnd(iloop)
+        print *, iloop,"-th moving range in obs is characterised by:", &
+            fMovingWindowStart(iloop), fMovingWindowEnd(iloop)
     enddo
+
     iMovingWindowStart=int(fMovingWindowStart/dt)
     iMovingWindowEnd=int(fMovingWindowEnd/dt)
     
@@ -481,18 +503,18 @@ subroutine makingIndependentWindow
             print *, "no sufficient data points in syn data for the window", iloop
             stop
         endif
-        if(itwinObs(1,iloop)<1) then
-            print *, "no sufficient data points in obs data for the window", iloop
-            stop
-        endif
+        !if(itwinObs(1,iloop)<1) then
+        !    print *, "no sufficient data points in obs data for the window", iloop
+        !    stop
+        !endif
         if(iMovingWindowStart(iloop)>npDSM) then
             print *, "no sufficient data points in syn data for the window", iloop
             stop
         endif
-        if(itwinObs(4,iloop)+iMovingWindowEnd(iloop)>npData) then
-            print *, "no sufficient data points in obs data for the window", iloop
-            stop
-        endif
+        !if(itwinObs(4,iloop)+iMovingWindowEnd(iloop)>npData) then
+        !    print *, "no sufficient data points in obs data for the window", iloop
+        !    stop
+        !endif
     enddo
 
 end subroutine

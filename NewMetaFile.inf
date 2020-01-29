@@ -37,7 +37,7 @@ tlenDSM= 1000.0d0 # window width in seconds (this should be equal or inferior to
 
 movingWindowStep= 100.0d0 # moving window step in seconds (normally smaller than the dominant period?)
 
-dt = 0.1d0 # delta t in seconds -> this should be identical in syn and obs
+dt = 0.05d0 # delta t in seconds -> this should be identical in syn and obs
 
 
 # butterworth filters (order, fmin, fmax)
@@ -56,41 +56,43 @@ tlenData= 800.0d0 # total length of the seismic data in seconds, this should be 
 
 # number of taper windows 
 
-numberofWindows =2
+numberofSynWindows =2
 
 # taper windows in obs should be written as: t1, t2, t3, t4
-obsWindow2 = 500.0 520.0 540.0 580.0
-obsWindow1= 0.0 200.0 800.0 1000.0
+synWindow2 = 500.0 520.0 540.0 580.0
+synWindow1= 0.0 200.0 800.0 1000.0
 # 
 
 
 # observed data files 
 #
-obsZfile= resam.BHZ
-obsEfile= resam.BHE
-obsNfile= resam.BHN
+obsZfile= XB.ELYSE.02.BHZ.R.2019-07-26T121335.510000.txt
+obsEfile= XB.ELYSE.02.BHE.R.2019-07-26T121335.510000.txt
+obsNfile= XB.ELYSE.02.BHN.R.2019-07-26T121335.510000.txt
 
 
 #
 # number of taper windows for observed
-2
-# moving window options. 'fixed': the windows are fixed one to another; 'independent': the windows move independently
+numberofObsWindows= 2
+
+
+# obs moving window options. 'fixed': the windows are fixed one to another; 
+#                      'independent': the windows move independently
 #        attention, 'independent' will take much more time since it will move your windows independently
-#fixed
-independent
-# t1obs, t2obs, t3obs, t4obs
-#400.0 410.0 480.0 500.0
-160.0 200.0 240.0 300.0
-500.0 600.0 700.0 800.0
-#
-#
-5.0d0 # moving window step in seconds (normally smaller than the dominant period?)
-#
-#
+
+
+obsMovingWindowOption = independent
+
+
+obsWindow1= 160.0 200.0 240.0 300.0
+obsWindow2 = 500.0 600.0 700.0 800.0
+
+
+
 # then you can put the range of window slide for each window (in seconds)
 #
--100.0 100.0
--200.0 200.0
+movingWindowRange1 = -100.0 100.0
+movingWindowRange2 = -200.0 200.0
 #
 #
 end # this meta file should end with "end"
