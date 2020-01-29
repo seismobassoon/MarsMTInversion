@@ -17,7 +17,7 @@ program MarsInversion
   integer :: mtcomp,jmtcomp
   integer ::icomp,iWindow,it,jjj
   integer :: iMovingWindow,iConfiguration,iMovingWindowStep
-  real(kind(0d0)), allocatable :: taper(:)
+  real(kind(0d0)), allocatable :: taperDSM(:),taperOBS(:)
   real(kind(0d0)), allocatable :: tmparray(:,:,:)
   real(kind(0d0)), allocatable :: GreenArray(:,:,:)
   real(kind(0d0)), allocatable :: obsArray(:,:),obsRawArray(:,:)
@@ -34,7 +34,7 @@ program MarsInversion
   real(kind(0d0)), allocatable :: modZ(:,:),modN(:,:),modE(:,:)
   real(kind(0d0)), allocatable :: varRawZ(:,:),varRawN(:,:),varRawE(:,:)
   real(kind(0d0)), allocatable :: modRawZ(:,:),modRawN(:,:),modRawE(:,:)
-  integer :: nTimeStep
+  
   real(kind(0d0)) :: fakeMT(1:6)
 110 format(a200)
   ! making taper function
@@ -42,62 +42,70 @@ program MarsInversion
   call pinput
   
   !print *, np,ntwin
-  allocate(taper(1:npDSM))
+  allocate(taperDSM(1:npDSM))
+  allocate(taperOBS(1:npData))
 
-  nTimeStep = (npData-npDSM+1)/ntStep+1
 
-  ! nmt = 6
+
+  !print *, iMovingWindowStart(1), iMovingWindowStart(2)
+  !print *, iMovingWindowEnd(1), iMovingWindowEnd(2)
+  !print *, nTimeCombination, npData, npDSM, ntStep
+
 
   allocate(ata(1:nmt,1:nmt))
   allocate(atainv(1:nmt,1:nmt))
   allocate(atd(1:nmt))
-  allocate(mtInverted(1:nmt,1:nTimeStep,1:nConfiguration))
-  allocate(misfitTaper(1:nmt,1:nTimeStep,1:nConfiguration))
-  allocate(misfitRaw(1:nmt,1:nTimeStep,1:nConfiguration))
+  allocate(mtInverted(1:nmt,1:nTimeCombination,1:nConfiguration))
+  allocate(misfitTaper(1:nmt,1:nTimeCombination,1:nConfiguration))
+  allocate(misfitRaw(1:nmt,1:nTimeCombination,1:nConfiguration))
 
-  allocate(varZ(1:nTimeStep,1:nConfiguration))
-  allocate(varN(1:nTimeStep,1:nConfiguration))
-  allocate(varE(1:nTimeStep,1:nConfiguration))
-  allocate(modZ(1:nTimeStep,1:nConfiguration))
-  allocate(modN(1:nTimeStep,1:nConfiguration))
-  allocate(modE(1:nTimeStep,1:nConfiguration))
+  allocate(varZ(1:nTimeCombination,1:nConfiguration))
+  allocate(varN(1:nTimeCombination,1:nConfiguration))
+  allocate(varE(1:nTimeCombination,1:nConfiguration))
+  allocate(modZ(1:nTimeCombination,1:nConfiguration))
+  allocate(modN(1:nTimeCombination,1:nConfiguration))
+  allocate(modE(1:nTimeCombination,1:nConfiguration))
 
-  allocate(varRawZ(1:nTimeStep,1:nConfiguration))
-  allocate(varRawN(1:nTimeStep,1:nConfiguration))
-  allocate(varRawE(1:nTimeStep,1:nConfiguration))
-  allocate(modRawZ(1:nTimeStep,1:nConfiguration))
-  allocate(modRawN(1:nTimeStep,1:nConfiguration))
-  allocate(modRawE(1:nTimeStep,1:nConfiguration))
+  allocate(varRawZ(1:nTimeCombination,1:nConfiguration))
+  allocate(varRawN(1:nTimeCombination,1:nConfiguration))
+  allocate(varRawE(1:nTimeCombination,1:nConfiguration))
+  allocate(modRawZ(1:nTimeCombination,1:nConfiguration))
+  allocate(modRawN(1:nTimeCombination,1:nConfiguration))
+  allocate(modRawE(1:nTimeCombination,1:nConfiguration))
 
-
-  taper=0.d0
+  ! making taper for synthetics
+  taperDSM=0.d0
   do iWindow=1,ntwin
      do it=itwin(1,iWindow),itwin(4,iWindow)
         if((it.gt.itwin(1,iWindow)).and.(it.lt.itwin(2,iWindow))) then
            xfwin=dsin(0.5d0*pi*dble(it-itwin(1,iWindow))/dble(itwin(2,iWindow)-itwin(1,iWindow)))
-           taper(it)=xfwin*xfwin
+           taperDSM(it)=xfwin*xfwin
         elseif((it.ge.itwin(2,iWindow)).and.(it.le.itwin(3,iWindow))) then
-           taper(it)=1.d0
+           taperDSM(it)=1.d0
         elseif((it.gt.itwin(3,iWindow)).and.(it.lt.itwin(4,iWindow))) then
            xfwin=dsin(0.5d0*pi*dble(it-itwin(4,iWindow))/dble(itwin(3,iWindow)-itwin(4,iWindow)))
-           taper(it)=xfwin*xfwin
+           taperDSM(it)=xfwin*xfwin
         endif
      enddo
   enddo
-   
-  ! this is only for the use of confirmation
-  !do it=1,np
-  !   write(13,*) taper(it)
-  !enddo
-  !stop
-           
-
-
   
+  ! making taper for observed data
+  taperOBS=0.d0
+  do iWindow=1,ntwinObs
+     do it=itwinObs(1,iWindow),itwinObs(4,iWindow)
+        if((it.gt.itwinObs(1,iWindow)).and.(it.lt.itwinObs(2,iWindow))) then
+           xfwin=dsin(0.5d0*pi*dble(it-itwinObs(1,iWindow))/dble(itwinObs(2,iWindow)-itwinObs(1,iWindow)))
+           taperOBS(it)=xfwin*xfwin
+        elseif((it.ge.itwinObs(2,iWindow)).and.(it.le.itwinObs(3,iWindow))) then
+           taperOBS(it)=1.d0
+        elseif((it.gt.itwinObs(3,iWindow)).and.(it.lt.itwinObs(4,iWindow))) then
+           xfwin=dsin(0.5d0*pi*dble(it-itwinObs(4,iWindow))/dble(itwinObs(3,iWindow)-itwinObs(4,iWindow)))
+           taperOBS(it)=xfwin*xfwin
+        endif
+     enddo
+  enddo
 
 
-
-  
   ! we apply the butterworth filter to the Green's functions
 
 
@@ -121,43 +129,28 @@ program MarsInversion
 
 
   do iConfiguration=1,nConfiguration
-     
-     iConfR=iConfiguration/(r_n*theta_n)+1
-     iConfTheta=mod(iConfiguration,(r_n*theta_n))/theta_n+1
-     iConfPhi=mod(mod(iConfiguration,(r_n*theta_n)),theta_n)+1
-     
-     print *, iConfiguration, iConfR, iConfTheta, iConfPhi
+    
+    iConfR=(iConfiguration-1)/(phi_n*theta_n)+1
+    iConfTheta=mod((iConfiguration-1),(r_n*theta_n))/phi_n+1
+    iConfPhi=mod(mod((iConfiguration-1),(r_n*theta_n)),phi_n)+1
+    
+    print *, iConfiguration, iConfR, iConfTheta, iConfPhi, "henlo"
 
-     continue
-     ! Lecture des fonctions de Greens a partir des fichiers dans le filenames (iConfiguration)
-     if(calculMode.ne.2) then
-        open(unit=1,file=filenames(iConfiguration),status='unknown')
-        do mtcomp=1,nmt
-           read(1,110) synfile
-           synfile=trim(workingDir)//"/"//trim(synfile)
-           open(unit=10,file=synfile,status='unknown')
-           do it=1,npDSM
-              read(10,*) dummyFloat,tmparray(it,1,mtcomp),tmparray(it,2,mtcomp),tmparray(it,3,mtcomp)
-           enddo
-           close(10)
-        enddo
-        close(1)
-     elseif(calculMode.eq.2) then
-        iConfR=iConfiguration/r_n+1
-        iConfTheta=mod(iConfiguration,r_n)+1
-        if(iConfTheta.eq.1) then
+    
+
+    if(iConfPhi.eq.1) then
         ! SSGT reading
-            call rdsgtomega(r_(iConfR),0.d0,num_rsgtPSV,num_rsgtPSV,20)
-            call rdsgtomega(r_(iConfR),0.d0,num_rsgtSH,num_rsgtPSV,10)
-        endif
+        call rdsgtomega(r_(iConfR),0.d0,num_rsgtPSV,num_rsgtPSV,20)
+        call rdsgtomega(r_(iConfR),0.d0,num_rsgtSH,num_rsgtPSV,10)
+    endif
 
         ! here we construct 10 SGTs
-        call vectorFFT_double(num_rsgtPSV,imin,imax,np1,rsgtomega(1:num_rsgtPSV,imin:imax,iConfTheta),u(iWindowStart:iWindowEnd,1:num_rsgtPSV),omegai,tlenFull,iWindowStart,iWindowEnd)
+    call vectorFFT_double(num_rsgtPSV,imin,imax,np1,rsgtomega(1:num_rsgtPSV,imin:imax,iConfTheta),u(iWindowStart:iWindowEnd,1:num_rsgtPSV),omegai,tlenFull,iWindowStart,iWindowEnd)
+    stop
         ! NF redefine u and reconsider the order of rsgtomega
 
         ! Hey here, we can even rotate with 360 phi!!!
         ! mais bon c'est just trop couteux
-     endif
 
      !
 
@@ -186,7 +179,7 @@ program MarsInversion
            filtbefore(1:npDSM)=tmparray(1:npDSM,icomp,mtcomp)
            call bwfilt(filtbefore,filtafter,dt,npDSM,1,npButterworth,fmin,fmax)
            tmparray(1:npDSM,icomp,mtcomp)=filtafter(1:npDSM)
-           GreenArray(1:npDSM,icomp,mtcomp)=filtafter(1:npDSM)*taper(1:npDSM)
+           GreenArray(1:npDSM,icomp,mtcomp)=filtafter(1:npDSM)*taperDSM(1:npDSM)
         enddo
      enddo
      
@@ -255,11 +248,11 @@ program MarsInversion
      
      ! Here we taper the observed function for each moving window of np
      
-     do iMovingWindowStep=1,nTimeStep
+     do iMovingWindowStep=1,nTimeCombination
         iMovingWindow=(iMovingWindowStep-1)*ntStep+1
         do icomp=1,3
            obsRawArray(1:npDSM,icomp)=obsFilt(iMovingWindow:iMovingWindow+npDSM-1,icomp)
-           obsArray(1:npDSM,icomp)=obsRawArray(1:npDSM,icomp)*taper(1:npDSM)
+           obsArray(1:npDSM,icomp)=obsRawArray(1:npDSM,icomp)*taperDSM(1:npDSM)
         enddo
         atd=0.d0
         ! Atd construction
@@ -364,7 +357,7 @@ program MarsInversion
         
         
      enddo
-     
+
      
   enddo
 
@@ -373,7 +366,7 @@ program MarsInversion
   open(unit=2,file=trim(inversionName)//".raw_var",status='unknown')
   open(unit=3,file=trim(inversionName)//".tap_var",status='unknown')
   do iConfiguration=1,nConfiguration
-     do iMovingWindowStep=1,nTimeStep
+     do iMovingWindowStep=1,nTimeCombination
         iMovingWindow=iMovingWindowStep*ntStep
         iMovingWindow=(iMovingWindowStep-1)*ntStep+1
         write(1,*) iConfiguration, dble(iMovingWindow-1)*dt, &

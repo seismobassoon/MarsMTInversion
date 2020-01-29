@@ -25,6 +25,12 @@ module parameters
     integer :: ntwin,ntwinObs
     real(kind(0d0)), allocatable :: fMovingWindowStart(:), fMovingWindowEnd(:)
     integer, allocatable :: iMovingWindowStart(:),iMovingWindowEnd(:)
+    integer, allocatable :: totalNumberInWindowDimension(:)
+    integer :: nTimeCombination
+    
+    integer, allocatable :: iEachWindowStart(:,:), iEachWindowEnd(:,:)
+
+
 
     character(200), allocatable :: filenames(:)
     real(kind(0d0)), allocatable :: obsRaw(:,:), obsFilt(:,:)
@@ -45,8 +51,8 @@ module parameters
     real(kind(0d0)) :: r0delta,r0max,r0min,ratc,ratl,rdelta_,re,rmax_,rmin_
     integer :: rsgtswitch,synnswitch,tsgtswitch
     real(kind(0d0)) :: thetadelta,thetamax,thetamin
-    real(kind(0d0)), parameter :: phimin=-180.d0
-    real(kind(0d0)), parameter :: phimax= 180.d0
+    real(kind(0d0)), parameter :: phimin=0.d0
+    real(kind(0d0)), parameter :: phimax=0.d0
     real(kind(0d0)), parameter :: phidelta=1.d0
     real(kind(0d0)) :: tlenFull
     integer :: r_n, theta_n,phi_n,iWindowStart,iWindowEnd,lsmooth,np0,np1

@@ -16,9 +16,9 @@ versionSGT
 # with this versionSGT, the order of parameters in this inf file is no more important.
 # however, always the first declaration of parameters is valid (when you declare them twice or more).
 
-SGTinfo=../database.inf
+SGTinfo=./database.inf
 
-parentDir=../databaseDWAKr/RSGT/
+parentDir=./databaseDWAKr/RSGT/
 
 eventName = sol173
 

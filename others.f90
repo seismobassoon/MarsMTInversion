@@ -90,6 +90,7 @@ subroutine pinput
         call searchForParams(tmpfile,paramName,dummy,1)
         read(dummy,*) dt
         print *, "dt is ", dt, "(s)"
+        samplingHz=1.d0/dt
 
         paramName="tlenDSM"
         call searchForParams(tmpfile,paramName,dummy,1)
@@ -237,7 +238,7 @@ subroutine pinput
         call readDSMconf(DSMconfFile,re,ratc,ratl,omegai,maxlmax)
      
 
-
+        tmpfile='tmpReadPSVmodel'
         call readpsvmodel(psvmodel,tmpfile)
         INFO_TSGT = trim(parentDir)//"/INFO_TSGT.TXT"
         INFO_RSGT = trim(parentDir)//"/INFO_RSGT.TXT"
@@ -289,6 +290,7 @@ subroutine pinput
         dtn = 1.d0/samplingHz
         iWindowStart = int(start*samplingHz)
         iWindowEnd   = int(end*samplingHz)
+       
 
 
 
@@ -304,113 +306,7 @@ subroutine pinput
 
 
         print *, "no more support for non RSGT methods. Sorry."
-        if(dummy(1:4).eq.'test') calculMode=1
-        read(1,*) dt
-        read(1,*) tlenDSM
-        npDSM=int(tlenDSM/dt)
-     
-        read(1,*) npButterworth
-        read(1,*) fmin
-        read(1,*) fmax
-        read(1,*) ntwin
-        allocate(twin(1:4,1:ntwin))
-        allocate(itwin(1:4,1:ntwin))
-        do iloop=1,ntwin
-            read(1,*) twin(1,iloop),twin(2,iloop),twin(3,iloop),twin(4,iloop)
-        enddo
-        itwin=int(twin/dt)
-        read(1,*) tlenData
-        npData = int(tlenData/dt)
-     
-        allocate(obsRaw(1:npData,1:3))
-        allocate(obsFilt(1:npData,1:3))
-     
-     
-     
-        do iloop=1,3
-            read(1,110) obsfile
-            obsfile=trim(workingDir)//"/"//trim(obsfile)
-            open(unit=10,file=obsfile,status='unknown')
-            do it=1,npData
-                read(10,*) obsRaw(it,iloop)
-            enddo
-            close(10)
-        enddo
-
-
-        read(1,*) ntwinObs
-
-        ! control the multiple moving windows
-        read(1,110) dummy
-        if(dummy(1:5).eq.'fixed') then
-            NmovingWindowDimension=1
-        elseif(dummy(1:).eq.'independent') then
-            NmovingWindowDimension=ntwinObs
-        endif
-
-
-            
-
-
-        allocate(twinObs(1:4,1:ntwinObs))
-        allocate(itwinObs(1:4,1:ntwinObs))
-        do iloop=1,ntwinObs
-            read(1,*) twinObs(1,iloop),twinObs(2,iloop),twinObs(3,iloop),twinObs(4,iloop)
-        enddo
-        itwinObs=int(twinObs/dt)
-
-
-
-
-        read(1,*) movingWindowStep
-        ntStep=int(movingWindowStep/dt)
-
-
-        ! Moving windows
-        allocate(fMovingWindowStart(1:NmovingWindowDimension))
-        allocate(fMovingWindowEnd(1:NmovingWindowDimension))
-
-        allocate(iMovingWindowStart(1:NmovingWindowDimension))
-        allocate(iMovingWindowEnd(1:NmovingWindowDimension))
-
-        do iloop=1,NmovingWindowDimension
-            read(1,*) fMovingWindowStart(iloop), fMovingWindowEnd(iloop)
-        enddo
-        iMovingWindowStart=int(fMovingWindowStart/dt)
-        iMovingWindowEnd=int(fMovingWindowEnd/dt)
-            
-        do iloop=1,NmovingWindowDimension
-            iMovingWindowStart(iloop)=itwinObs(1,iloop)+iMovingWindowStart(iloop)
-            iMovingWindowEnd(iloop)=itwinObs(1,iloop)+iMovingWindowEnd(iloop)
-            ! check whether syn and obs are available for these indices
-            if(iMovingWindowStart(iloop)<1) then
-                print *, "no sufficient data points in syn data for the window", iloop
-                stop
-            endif
-            if(itwinObs(1,iloop)<1) then
-                print *, "no sufficient data points in obs data for the window", iloop
-                stop
-            endif
-            if(iMovingWindowEnd(iloop)>npData) then
-                print *, "no sufficient data points in syn data for the window", iloop
-                stop
-            endif
-            if(itwinObs(4,iloop)>npData) then
-                print *, "no sufficient data points in obs data for the window", iloop
-                    stop
-            endif
-        enddo
-
-
-    
-        read(1,*) nConfiguration
-        allocate(filenames(nConfiguration))
-        do iloop=1,nConfiguration
-            read(1,110) filenames(iloop)
-            filenames(iloop)=trim(workingDir)//"/"//trim(filenames(iloop))
-        enddo
-        
-        close(1)
+        stop
      
     endif
   
@@ -469,7 +365,8 @@ end subroutine
 subroutine makingIndependentWindow
     use parameters
     implicit none
-    integer :: iloop
+    integer :: iloop,jloop,tmpinteger
+    integer, allocatable :: indexInWindow(:)
     character(200) ::  dummy, paramName, tmpfile
 
     ! Moving windows
@@ -479,6 +376,10 @@ subroutine makingIndependentWindow
 
     allocate(iMovingWindowStart(1:NmovingWindowDimension))
     allocate(iMovingWindowEnd(1:NmovingWindowDimension))
+
+    allocate(indexInWindow(1:NmovingWindowDimension))
+
+    allocate(totalNumberInWindowDimension(1:NmovingWindowDimension))
 
     tmpfile='tmpfileMarsInversion'
 
@@ -495,6 +396,8 @@ subroutine makingIndependentWindow
     iMovingWindowStart=int(fMovingWindowStart/dt)
     iMovingWindowEnd=int(fMovingWindowEnd/dt)
     
+
+    nTimeCombination = 1
     do iloop=1,NmovingWindowDimension
         iMovingWindowStart(iloop)=itwinObs(1,iloop)+iMovingWindowStart(iloop)
         iMovingWindowEnd(iloop)=itwinObs(1,iloop)+iMovingWindowEnd(iloop)
@@ -515,7 +418,27 @@ subroutine makingIndependentWindow
         !    print *, "no sufficient data points in obs data for the window", iloop
         !    stop
         !endif
+        totalNumberInWindowDimension(iloop)=(iMovingWindowEnd(iloop)-iMovingWindowStart(iloop))/ntStep+1
+        nTimeCombination = nTimeCombination*totalNumberInWindowDimension(iloop)
+        print *, iloop, totalNumberInWindowDimension(iloop)
     enddo
+
+    allocate(iEachWindowStart(1:nTimeCombination,1:NmovingWindowDimension))
+    allocate(iEachWindowEnd(1:nTimeCombination,1:NmovingWindowDimension))
+
+    do jloop=1,nTimeCombination
+        tmpinteger=jloop-1
+        do iloop=1,NmovingWindowDimension
+            indexInWindow(iloop)=mod(tmpinteger,totalNumberInWindowDimension(iloop))+1
+
+            tmpinteger=tmpinteger/totalNumberInWindowDimension(iloop)
+            iEachWindowStart(jloop,iloop)=iMovingWindowStart(iloop)+ntStep*(indexInWindow(iloop)-1)
+            iEachWindowEnd(jloop,iloop)=iMovingWindowEnd(iloop)+ntStep*(indexInWindow(iloop)-1)
+            
+        enddo
+        !print *, jloop,indexInWindow(:),iEachWindowStart(jloop,:),iEachWindowEnd(jloop,:)
+    enddo
+
 
 end subroutine
 
