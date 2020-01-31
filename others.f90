@@ -8,6 +8,7 @@
 subroutine pinput
 
     use parameters
+    use angles
     implicit none
     character(200) :: argv
     integer :: argc
@@ -85,6 +86,19 @@ subroutine pinput
         call searchForParams(tmpfile,paramName,dummy,1)
         read(dummy, *) stla, stlo
         print *, "stla is ", stla, " and stlo is", stlo
+
+        rlat=stla
+        rlon=stlo
+    
+        paramName="searchAreaLatitude"
+        call searchForParams(tmpfile,paramName,dummy,1)
+        read(dummy,*) latmin,latmax,dlat
+        print *, "latitude min, max and interval are: ", latmin, latmax, dlat
+
+        paramName="searchAreaLongitude"
+        call searchForParams(tmpfile,paramName,dummy,1)
+        read(dummy,*) lonmin,lonmax,dlon
+        print *, "longitude min, max and interval are: ", lonmin, lonmax, dlon
 
         paramName="dt"
         call searchForParams(tmpfile,paramName,dummy,1)
@@ -268,7 +282,7 @@ subroutine pinput
         
 
 
-        print *, "r, theta, phi are discretised in ", r_n, theta_n, phi_n
+        print *, "r, theta, phi are discretised in ", r_n, theta_n, phi_n, "pieces in DSM pre-calculation"
      
         ! lsmoothfinder for FFT
         np0=imax

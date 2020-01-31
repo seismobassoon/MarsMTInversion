@@ -110,8 +110,10 @@ program MarsInversion
     ! we apply the butterworth filter to the Green's functions
 
 
-    allocate(tmparray(1:npDSM,1:3,1:nmt))
-    allocate(GreenArray(1:npDSM,1:3,1:nmt))
+    allocate(tmparray(iWindowStart:iWindowEnd,1:3,1:nmt))
+    allocate(GreenArray(iWindowStart:iWindowEnd,1:3,1:nmt))
+
+    !! NF should think how to do this
     allocate(obsArray(1:npDSM,1:3),obsRawArray(1:npDSM,1:3))
     allocate(filtbefore(1:npDSM),filtafter(1:npDSM))
 
@@ -125,7 +127,7 @@ program MarsInversion
 
     if(calculMode.eq.2) then
         allocate(rsgtomega(1:num_rsgtPSV,imin:imax,1:theta_n))
-        allocate(u(iWindowStart:iWindowEnd,1:num_rsgtPSV))
+        allocate(rsgtTime(iWindowStart:iWindowEnd,1:num_rsgtPSV))
         !rsgtomega=dcmplx(0.d0)
         !u=0.d0
     endif
@@ -135,6 +137,11 @@ program MarsInversion
     nr=r_n
     ntheta=theta_n
     nphi=phi_n
+    
+    
+    
+
+
     allocate(crq(0:nphi,0:ntheta),crq2(0:nphi,0:ntheta))
     allocate(srq(0:nphi,0:ntheta),srq2(0:nphi,0:ntheta))
     allocate(csq(0:nphi,0:ntheta),csq2(0:nphi,0:ntheta))
@@ -142,7 +149,7 @@ program MarsInversion
     allocate(cqs(0:nphi,0:ntheta),cqs2(0:nphi,0:ntheta))
     allocate(sqs(0:nphi,0:ntheta),sqs2(0:nphi,0:ntheta))
     allocate(deltar(nphi,ntheta),deltas(nphi,ntheta))
-    call calculateSineCosine(azim)
+    call calculateSineCosine
 
 
 
@@ -158,6 +165,18 @@ program MarsInversion
 
             do iConfPhi=1,nphi
                 iConfiguration=(iConfR-1)*(nphi*ntheta)+(iConfTheta-1)*nphi+iConfPhi
+                    
+                    
+                    
+                    do icomp=1,3
+                            
+                        call rsgt2h3time
+                        
+                       
+                    enddo
+
+
+                        
 
                     print *, iConfR, iConfTheta, iConfPhi, iConfiguration
                     
@@ -388,7 +407,7 @@ program MarsInversion
      enddo
 
      
-  enddo
+
 
 
   open(unit=1,file=trim(inversionName)//".inv_result",status='unknown')

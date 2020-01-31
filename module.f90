@@ -66,23 +66,22 @@ end module parameters
 
 
 module tmpSGTs
-  implicit none
-  ! in frequency domain
-  complex(kind(0d0)), allocatable :: rsgtF(:,:)
-  complex(kind(0d0)), allocatable :: h3(:,:),h4(:,:)
-  complex(kind(0d0)), allocatable :: rsgtomega(:,:,:)
-  complex(kind(0d0)), allocatable :: u_freq(:)
-  ! in time domain
-  real(kind(0d0)), allocatable :: t(:),u(:,:),u0(:,:),v(:),v0(:,:),hu(:),hu0(:,:)
-  real(kind(0d0)), allocatable :: fwin(:,:)
-  integer, allocatable :: nt1(:),nt2(:)
-  real(kind(0d0)), allocatable :: denomv(:),denomu(:),coeff(:,:,:,:),coeffV(:,:)
-  integer, parameter :: num_rsgtPSV=10
-  integer, parameter :: num_rsgtSH=5
-  integer, parameter :: num_rsgt=10
+    implicit none
+    ! in frequency domain
+    complex(kind(0d0)), allocatable :: rsgtF(:,:)
+    complex(kind(0d0)), allocatable :: h3(:,:),h4(:,:)
+    complex(kind(0d0)), allocatable :: rsgtomega(:,:,:)
+    complex(kind(0d0)), allocatable :: u_freq(:)
+    ! in time domain
+    real(kind(0d0)), allocatable :: t(:),rsgtTime(:,:),u0(:,:),v(:),v0(:,:),hu(:),hu0(:,:)
+    real(kind(0d0)), allocatable :: fwin(:,:)
+    integer, allocatable :: nt1(:),nt2(:)
+    real(kind(0d0)), allocatable :: denomv(:),denomu(:),coeff(:,:,:,:),coeffV(:,:)
+    integer, parameter :: num_rsgtPSV=10
+    integer, parameter :: num_rsgtSH=5
+    integer, parameter :: num_rsgt=10
 
-
-  
+    real(kind(0d0)), allocatable :: tmparray(:,:,:)
   
 end module tmpSGTs
 
@@ -90,7 +89,7 @@ end module tmpSGTs
 module angles
   implicit none
   !real(kind(0d0)), allocatable :: phi00(:),phi0(:),theta0(:)
-  integer :: ntheta,nphi
+  integer :: ntheta,nphi,nr
   real(kind(0d0)), allocatable :: phitheta(:,:),thetaphi(:,:)
   real(kind(0d0)), allocatable :: phi(:,:), theta(:,:)
   real(kind(0d0)), allocatable :: crq(:,:),srq(:,:),crq2(:,:),srq2(:,:)
@@ -98,5 +97,6 @@ module angles
   real(kind(0d0)), allocatable :: cqs(:,:),sqs(:,:),cqs2(:,:),sqs2(:,:)
   real(kind(0d0)), allocatable :: deltar(:,:),deltas(:,:)
   real(kind(0d0)) :: slat,slon,sdep,rlat,rlon
+  real(kind(0d0)) :: latmin,latmax,dlat,lonmin,lonmax,dlon
 
 end module angles
