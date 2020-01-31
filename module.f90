@@ -80,6 +80,23 @@ module tmpSGTs
   integer, parameter :: num_rsgtPSV=10
   integer, parameter :: num_rsgtSH=5
   integer, parameter :: num_rsgt=10
+
+
+  
+  
 end module tmpSGTs
 
 
+module angles
+  implicit none
+  !real(kind(0d0)), allocatable :: phi00(:),phi0(:),theta0(:)
+  integer :: ntheta,nphi
+  real(kind(0d0)), allocatable :: phitheta(:,:),thetaphi(:,:)
+  real(kind(0d0)), allocatable :: phi(:,:), theta(:,:)
+  real(kind(0d0)), allocatable :: crq(:,:),srq(:,:),crq2(:,:),srq2(:,:)
+  real(kind(0d0)), allocatable :: csq(:,:),ssq(:,:),csq2(:,:),ssq2(:,:)
+  real(kind(0d0)), allocatable :: cqs(:,:),sqs(:,:),cqs2(:,:),sqs2(:,:)
+  real(kind(0d0)), allocatable :: deltar(:,:),deltas(:,:)
+  real(kind(0d0)) :: slat,slon,sdep,rlat,rlon
+
+end module angles

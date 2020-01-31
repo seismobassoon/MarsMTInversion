@@ -315,6 +315,188 @@ subroutine pinput
 end subroutine pinput
 
 
+subroutine calculateSineCosine
+
+!   Compute the distances, azimuths and back-azimuths needed in calculating
+!   the kernels. Note: these calculations are done in the path specific
+!   coordinate system in which the source and receiver are both at zero
+!   latitude and 0 and distan longitudes, respectively.
+
+    use angles
+    implicit none
+    real(kind(0d0)) :: pi,xlat,xlon,phisq,phiqs,phirq,phirs
+    integer :: ith,ip
+    real(kind(0d0)) :: distanx,azimr,bazimr,azims,bazims
+
+
+    pi=4.d0*datan(1.d0)
+    do ith=1,ntheta
+        do ip=1,nphi
+            xlat=90.d0-theta(ip,ith)*180.d0/pi
+            xlon=phi(ip,ith)*180.d0/pi
+            call azimth(0,xlat,xlon,rlat,rlon,distanx,azimr,bazimr)
+            deltar(ip,ith)=distanx
+            call azimth(0,slat,slon,xlat,xlon,distanx,azims,bazims)
+            deltas(ip,ith)=distanx
+            phirq=pi-azimr*pi/180.d0
+            if(phirq.lt.0.d0) phirq=phirq+2.d0*pi
+            if(phirq.gt.(2.d0*pi)) phirq=phirq-2.d0*pi
+            phiqs=pi-azims*pi/180.d0
+            if(phiqs.lt.0.d0) phiqs=phiqs+2.d0*pi
+            if(phiqs.gt.(2.d0*pi)) phiqs=phiqs-2.d0*pi
+            phisq=pi-bazims*pi/180.d0
+            if(phisq.lt.0.d0) phisq=phisq+2.d0*pi
+            if(phisq.gt.(2.d0*pi)) phisq=phisq-2.d0*pi
+            crq(ip,ith)=dcos(phirq)
+            srq(ip,ith)=dsin(phirq)
+            crq2(ip,ith)=dcos(2.d0*phirq)
+            srq2(ip,ith)=dsin(2.d0*phirq)
+            csq(ip,ith)=dcos(phisq)
+            ssq(ip,ith)=dsin(phisq)
+            csq2(ip,ith)=dcos(2.d0*phisq)
+            ssq2(ip,ith)=dsin(2.d0*phisq)
+            cqs(ip,ith)=dcos(phiqs)
+            sqs(ip,ith)=dsin(phiqs)
+            cqs2(ip,ith)=dcos(2.d0*phiqs)
+            sqs2(ip,ith)=dsin(2.d0*phiqs)
+        enddo
+    enddo
+end subroutine
+
+subroutine azimth(ellips,slat,slon,rlat,rlon,delta,azim,bazim)
+
+!   This routine uses Euler angles to find the geocentric distance,
+!   azimuth, and back azimuth for a source-reciever pair.
+!
+!   Input
+!
+!     slat  - source geographic latitude in decimal degrees
+!     slon  - source longitude in decimal degrees
+!     rlat  - reciever geographic latitude in decimal degrees
+!     rlon  - reciever longitude in decimal degrees
+!
+!   Output
+!
+!     delta - geocentric source-reciever distance in decimal degrees of arc
+!     azim  - geocentric azimuth from the source to the reciever
+!     bazim - geocentric back azimuth from the reciever to the source
+!
+!   The distance calculated here delta is always between 0 and 180 degrees.
+!   Accordingly, the azimuth and back azimuth are defined for the minor
+!   arc between (slat,slon) and (rlat,rlon).
+!
+!   if ellips = 0 then geocentric = geocentric
+!     because in NF version it is already taken into account so ellips should be 0 always
+
+
+    implicit none
+    real(kind(0d0)) :: dtor,e,slatra,slat,w,s,scolat,rlatra,rlat,rcolat,slonra,rlon,c2,s2,c1,s1,slatrc,x0,y0,z0,x1,y1,z1,x2,y2,z2,slon,rlonra,delta,azim,bazim,pi
+    real(kind(0d0)), parameter :: flt = 298.25d0
+    integer :: ellips
+
+
+    dtor=4.d0*datan(1.d0)/180.d0
+    pi=4.d0*datan(1.d0)
+
+    if(ellips.ne.0) then
+        e=1.d0/flt
+    else
+        e=0.d0
+    endif
+
+
+    !   Convert to geocentric coordinates and from latitude to colatitude.
+
+    slatra=dtor*slat
+    w=dsin(slatra)
+    s=((2.d0-e)*w+4.d0*e*(w**3))*e*dcos(slatra)
+    !scolat=1.5707963d0-slatra+s
+    scolat=pi*5.d-1-slatra+s
+    rlatra=dtor*rlat
+    w=dsin(rlatra)
+    s=((2.d0-e)*w+4.d0*e*(w**3))*e*dcos(rlatra)
+    !rcolat=1.5707963d0-rlatra+s
+    rcolat=pi*5.d-1-rlatra+s
+
+    slonra=slon*dtor
+    rlonra=rlon*dtor
+    c2=dcos(scolat)
+    s2=dsin(scolat)
+    c1=dcos(slonra)
+    s1=dsin(slonra)
+    slatrc=dsin(rcolat)
+
+
+
+
+    !  Find the azimuth and distance by rotating the source to the north pole.
+
+    x0=slatrc*dcos(rlonra)
+    y0=slatrc*dsin(rlonra)
+    z0=dcos(rcolat)
+    x1=c1*x0+s1*y0
+
+    z0=dcos(rcolat)
+    x1=c1*x0+s1*y0
+    y1=-s1*x0+c1*y0
+    z1=z0
+    x2=c2*x1-s2*z1
+    y2=y1
+    z2=c2*z1+s2*x1
+    call angles(x2,y2,z2,delta,azim)
+    azim=180.d0-azim
+
+    !  Find the back azimuth by rotating the receiver to the north pole.
+
+    c2=dcos(rcolat)
+    s2=dsin(rcolat)
+    c1=dcos(rlonra)
+    s1=dsin(rlonra)
+    slatrc=dsin(scolat)
+    x0=slatrc*dcos(slonra)
+    y0=slatrc*dsin(slonra)
+    z0=dcos(scolat)
+    x1=c1*x0+s1*y0
+    y1=-s1*x0+c1*y0
+    z1=z0
+    x2=c2*x1-s2*z1
+    y2=y1
+    z2=c2*z1+s2*x1
+    call angles(x2,y2,z2,delta,bazim)
+    bazim=180.d0-bazim
+
+    return
+end subroutine azimth
+
+subroutine angles(x,y,z,theta,phi)
+
+    !   Finds the angles theta and phi of a spherical polar coordinate
+    !   system from the cartesion coordinates x, y, and z.
+
+    implicit none
+    real(kind(0d0)) :: pi,rtod,arg1,x,y,theta,phi,z
+    ! real(kind(0d0)), parameter :: eps = 1.d-14
+    real(kind(0d0)), parameter :: eps = 0.d0
+
+
+    pi=4.d0*datan(1.d0)
+
+    rtod=180.d0/pi
+    arg1=dsqrt(x*x+y*y)
+    theta=datan2(arg1,z)
+    if(dabs(x).le.eps.and.dabs(y).le.eps) then
+        phi=0.d0
+    else
+        phi=datan2(y,x)
+    endif
+    phi=phi*rtod
+    theta=theta*rtod
+
+    return
+end subroutine angles
+
+
+
 
 subroutine searchForParams(filename,ParamName,textParam,paramisText)
     implicit none

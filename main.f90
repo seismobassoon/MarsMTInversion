@@ -10,40 +10,41 @@ program MarsInversion
 
 
 
-  use parameters
-  use tmpSGTs
-  implicit none
+    use parameters
+    use tmpSGTs
+    use angles
+    implicit none
 
-  integer :: mtcomp,jmtcomp
-  integer ::icomp,iWindow,it,jjj
-  integer :: iMovingWindow,iConfiguration,iMovingWindowStep
-  real(kind(0d0)), allocatable :: taperDSM(:),taperOBS(:)
-  real(kind(0d0)), allocatable :: tmparray(:,:,:)
-  real(kind(0d0)), allocatable :: GreenArray(:,:,:)
-  real(kind(0d0)), allocatable :: obsArray(:,:),obsRawArray(:,:)
-  real(kind(0d0)), allocatable :: modArray(:,:),modRawArray(:,:)
-  real(kind(0d0)), allocatable :: filtbefore(:),filtafter(:)
-  real(kind(0d0)) :: xfwin
-  real(kind(0d0)), allocatable :: ata(:,:),atd(:),atainv(:,:)
-  real(kind(0d0)), allocatable  :: mtInverted(:,:,:)
-  real(kind(0d0)), allocatable :: misfitTaper(:,:,:)
-  real(kind(0d0)), allocatable :: misfitRaw(:,:,:)
-  character(200) :: synfile,tmpfile,list
-  real(kind(0d0)) :: dummyFloat
-  real(kind(0d0)), allocatable :: varZ(:,:),varN(:,:),varE(:,:)
-  real(kind(0d0)), allocatable :: modZ(:,:),modN(:,:),modE(:,:)
-  real(kind(0d0)), allocatable :: varRawZ(:,:),varRawN(:,:),varRawE(:,:)
-  real(kind(0d0)), allocatable :: modRawZ(:,:),modRawN(:,:),modRawE(:,:)
+    integer :: mtcomp,jmtcomp
+    integer ::icomp,iWindow,it,jjj
+    integer :: iMovingWindow,iConfiguration,iMovingWindowStep
+    real(kind(0d0)), allocatable :: taperDSM(:),taperOBS(:)
+    real(kind(0d0)), allocatable :: tmparray(:,:,:)
+    real(kind(0d0)), allocatable :: GreenArray(:,:,:)
+    real(kind(0d0)), allocatable :: obsArray(:,:),obsRawArray(:,:)
+    real(kind(0d0)), allocatable :: modArray(:,:),modRawArray(:,:)
+    real(kind(0d0)), allocatable :: filtbefore(:),filtafter(:)
+    real(kind(0d0)) :: xfwin
+    real(kind(0d0)), allocatable :: ata(:,:),atd(:),atainv(:,:)
+    real(kind(0d0)), allocatable  :: mtInverted(:,:,:)
+    real(kind(0d0)), allocatable :: misfitTaper(:,:,:)
+    real(kind(0d0)), allocatable :: misfitRaw(:,:,:)
+    character(200) :: synfile,tmpfile,list
+    real(kind(0d0)) :: dummyFloat
+    real(kind(0d0)), allocatable :: varZ(:,:),varN(:,:),varE(:,:)
+    real(kind(0d0)), allocatable :: modZ(:,:),modN(:,:),modE(:,:)
+    real(kind(0d0)), allocatable :: varRawZ(:,:),varRawN(:,:),varRawE(:,:)
+    real(kind(0d0)), allocatable :: modRawZ(:,:),modRawN(:,:),modRawE(:,:)
   
-  real(kind(0d0)) :: fakeMT(1:6)
+    real(kind(0d0)) :: fakeMT(1:6)
 110 format(a200)
   ! making taper function
 
-  call pinput
+    call pinput
   
   !print *, np,ntwin
-  allocate(taperDSM(1:npDSM))
-  allocate(taperOBS(1:npData))
+    allocate(taperDSM(1:npDSM))
+    allocate(taperOBS(1:npData))
 
 
 
@@ -52,110 +53,143 @@ program MarsInversion
   !print *, nTimeCombination, npData, npDSM, ntStep
 
 
-  allocate(ata(1:nmt,1:nmt))
-  allocate(atainv(1:nmt,1:nmt))
-  allocate(atd(1:nmt))
-  allocate(mtInverted(1:nmt,1:nTimeCombination,1:nConfiguration))
-  allocate(misfitTaper(1:nmt,1:nTimeCombination,1:nConfiguration))
-  allocate(misfitRaw(1:nmt,1:nTimeCombination,1:nConfiguration))
+    allocate(ata(1:nmt,1:nmt))
+    allocate(atainv(1:nmt,1:nmt))
+    allocate(atd(1:nmt))
+    allocate(mtInverted(1:nmt,1:nTimeCombination,1:nConfiguration))
+    allocate(misfitTaper(1:nmt,1:nTimeCombination,1:nConfiguration))
+    allocate(misfitRaw(1:nmt,1:nTimeCombination,1:nConfiguration))
 
-  allocate(varZ(1:nTimeCombination,1:nConfiguration))
-  allocate(varN(1:nTimeCombination,1:nConfiguration))
-  allocate(varE(1:nTimeCombination,1:nConfiguration))
-  allocate(modZ(1:nTimeCombination,1:nConfiguration))
-  allocate(modN(1:nTimeCombination,1:nConfiguration))
-  allocate(modE(1:nTimeCombination,1:nConfiguration))
+    allocate(varZ(1:nTimeCombination,1:nConfiguration))
+    allocate(varN(1:nTimeCombination,1:nConfiguration))
+    allocate(varE(1:nTimeCombination,1:nConfiguration))
+    allocate(modZ(1:nTimeCombination,1:nConfiguration))
+    allocate(modN(1:nTimeCombination,1:nConfiguration))
+    allocate(modE(1:nTimeCombination,1:nConfiguration))
 
-  allocate(varRawZ(1:nTimeCombination,1:nConfiguration))
-  allocate(varRawN(1:nTimeCombination,1:nConfiguration))
-  allocate(varRawE(1:nTimeCombination,1:nConfiguration))
-  allocate(modRawZ(1:nTimeCombination,1:nConfiguration))
-  allocate(modRawN(1:nTimeCombination,1:nConfiguration))
-  allocate(modRawE(1:nTimeCombination,1:nConfiguration))
+    allocate(varRawZ(1:nTimeCombination,1:nConfiguration))
+    allocate(varRawN(1:nTimeCombination,1:nConfiguration))
+    allocate(varRawE(1:nTimeCombination,1:nConfiguration))
+    allocate(modRawZ(1:nTimeCombination,1:nConfiguration))
+    allocate(modRawN(1:nTimeCombination,1:nConfiguration))
+    allocate(modRawE(1:nTimeCombination,1:nConfiguration))
 
-  ! making taper for synthetics
-  taperDSM=0.d0
-  do iWindow=1,ntwin
-     do it=itwin(1,iWindow),itwin(4,iWindow)
-        if((it.gt.itwin(1,iWindow)).and.(it.lt.itwin(2,iWindow))) then
-           xfwin=dsin(0.5d0*pi*dble(it-itwin(1,iWindow))/dble(itwin(2,iWindow)-itwin(1,iWindow)))
-           taperDSM(it)=xfwin*xfwin
-        elseif((it.ge.itwin(2,iWindow)).and.(it.le.itwin(3,iWindow))) then
-           taperDSM(it)=1.d0
-        elseif((it.gt.itwin(3,iWindow)).and.(it.lt.itwin(4,iWindow))) then
-           xfwin=dsin(0.5d0*pi*dble(it-itwin(4,iWindow))/dble(itwin(3,iWindow)-itwin(4,iWindow)))
-           taperDSM(it)=xfwin*xfwin
-        endif
-     enddo
-  enddo
+    ! making taper for synthetics
+    taperDSM=0.d0
+    do iWindow=1,ntwin
+        do it=itwin(1,iWindow),itwin(4,iWindow)
+            if((it.gt.itwin(1,iWindow)).and.(it.lt.itwin(2,iWindow))) then
+                xfwin=dsin(0.5d0*pi*dble(it-itwin(1,iWindow))/dble(itwin(2,iWindow)-itwin(1,iWindow)))
+                taperDSM(it)=xfwin*xfwin
+            elseif((it.ge.itwin(2,iWindow)).and.(it.le.itwin(3,iWindow))) then
+                taperDSM(it)=1.d0
+            elseif((it.gt.itwin(3,iWindow)).and.(it.lt.itwin(4,iWindow))) then
+                xfwin=dsin(0.5d0*pi*dble(it-itwin(4,iWindow))/dble(itwin(3,iWindow)-itwin(4,iWindow)))
+                taperDSM(it)=xfwin*xfwin
+            endif
+        enddo
+    enddo
   
-  ! making taper for observed data
-  taperOBS=0.d0
-  do iWindow=1,ntwinObs
-     do it=itwinObs(1,iWindow),itwinObs(4,iWindow)
-        if((it.gt.itwinObs(1,iWindow)).and.(it.lt.itwinObs(2,iWindow))) then
-           xfwin=dsin(0.5d0*pi*dble(it-itwinObs(1,iWindow))/dble(itwinObs(2,iWindow)-itwinObs(1,iWindow)))
-           taperOBS(it)=xfwin*xfwin
-        elseif((it.ge.itwinObs(2,iWindow)).and.(it.le.itwinObs(3,iWindow))) then
-           taperOBS(it)=1.d0
-        elseif((it.gt.itwinObs(3,iWindow)).and.(it.lt.itwinObs(4,iWindow))) then
-           xfwin=dsin(0.5d0*pi*dble(it-itwinObs(4,iWindow))/dble(itwinObs(3,iWindow)-itwinObs(4,iWindow)))
-           taperOBS(it)=xfwin*xfwin
-        endif
-     enddo
-  enddo
+    ! making taper for observed data
+    taperOBS=0.d0
+    do iWindow=1,ntwinObs
+        do it=itwinObs(1,iWindow),itwinObs(4,iWindow)
+            if((it.gt.itwinObs(1,iWindow)).and.(it.lt.itwinObs(2,iWindow))) then
+                xfwin=dsin(0.5d0*pi*dble(it-itwinObs(1,iWindow))/dble(itwinObs(2,iWindow)-itwinObs(1,iWindow)))
+                taperOBS(it)=xfwin*xfwin
+            elseif((it.ge.itwinObs(2,iWindow)).and.(it.le.itwinObs(3,iWindow))) then
+                taperOBS(it)=1.d0
+            elseif((it.gt.itwinObs(3,iWindow)).and.(it.lt.itwinObs(4,iWindow))) then
+                xfwin=dsin(0.5d0*pi*dble(it-itwinObs(4,iWindow))/dble(itwinObs(3,iWindow)-itwinObs(4,iWindow)))
+                taperOBS(it)=xfwin*xfwin
+            endif
+        enddo
+    enddo
 
 
-  ! we apply the butterworth filter to the Green's functions
+    ! we apply the butterworth filter to the Green's functions
 
 
-  allocate(tmparray(1:npDSM,1:3,1:nmt))
-  allocate(GreenArray(1:npDSM,1:3,1:nmt))
-  allocate(obsArray(1:npDSM,1:3),obsRawArray(1:npDSM,1:3))
-  allocate(filtbefore(1:npDSM),filtafter(1:npDSM))
+    allocate(tmparray(1:npDSM,1:3,1:nmt))
+    allocate(GreenArray(1:npDSM,1:3,1:nmt))
+    allocate(obsArray(1:npDSM,1:3),obsRawArray(1:npDSM,1:3))
+    allocate(filtbefore(1:npDSM),filtafter(1:npDSM))
 
-  allocate(modArray(1:npDSM,1:3))
-  allocate(modRawArray(1:npDSM,1:3))
-
-
-  mtInverted=0.d0
-  ! Grande boucle pour chaque configuration
+    allocate(modArray(1:npDSM,1:3))
+    allocate(modRawArray(1:npDSM,1:3))
 
 
-  if(calculMode.eq.2) then
-    allocate(rsgtomega(1:num_rsgtPSV,imin:imax,1:theta_n))
-    allocate(u(iWindowStart:iWindowEnd,1:num_rsgtPSV))
-    !rsgtomega=dcmplx(0.d0)
-    !u=0.d0
-  endif
+    mtInverted=0.d0
+    ! Grande boucle pour chaque configuration
 
 
-  do iConfiguration=1,nConfiguration
-    
-    iConfR=(iConfiguration-1)/(phi_n*theta_n)+1
-    iConfTheta=mod((iConfiguration-1),(r_n*theta_n))/phi_n+1
-    iConfPhi=mod(mod((iConfiguration-1),(r_n*theta_n)),phi_n)+1
-    
-    !print *, iConfiguration, iConfR, iConfTheta, iConfPhi, "henlo"
-
-    
-    iConfTheta = 200
-    if(iConfPhi.eq.1) then
-        ! SSGT reading
-        call rdsgtomega(r_(iConfR),0.d0,num_rsgtPSV,num_rsgtPSV,20)
-        !call rdsgtomega(r_(iConfR),0.d0,num_rsgtSH,num_rsgtPSV,10)
-        !!!!! NF we should include this SH part of couuuuuurse !!!!!!!!!!
-
-        
-        ! here we construct 10 SGTs
-        call tensorFFT_double(num_rsgtPSV,imin,imax,np1,rsgtomega(1:num_rsgtPSV,imin:imax,iConfTheta),u(iWindowStart:iWindowEnd,1:num_rsgtPSV),omegai,tlenFull,iWindowStart,iWindowEnd)
+    if(calculMode.eq.2) then
+        allocate(rsgtomega(1:num_rsgtPSV,imin:imax,1:theta_n))
+        allocate(u(iWindowStart:iWindowEnd,1:num_rsgtPSV))
+        !rsgtomega=dcmplx(0.d0)
+        !u=0.d0
     endif
 
-        print *, iConfTheta, tlenFull,omegai,lsmooth,imax,np1
-        do it=iWindowStart,iWindowEnd
-write(14,*) dble(it)*dt,u(it,3),u(it,2),u(it,3),u(it,4)
+    ! for the moment, nr=r_n, ntheta=theta_n, nphi=phi_n
+
+    nr=r_n
+    ntheta=theta_n
+    nphi=phi_n
+    allocate(crq(0:nphi,0:ntheta),crq2(0:nphi,0:ntheta))
+    allocate(srq(0:nphi,0:ntheta),srq2(0:nphi,0:ntheta))
+    allocate(csq(0:nphi,0:ntheta),csq2(0:nphi,0:ntheta))
+    allocate(ssq(0:nphi,0:ntheta),ssq2(0:nphi,0:ntheta))
+    allocate(cqs(0:nphi,0:ntheta),cqs2(0:nphi,0:ntheta))
+    allocate(sqs(0:nphi,0:ntheta),sqs2(0:nphi,0:ntheta))
+    allocate(deltar(nphi,ntheta),deltas(nphi,ntheta))
+    call calculateSineCosine(azim)
+
+
+
+    do iConfR=1,nr
+
+        call rdsgtomega(r_(iConfR),0.d0,num_rsgtPSV,num_rsgtPSV,20)
+        call rdsgtomega(r_(iConfR),0.d0,num_rsgtSH,num_rsgtPSV,10)
+        
+        do iConfTheta=1,ntheta
+
+            call tensorFFT_double(num_rsgtPSV,imin,imax,np1,rsgtomega(1:num_rsgtPSV,imin:imax,iConfTheta),u(iWindowStart:iWindowEnd,1:num_rsgtPSV),omegai,tlenFull,iWindowStart,iWindowEnd)
+
+
+            do iConfPhi=1,nphi
+                iConfiguration=(iConfR-1)*(nphi*ntheta)+(iConfTheta-1)*nphi+iConfPhi
+
+                    print *, iConfR, iConfTheta, iConfPhi, iConfiguration
+                    
+
+
+
+        !do iConfiguration=1,nConfiguration
+    
+        !iConfR=(iConfiguration-1)/(phi_n*theta_n)+1
+        !iConfTheta=mod((iConfiguration-1),(r_n*theta_n))/phi_n+1
+        !iConfPhi=mod(mod((iConfiguration-1),(r_n*theta_n)),phi_n)+1
+    
+        !print *, iConfiguration, iConfR, iConfTheta, iConfPhi, "henlo"
+
+    
+    
+
+                print *, iConfTheta, tlenFull,omegai,lsmooth,imax,np1
+                !do it=iWindowStart,iWindowEnd
+                    !write(14,*) dble(it)*dt,u(it,3),u(it,2),u(it,3),u(it,4)
+                !enddo
+
+
+
+            enddo
         enddo
-    stop
+    enddo
+
+
+
+
+                stop
 
         ! NF redefine u and reconsider the order of rsgtomega
 
