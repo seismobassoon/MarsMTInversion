@@ -142,13 +142,13 @@ subroutine tensorFFT_double(n,imin,imax,np1,ccvec,rvec,omegai,tlen,iWindowStart,
   integer :: iWindowStart,iWindowEnd
   integer :: i,j,n,imin,imax,np1,n1,m1
   complex(kind(0d0)) :: ccvec(1:n,imin:imax)
-  complex(kind(0d0)) :: cvec(1:n,0:2*np1-1)
+  complex(kind(0d0)) :: cvec(0:2*np1-1,1:n),eachcvec(0:2*np1-1)
   real(kind(0d0)) :: rvec(iWindowStart:iWindowEnd,1:n)
   real(kind(0d0)), parameter :: pi = 3.141592653589793d0
   real(kind(0d0)) :: omegai, tlen,samplingHz
   
   cvec = dcmplx(0.d0)
-  cvec(1:n,imin:imax)=ccvec(1:n,imin:imax)
+  cvec(imin:imax,1:n)=ccvec(imin:imax,1:n)
 
   samplingHz = dble(2*np1)/tlen
 
@@ -156,7 +156,7 @@ subroutine tensorFFT_double(n,imin,imax,np1,ccvec,rvec,omegai,tlen,iWindowStart,
      do i = imin, np1-1
         n1 = np1 +i
         m1 = np1 -i
-        cvec(j,n1) = conjg(cvec(j,m1))
+        cvec(n1,j) = conjg(cvec(m1,j))
      enddo
   enddo
   
@@ -164,9 +164,11 @@ subroutine tensorFFT_double(n,imin,imax,np1,ccvec,rvec,omegai,tlen,iWindowStart,
   
   
   do j = 1,n
-     call cdft(4*np1,cos(pi/(2*np1)),sin(pi/(2*np1)), cvec(j,0:2*np1-1))
+     eachcvec=dcmplx(0.d0)
+     eachcvec(0:2*np1-1)=cvec(0:2*np1-1,j)
+     call cdft(4*np1,cos(pi/(2*np1)),sin(pi/(2*np1)), eachcvec(0:2*np1-1))
      do i = iWindowStart, iWindowEnd
-        rvec(i,j) = dble(dble(cvec(j,i))*dble(exp(omegai*dble(i)/samplingHz))/tlen*1.d3)
+        rvec(i,j) = dble(dble(eachcvec(i))*dble(exp(omegai*dble(i)/samplingHz))/tlen*1.d3)
         
      enddo
   enddo

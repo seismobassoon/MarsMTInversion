@@ -28,15 +28,15 @@ program MarsInversion
     real(kind(0d0)), allocatable  :: mtInverted(:,:,:)
     real(kind(0d0)), allocatable :: misfitTaper(:,:,:)
     real(kind(0d0)), allocatable :: misfitRaw(:,:,:)
-    character(200) :: synfile,tmpfile,list
-    real(kind(0d0)) :: dummyFloat
+    character(200) :: list,tmpfile ! synfile,tmpfile,
+    !real(kind(0d0)) :: dummyFloat
     real(kind(0d0)), allocatable :: varZ(:,:),varN(:,:),varE(:,:)
     real(kind(0d0)), allocatable :: modZ(:,:),modN(:,:),modE(:,:)
     real(kind(0d0)), allocatable :: varRawZ(:,:),varRawN(:,:),varRawE(:,:)
     real(kind(0d0)), allocatable :: modRawZ(:,:),modRawN(:,:),modRawE(:,:)
   
-    real(kind(0d0)) :: fakeMT(1:6)
-110 format(a200)
+    !real(kind(0d0)) :: fakeMT(1:6)
+
   ! making taper function
 
     call pinput
@@ -129,16 +129,6 @@ program MarsInversion
     allocate(rsgtTime(iWindowStart:iWindowEnd,1:num_rsgtPSV))
         !rsgtomega=dcmplx(0.d0)
         !u=0.d0
-
-
-    ! for the moment, nr=r_n, ntheta=theta_n, nphi=phi_n
-
-    nr=r_n
-    ntheta=theta_n
-    nphi=phi_n
-    
-    
-    
 
 
     allocate(crq(0:nphi,0:ntheta),crq2(0:nphi,0:ntheta))

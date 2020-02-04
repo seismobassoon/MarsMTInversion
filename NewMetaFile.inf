@@ -29,7 +29,17 @@ stationName= ELSE
 
 stlalo= 34.54 -116.39
 
+# gcarc to search
 
+searchAreaDistance =  20.d0 30.d0 10.d0
+
+# azimuth to search
+
+searchAreaAzimuth = -10.d0 10.d0 10.d0
+
+# radius to search
+
+searchAreaRadius = 3360.d0 3380.d0 20.d0
 
 # synthetic information
 

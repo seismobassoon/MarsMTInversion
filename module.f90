@@ -51,9 +51,9 @@ module parameters
     real(kind(0d0)) :: r0delta,r0max,r0min,ratc,ratl,rdelta_,re,rmax_,rmin_
     integer :: rsgtswitch,synnswitch,tsgtswitch
     real(kind(0d0)) :: thetadelta,thetamax,thetamin
-    real(kind(0d0)), parameter :: phimin=0.d0
-    real(kind(0d0)), parameter :: phimax=0.d0
-    real(kind(0d0)), parameter :: phidelta=1.d0
+    !real(kind(0d0)), parameter :: phimin=0.d0
+    !real(kind(0d0)), parameter :: phimax=0.d0
+    !real(kind(0d0)), parameter :: phidelta=1.d0
     real(kind(0d0)) :: tlenFull
     integer :: r_n, theta_n,phi_n,iWindowStart,iWindowEnd,lsmooth,np0,np1
     integer :: iConfTheta,iConfPhi,iConfR
@@ -87,16 +87,19 @@ end module tmpSGTs
 
 
 module angles
-  implicit none
-  !real(kind(0d0)), allocatable :: phi00(:),phi0(:),theta0(:)
-  integer :: ntheta,nphi,nr
-  real(kind(0d0)), allocatable :: phitheta(:,:),thetaphi(:,:)
-  real(kind(0d0)), allocatable :: phi(:,:), theta(:,:)
-  real(kind(0d0)), allocatable :: crq(:,:),srq(:,:),crq2(:,:),srq2(:,:)
-  real(kind(0d0)), allocatable :: csq(:,:),ssq(:,:),csq2(:,:),ssq2(:,:)
-  real(kind(0d0)), allocatable :: cqs(:,:),sqs(:,:),cqs2(:,:),sqs2(:,:)
-  real(kind(0d0)), allocatable :: deltar(:,:),deltas(:,:)
-  real(kind(0d0)) :: slat,slon,sdep,rlat,rlon
-  real(kind(0d0)) :: gcarcmin,gcarcmax,dgcarc,azimuthmin,azimuthmax,dazimuth
+    implicit none
+    !real(kind(0d0)), allocatable :: phi00(:),phi0(:),theta0(:)
+    integer :: ntheta,nphi,nr
+    real(kind(0d0)), allocatable :: phitheta(:,:),thetaphi(:,:)
+    real(kind(0d0)), allocatable :: phi(:,:), theta(:,:)
+    real(kind(0d0)), allocatable :: crq(:,:),srq(:,:),crq2(:,:),srq2(:,:)
+    real(kind(0d0)), allocatable :: csq(:,:),ssq(:,:),csq2(:,:),ssq2(:,:)
+    real(kind(0d0)), allocatable :: cqs(:,:),sqs(:,:),cqs2(:,:),sqs2(:,:)
+    real(kind(0d0)), allocatable :: deltar(:,:),deltas(:,:)
+    real(kind(0d0)) :: slat,slon,sdep,rlat,rlon
+    real(kind(0d0)) :: gcarcmin,gcarcmax,dgcarc,azimuthmin,azimuthmax,dazimuth
+    real(kind(0d0)) :: radiusmin,radiusmax,dradius
+    real(kind(0d0)), allocatable  :: gcarc(:), azimuth(:),radius(:)
+    integer,allocatable :: ithetaD(:)
 
 end module angles

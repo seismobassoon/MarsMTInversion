@@ -16,7 +16,7 @@ subroutine pinput
     character(200) :: obsfile
     character(200) :: dummy
     !integer, external :: getpid
-    integer :: iloop,it
+    integer :: iloop,it,icheck,jloop
     !character(200) :: commandline
     character(200) :: paramName
 
@@ -93,13 +93,41 @@ subroutine pinput
         paramName="searchAreaDistance"
         call searchForParams(tmpfile,paramName,dummy,1)
         read(dummy,*) gcarcmin,gcarcmax,dgcarc
-        print *, "grarc min, max and interval are: ", gcarcmin,gcarcmax,dgcarc
+        print *, "gcarc min, max and interval are: ", gcarcmin,gcarcmax,dgcarc
+
+
+        ntheta = int((gcarcmax-gcarcmin)/dgcarc)+1
+        allocate(gcarc(1:ntheta))
+        allocate(ithetaD(1:ntheta))
+        do iloop=1,ntheta
+            gcarc(iloop) = gcarcmin + dble(iloop-1)*dgcarc
+        enddo
 
         paramName="searchAreaAzimuth"
         call searchForParams(tmpfile,paramName,dummy,1)
         read(dummy,*) azimuthmin,azimuthmax,dazimuth
         print *, "azimuth min, max and interval are: ", azimuthmin,azimuthmax,dazimuth
 
+        nphi = int((azimuthmax-azimuthmin)/dazimuth)+1
+        allocate(azimuth(1:nphi))
+        do iloop=1,nphi
+            azimuth(iloop) = azimuthmin + dble(iloop-1)*dazimuth
+        enddo
+
+
+        paramName="searchAreaRadius"
+        call searchForParams(tmpfile,paramName,dummy,1)
+        read(dummy,*) radiusmin,radiusmax,dradius
+        print *, "source radius min, max and interval are: ", radiusmin,radiusmax,dradius
+
+
+        nr = int((radiusmax-radiusmin)/dradius)+1
+        allocate(radius(1:nr))
+        do iloop=1,nr
+            radius(iloop) = radiusmin + dble(iloop-1)*dradius
+        enddo
+    
+    
         paramName="dt"
         call searchForParams(tmpfile,paramName,dummy,1)
         read(dummy,*) dt
@@ -274,17 +302,39 @@ subroutine pinput
             thetaD(iloop) = thetamin + dble(iloop-1)*thetadelta
         enddo
 
-        phi_n=int((phimax-phimin)/phidelta)+1
-        allocate(phiD(1:phi_n))
-        do iloop=1,phi_n
-            phiD(iloop) = phimin + dble(iloop-1)*phidelta
+        print *, "r, theta are discretised in ", r_n, theta_n, "pieces in DSM pre-calculation"
+
+
+        ! check r(:) and r_(:) because we don't interpolate for depth
+
+        do iloop=1,nr
+            icheck=0
+            do jloop=1,r_n
+                if(dabs(r_(jloop)-radius(iloop))< 1.d-5*radius(iloop)) then
+                    icheck=1
+                endif
+            enddo
+            if(icheck.eq.0) then
+                print *, radius(iloop), "is not in the catalogue, sorry"
+                stop
+            endif
         enddo
         
-
-
-        
-
-        print *, "r, theta, phi are discretised in ", r_n, theta_n, phi_n, "pieces in DSM pre-calculation"
+        ! check gcarc(:) and thetaD(:) because we don't interpolate for depth
+        ithetaD=0
+        do iloop=1,ntheta
+            icheck=0
+            do jloop=1,theta_n
+                if(dabs(thetaD(jloop)-gcarc(iloop))<1.d-5*gcarc(iloop)) then
+                    icheck=1
+                    ithetaD(iloop)=jloop
+                endif
+            enddo
+            if(icheck.eq.0) then
+                print *, gcarc(iloop), "is not in the catalogue, sorry"
+                stop
+            endif
+        enddo
      
         ! lsmoothfinder for FFT
         np0=imax
@@ -316,8 +366,11 @@ subroutine pinput
             omega(iloop) = 2.d0*pi*dble(iloop)/tlenFull
         enddo
      
-        nConfiguration=r_n*theta_n*phi_n
+        !nConfiguration=r_n*theta_n*phi_n
 
+        nConfiguration=nr*ntheta*nphi
+        print *, "source locations to be tested (in r, theta, phi, total): "
+        print *, "      ", nr,ntheta,nphi,nConfiguration
     elseif((dummy(1:6).eq.'normal').or.(dummy(1:4).eq.'test')) then
 
 
@@ -340,7 +393,7 @@ subroutine calculateSineCosine
 
     use angles
     implicit none
-    real(kind(0d0)) :: pi,xlat,xlon,phisq,phiqs,phirq,phirs
+    real(kind(0d0)) :: pi,xlat,xlon,phisq,phiqs,phirq !,phirs
     integer :: ith,ip
     real(kind(0d0)) :: distanx,azimr,bazimr,azims,bazims
 
