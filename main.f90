@@ -19,7 +19,6 @@ program MarsInversion
     integer ::icomp,iWindow,it,jjj
     integer :: iMovingWindow,iConfiguration,iMovingWindowStep
     real(kind(0d0)), allocatable :: taperDSM(:),taperOBS(:)
-    real(kind(0d0)), allocatable :: tmparray(:,:,:)
     real(kind(0d0)), allocatable :: GreenArray(:,:,:)
     real(kind(0d0)), allocatable :: obsArray(:,:),obsRawArray(:,:)
     real(kind(0d0)), allocatable :: modArray(:,:),modRawArray(:,:)
@@ -125,12 +124,12 @@ program MarsInversion
     ! Grande boucle pour chaque configuration
 
 
-    if(calculMode.eq.2) then
-        allocate(rsgtomega(1:num_rsgtPSV,imin:imax,1:theta_n))
-        allocate(rsgtTime(iWindowStart:iWindowEnd,1:num_rsgtPSV))
+
+    allocate(rsgtomega(1:num_rsgtPSV,imin:imax,1:theta_n))
+    allocate(rsgtTime(iWindowStart:iWindowEnd,1:num_rsgtPSV))
         !rsgtomega=dcmplx(0.d0)
         !u=0.d0
-    endif
+
 
     ! for the moment, nr=r_n, ntheta=theta_n, nphi=phi_n
 
@@ -155,25 +154,22 @@ program MarsInversion
 
     do iConfR=1,nr
 
-        call rdsgtomega(r_(iConfR),0.d0,num_rsgtPSV,num_rsgtPSV,20)
-        call rdsgtomega(r_(iConfR),0.d0,num_rsgtSH,num_rsgtPSV,10)
+        call rdsgtomega(r_(iConfR),num_rsgtPSV,num_rsgtPSV,20)
+        call rdsgtomega(r_(iConfR),num_rsgtSH,num_rsgtPSV,10)
         
         do iConfTheta=1,ntheta
 
-            call tensorFFT_double(num_rsgtPSV,imin,imax,np1,rsgtomega(1:num_rsgtPSV,imin:imax,iConfTheta),u(iWindowStart:iWindowEnd,1:num_rsgtPSV),omegai,tlenFull,iWindowStart,iWindowEnd)
+            call tensorFFT_double(num_rsgtPSV,imin,imax,np1,rsgtomega(1:num_rsgtPSV,imin:imax,iConfTheta),rsgtTime(iWindowStart:iWindowEnd,1:num_rsgtPSV),omegai,tlenFull,iWindowStart,iWindowEnd)
 
 
             do iConfPhi=1,nphi
+
                 iConfiguration=(iConfR-1)*(nphi*ntheta)+(iConfTheta-1)*nphi+iConfPhi
                     
-                    
-                    
-                    do icomp=1,3
-                            
-                        call rsgt2h3time
+                call rsgt2h3time(iConfPhi,iConfTheta)
                         
                        
-                    enddo
+                   
 
 
                         

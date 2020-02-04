@@ -5,12 +5,12 @@
 !   Created by fuji on 04/12/2019.
 !   Copyright 2019 nfuji. All rights reserved.
 !
-subroutine rdsgtomega(rx,ry,num_sgt,num_psv,ipsvorsh)
+subroutine rdsgtomega(rx,num_sgt,num_psv,ipsvorsh)
 
   use parameters
   use tmpSGTs
   implicit none
-  real(kind(0d0)) :: rx,ry ! in order to read the catalogue
+  real(kind(0d0)) :: rx ! in order to read the catalogue
   integer :: i,j,num_sgt,ipsvorsh,num_psv
   complex(kind(0e0)) :: sgtsngl(1:num_sgt,1:theta_n)
   complex(kind(0d0)) :: sgtdouble(1:num_sgt,1:theta_n)
@@ -143,7 +143,7 @@ subroutine tensorFFT_double(n,imin,imax,np1,ccvec,rvec,omegai,tlen,iWindowStart,
   integer :: i,j,n,imin,imax,np1,n1,m1
   complex(kind(0d0)) :: ccvec(1:n,imin:imax)
   complex(kind(0d0)) :: cvec(1:n,0:2*np1-1)
-  real(kind(0d0)) :: rvec(1:n,iWindowStart:iWindowEnd)
+  real(kind(0d0)) :: rvec(iWindowStart:iWindowEnd,1:n)
   real(kind(0d0)), parameter :: pi = 3.141592653589793d0
   real(kind(0d0)) :: omegai, tlen,samplingHz
   
@@ -175,12 +175,13 @@ subroutine tensorFFT_double(n,imin,imax,np1,ccvec,rvec,omegai,tlen,iWindowStart,
   return
 end subroutine tensorFFT_double
 
-subroutine rsgt2h3time
+subroutine rsgt2h3time(ip,ith)
     use parameters
     use angles
     use tmpSGTs
     !use kernels
     implicit none
+    integer ip,ith
     !   This subroutine calculates the 18 independent elements of the 3rd-order
     !   SSGT from the 10 azimuth independent coefficients and the sines and
     !   cosines of the azimuths.
@@ -202,18 +203,18 @@ subroutine rsgt2h3time
         tmparray(iWindowStart:iWindowEnd,2,1)=rsgtTime(iWindowStart:iWindowEnd,5)
     tmparray(iWindowStart:iWindowEnd,2,2)=-(rsgtTime(iWindowStart:iWindowEnd,7))*crq2(ip,ith)-rsgtTime(iWindowStart:iWindowEnd,6)
     tmparray(iWindowStart:iWindowEnd,2,3)=(rsgtTime(iWindowStart:iWindowEnd,7))*crq2(ip,ith)-rsgtTime(iWindowStart:iWindowEnd,6)
-     h3(4,fmin:fmax)=(rsgtF(9,fmin:fmax))*crq(ip,ith)
-     h3(5,fmin:fmax)=(rsgtF(9,fmin:fmax))*srq(ip,ith)
-     h3(6,fmin:fmax)=-(rsgtF(7,fmin:fmax))*srq2(ip,ith)
+        tmparray(iWindowStart:iWindowEnd,2,4)=(rsgtTime(iWindowStart:iWindowEnd,9))*crq(ip,ith)
+        tmparray(iWindowStart:iWindowEnd,2,5)=(rsgtTime(iWindowStart:iWindowEnd,9))*srq(ip,ith)
+        tmparray(iWindowStart:iWindowEnd,2,6)=-(rsgtTime(iWindowStart:iWindowEnd,7))*srq2(ip,ith)
 
      !   Transverse component. Order: 1-rr, 2-tt, 3-pp, 4-rt, 5-rp, 6-tp.
  
-     h3(1,fmin:fmax)=0.d0
-     h3(2,fmin:fmax)=(rsgtF(8,fmin:fmax))*srq2(ip,ith)
-     h3(3,fmin:fmax)=-h3(3,fmin:fmax)
-     h3(4,fmin:fmax)=-(rsgtF(10,fmin:fmax))*srq(ip,ith)
-     h3(5,fmin:fmax)=(rsgtF(10,fmin:fmax))*crq(ip,ith)
-     h3(6,fmin:fmax)=-(rsgtF(8,fmin:fmax))*crq2(ip,ith)
+        tmparray(iWindowStart:iWindowEnd,3,1)=0.d0
+        tmparray(iWindowStart:iWindowEnd,3,2)=(rsgtTime(iWindowStart:iWindowEnd,8))*srq2(ip,ith)
+        tmparray(iWindowStart:iWindowEnd,3,3)=-tmparray(iWindowStart:iWindowEnd,3,3)
+        tmparray(iWindowStart:iWindowEnd,3,4)=-(rsgtTime(iWindowStart:iWindowEnd,10))*srq(ip,ith)
+        tmparray(iWindowStart:iWindowEnd,3,5)=(rsgtTime(iWindowStart:iWindowEnd,10))*crq(ip,ith)
+        tmparray(iWindowStart:iWindowEnd,3,6)=-(rsgtTime(iWindowStart:iWindowEnd,8))*crq2(ip,ith)
 
   return
 end subroutine rsgt2h3time

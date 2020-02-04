@@ -17,7 +17,7 @@ subroutine pinput
     character(200) :: dummy
     !integer, external :: getpid
     integer :: iloop,it
-    character(200) :: commandline
+    !character(200) :: commandline
     character(200) :: paramName
 
     call getarg(1,argv)
@@ -90,15 +90,15 @@ subroutine pinput
         rlat=stla
         rlon=stlo
     
-        paramName="searchAreaLatitude"
+        paramName="searchAreaDistance"
         call searchForParams(tmpfile,paramName,dummy,1)
-        read(dummy,*) latmin,latmax,dlat
-        print *, "latitude min, max and interval are: ", latmin, latmax, dlat
+        read(dummy,*) gcarcmin,gcarcmax,dgcarc
+        print *, "grarc min, max and interval are: ", gcarcmin,gcarcmax,dgcarc
 
-        paramName="searchAreaLongitude"
+        paramName="searchAreaAzimuth"
         call searchForParams(tmpfile,paramName,dummy,1)
-        read(dummy,*) lonmin,lonmax,dlon
-        print *, "longitude min, max and interval are: ", lonmin, lonmax, dlon
+        read(dummy,*) azimuthmin,azimuthmax,dazimuth
+        print *, "azimuth min, max and interval are: ", azimuthmin,azimuthmax,dazimuth
 
         paramName="dt"
         call searchForParams(tmpfile,paramName,dummy,1)
@@ -281,6 +281,8 @@ subroutine pinput
         enddo
         
 
+
+        
 
         print *, "r, theta, phi are discretised in ", r_n, theta_n, phi_n, "pieces in DSM pre-calculation"
      

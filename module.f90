@@ -97,6 +97,6 @@ module angles
   real(kind(0d0)), allocatable :: cqs(:,:),sqs(:,:),cqs2(:,:),sqs2(:,:)
   real(kind(0d0)), allocatable :: deltar(:,:),deltas(:,:)
   real(kind(0d0)) :: slat,slon,sdep,rlat,rlon
-  real(kind(0d0)) :: latmin,latmax,dlat,lonmin,lonmax,dlon
+  real(kind(0d0)) :: gcarcmin,gcarcmax,dgcarc,azimuthmin,azimuthmax,dazimuth
 
 end module angles
