@@ -34,7 +34,8 @@ program MarsInversion
     real(kind(0d0)), allocatable :: modZ(:,:),modN(:,:),modE(:,:)
     real(kind(0d0)), allocatable :: varRawZ(:,:),varRawN(:,:),varRawE(:,:)
     real(kind(0d0)), allocatable :: modRawZ(:,:),modRawN(:,:),modRawE(:,:)
-  
+    complex(kind(0d0)), allocatable :: rsgtomegatmp(:,:)
+    integer :: npDSM
     !real(kind(0d0)) :: fakeMT(1:6)
 
   ! making taper function
@@ -72,6 +73,9 @@ program MarsInversion
     allocate(modRawZ(1:nTimeCombination,1:nConfiguration))
     allocate(modRawN(1:nTimeCombination,1:nConfiguration))
     allocate(modRawE(1:nTimeCombination,1:nConfiguration))
+
+
+    npDSM = iWindowEnd-iWindowStart+1
 
     ! making taper for synthetics
     taperDSM=0.d0
@@ -129,16 +133,11 @@ program MarsInversion
     allocate(rsgtTime(iWindowStart:iWindowEnd,1:num_rsgtPSV))
         !rsgtomega=dcmplx(0.d0)
         !u=0.d0
+    allocate(rsgtomegatmp(1:num_rsgtPSV,imin:imax))
+
+   
 
 
-    allocate(crq(0:nphi,0:ntheta),crq2(0:nphi,0:ntheta))
-    allocate(srq(0:nphi,0:ntheta),srq2(0:nphi,0:ntheta))
-    allocate(csq(0:nphi,0:ntheta),csq2(0:nphi,0:ntheta))
-    allocate(ssq(0:nphi,0:ntheta),ssq2(0:nphi,0:ntheta))
-    allocate(cqs(0:nphi,0:ntheta),cqs2(0:nphi,0:ntheta))
-    allocate(sqs(0:nphi,0:ntheta),sqs2(0:nphi,0:ntheta))
-    allocate(deltar(nphi,ntheta),deltas(nphi,ntheta))
-    call calculateSineCosine
 
 
 
@@ -148,8 +147,12 @@ program MarsInversion
         call rdsgtomega(r_(iConfR),num_rsgtSH,num_rsgtPSV,10)
         
         do iConfTheta=1,ntheta
+            
+            rsgtomegatmp(1:num_rsgtPSV,imin:imax)=rsgtomega(1:num_rsgtPSV,imin:imax,ithetaD(iConfTheta))
+            !call tensorFFT_double(num_rsgtPSV,imin,imax,np1,rsgtomegatmp(1:num_rsgtPSV,imin:imax),rsgtTime(iWindowStart:iWindowEnd,1:num_rsgtPSV),omegai,tlenFull,iWindowStart,iWindowEnd)
+            call tensorFFT_double(num_rsgtPSV,imin,imax,np1,rsgtomegatmp,rsgtTime,omegai, &
+                tlenFull,iWindowStart,iWindowEnd)
 
-            call tensorFFT_double(num_rsgtPSV,imin,imax,np1,rsgtomega(1:num_rsgtPSV,imin:imax,iConfTheta),rsgtTime(iWindowStart:iWindowEnd,1:num_rsgtPSV),omegai,tlenFull,iWindowStart,iWindowEnd)
 
 
             do iConfPhi=1,nphi
@@ -158,32 +161,50 @@ program MarsInversion
                     
                 call rsgt2h3time(iConfPhi,iConfTheta)
                         
-                       
+
+                if(0.eq.1) then
+                    do it=iWindowStart,iWindowEnd
+                        write(11,*) dble(it)*dt,tmparray(it,1,1),tmparray(it,2,1),tmparray(it,3,1)
+                    enddo
+                    do it=iWindowStart,iWindowEnd
+                        write(12,*) dble(it)*dt,tmparray(it,1,2),tmparray(it,2,2),tmparray(it,3,2)
+                    enddo
+                    do it=iWindowStart,iWindowEnd
+                        write(13,*) dble(it)*dt,tmparray(it,1,3),tmparray(it,2,3),tmparray(it,3,3)
+                    enddo
+                    do it=iWindowStart,iWindowEnd
+                        write(14,*) dble(it)*dt,tmparray(it,1,4),tmparray(it,2,4),tmparray(it,3,4)
+                    enddo
+                    do it=iWindowStart,iWindowEnd
+                        write(15,*) dble(it)*dt,tmparray(it,1,5),tmparray(it,2,5),tmparray(it,3,5)
+                    enddo
+                    do it=iWindowStart,iWindowEnd
+                        write(16,*) dble(it)*dt,tmparray(it,1,6),tmparray(it,2,6),tmparray(it,3,6)
+                    enddo
                    
-
-
+               
+                endif
                         
 
-                    print *, iConfR, iConfTheta, iConfPhi, iConfiguration
+                print *, "iConfR, iConfTheta,iConfPhi,iConfiguration=", iConfR, iConfTheta, iConfPhi, iConfiguration
                     
 
 
+                ! Here we first filter Green's function as a whole and taper them
+                
+                do mtcomp=1,nmt
+                    do icomp=1,3
+                        filtbefore(1:npDSM)=tmparray(iWindowStart:iWindowEnd,icomp,mtcomp)
+                        call bwfilt(filtbefore,filtafter,dt,npDSM,1,npButterworth,fmin,fmax)
+                        tmparray(1:npDSM,icomp,mtcomp)=filtafter(1:npDSM)
+                        GreenArray(1:npDSM,icomp,mtcomp)=filtafter(1:npDSM)*taperDSM(1:npDSM)
+                   enddo
+                enddo
+                
+    
+    
 
-        !do iConfiguration=1,nConfiguration
-    
-        !iConfR=(iConfiguration-1)/(phi_n*theta_n)+1
-        !iConfTheta=mod((iConfiguration-1),(r_n*theta_n))/phi_n+1
-        !iConfPhi=mod(mod((iConfiguration-1),(r_n*theta_n)),phi_n)+1
-    
-        !print *, iConfiguration, iConfR, iConfTheta, iConfPhi, "henlo"
-
-    
-    
-
-                print *, iConfTheta, tlenFull,omegai,lsmooth,imax,np1
-                !do it=iWindowStart,iWindowEnd
-                    !write(14,*) dble(it)*dt,u(it,3),u(it,2),u(it,3),u(it,4)
-                !enddo
+                
 
 
 
@@ -206,16 +227,6 @@ program MarsInversion
 
   
 
-     ! Here we first filter Green's function as a whole and taper them
-     
-     do mtcomp=1,nmt
-        do icomp=1,3
-           filtbefore(1:npDSM)=tmparray(1:npDSM,icomp,mtcomp)
-           call bwfilt(filtbefore,filtafter,dt,npDSM,1,npButterworth,fmin,fmax)
-           tmparray(1:npDSM,icomp,mtcomp)=filtafter(1:npDSM)
-           GreenArray(1:npDSM,icomp,mtcomp)=filtafter(1:npDSM)*taperDSM(1:npDSM)
-        enddo
-     enddo
      
   
 

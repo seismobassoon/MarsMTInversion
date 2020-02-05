@@ -15,6 +15,7 @@ subroutine pinput
     character(200) :: tmpfile,metafile
     character(200) :: obsfile
     character(200) :: dummy
+    real(kind(0d0)) :: fdummy,fdummy2,phirq
     !integer, external :: getpid
     integer :: iloop,it,icheck,jloop
     !character(200) :: commandline
@@ -134,12 +135,12 @@ subroutine pinput
         print *, "dt is ", dt, "(s)"
         samplingHz=1.d0/dt
 
-        paramName="tlenDSM"
-        call searchForParams(tmpfile,paramName,dummy,1)
-        read(dummy,*) tlenDSM
-        print *, "tlen in DSM synthetic is ", tlenDSM, " (s)"
-        npDSM=int(tlenDSM/dt)
-        print *, "  thus npDSM is ", npDSM
+        !paramName="tlenDSM"
+        !call searchForParams(tmpfile,paramName,dummy,1)
+        !read(dummy,*) tlenDSM
+        !print *, "tlen in DSM synthetic is ", tlenDSM, " (s)"
+        !npDSM=int(tlenDSM/dt)
+        !print *, "  thus npDSM is ", npDSM
 
         paramName="tlenData"
         call searchForParams(tmpfile,paramName,dummy,1)
@@ -196,6 +197,7 @@ subroutine pinput
             print *, iloop,"-th window in syn is characterised by:", &
                 twin(1,iloop),twin(2,iloop),twin(3,iloop),twin(4,iloop)
         enddo
+
         itwin=int(twin/dt)
 
 
@@ -266,7 +268,7 @@ subroutine pinput
         itwinObs=int(twinObs/dt)
 
 
-        call makingIndependentWindow
+        
 
         
         
@@ -278,7 +280,35 @@ subroutine pinput
                 imin,imax,rsgtswitch,tsgtswitch, &
                 synnswitch,SGTinfo)
         call readDSMconf(DSMconfFile,re,ratc,ratl,omegai,maxlmax)
-     
+        ! lsmoothfinder for FFT
+        np0=imax
+        call lsmoothfinder(tlenFull,np0,samplingHz,lsmooth)
+        iloop=1
+        do while (iloop<lsmooth)
+            iloop = iloop*2
+        enddo
+        lsmooth = iloop
+        iloop = 0
+        np1 = 1
+        do while (np1<np0)
+            np1 = np1*2
+        enddo
+        np1 = np1*lsmooth
+
+        ! redefinition of samplingHz
+        samplingHz = dble(2*np1)/tlenFull
+        dtn = 1.d0/samplingHz
+        iWindowStart = int(start*samplingHz)
+        iWindowEnd   = int(end*samplingHz)
+
+        
+        call makingIndependentWindow
+
+        if(tlenFull<end) then
+            print *, "DSM tlen is ", tlenFull, "and you asked to take window up to ", end
+            print *, "it is impossible, sorry."
+            stop
+        endif
 
         tmpfile='tmpReadPSVmodel'
         call readpsvmodel(psvmodel,tmpfile)
@@ -336,26 +366,51 @@ subroutine pinput
             endif
         enddo
      
-        ! lsmoothfinder for FFT
-        np0=imax
-        call lsmoothfinder(tlenFull,np0,samplingHz,lsmooth)
-        iloop=1
-        do while (iloop<lsmooth)
-            iloop = iloop*2
-        enddo
-        lsmooth = iloop
-        iloop = 0
-        np1 = 1
-        do while (np1<np0)
-            np1 = np1*2
-        enddo
-        np1 = np1*lsmooth
+        allocate(latgeo(1:nphi,1:ntheta),longeo(1:nphi,1:ntheta))
+        allocate(crq(1:nphi,1:ntheta),crq2(1:nphi,1:ntheta))
+        allocate(srq(1:nphi,1:ntheta),srq2(1:nphi,1:ntheta))
 
-        ! redefinition of samplingHz
-        samplingHz = dble(2*np1)/tlenFull
-        dtn = 1.d0/samplingHz
-        iWindowStart = int(start*samplingHz)
-        iWindowEnd   = int(end*samplingHz)
+        latgeo=0.d0
+        longeo=0.d0
+    
+        do iloop=1,ntheta
+            do jloop=1,nphi
+                call geoCoordinates(stla*degree2radian,stlo*degree2radian, &
+                    latgeo(jloop,iloop),longeo(jloop,iloop),azimuth(jloop)*degree2radian, &
+                    fdummy,gcarc(iloop)*degree2radian) !!! geoCooridnates uses radian
+            enddo
+        enddo
+
+        latgeo=latgeo*radian2degree
+        longeo=longeo*radian2degree
+
+        print *, "InSight: ", stla, stlo
+
+        do iloop=1,ntheta
+            do jloop=1,nphi
+                print *, gcarc(iloop),azimuth(jloop), latgeo(jloop,iloop),longeo(jloop,iloop)
+                call azimth(0,latgeo(jloop,iloop),longeo(jloop,iloop),stla,stlo,fdummy2,phirq,fdummy)
+                !print *, " inverse: ",fdummy2,phirq,fdummy
+
+
+                phirq=pi-phirq*degree2radian
+
+                if(phirq.lt.0.d0) phirq=phirq+2.d0*pi
+                if(phirq.gt.(2.d0*pi)) phirq=phirq-2.d0*pi
+                
+                crq(jloop,iloop)=dcos(phirq)
+                srq(jloop,iloop)=dsin(phirq)
+                crq2(jloop,iloop)=dcos(2.d0*phirq)
+                srq2(jloop,iloop)=dsin(2.d0*phirq)
+                
+            enddo
+        enddo
+
+
+        
+
+
+
        
 
 
@@ -384,53 +439,7 @@ subroutine pinput
 end subroutine pinput
 
 
-subroutine calculateSineCosine
 
-!   Compute the distances, azimuths and back-azimuths needed in calculating
-!   the kernels. Note: these calculations are done in the path specific
-!   coordinate system in which the source and receiver are both at zero
-!   latitude and 0 and distan longitudes, respectively.
-
-    use angles
-    implicit none
-    real(kind(0d0)) :: pi,xlat,xlon,phisq,phiqs,phirq !,phirs
-    integer :: ith,ip
-    real(kind(0d0)) :: distanx,azimr,bazimr,azims,bazims
-
-
-    pi=4.d0*datan(1.d0)
-    do ith=1,ntheta
-        do ip=1,nphi
-            xlat=90.d0-theta(ip,ith)*180.d0/pi
-            xlon=phi(ip,ith)*180.d0/pi
-            call azimth(0,xlat,xlon,rlat,rlon,distanx,azimr,bazimr)
-            deltar(ip,ith)=distanx
-            call azimth(0,slat,slon,xlat,xlon,distanx,azims,bazims)
-            deltas(ip,ith)=distanx
-            phirq=pi-azimr*pi/180.d0
-            if(phirq.lt.0.d0) phirq=phirq+2.d0*pi
-            if(phirq.gt.(2.d0*pi)) phirq=phirq-2.d0*pi
-            phiqs=pi-azims*pi/180.d0
-            if(phiqs.lt.0.d0) phiqs=phiqs+2.d0*pi
-            if(phiqs.gt.(2.d0*pi)) phiqs=phiqs-2.d0*pi
-            phisq=pi-bazims*pi/180.d0
-            if(phisq.lt.0.d0) phisq=phisq+2.d0*pi
-            if(phisq.gt.(2.d0*pi)) phisq=phisq-2.d0*pi
-            crq(ip,ith)=dcos(phirq)
-            srq(ip,ith)=dsin(phirq)
-            crq2(ip,ith)=dcos(2.d0*phirq)
-            srq2(ip,ith)=dsin(2.d0*phirq)
-            csq(ip,ith)=dcos(phisq)
-            ssq(ip,ith)=dsin(phisq)
-            csq2(ip,ith)=dcos(2.d0*phisq)
-            ssq2(ip,ith)=dsin(2.d0*phisq)
-            cqs(ip,ith)=dcos(phiqs)
-            sqs(ip,ith)=dsin(phiqs)
-            cqs2(ip,ith)=dcos(2.d0*phiqs)
-            sqs2(ip,ith)=dsin(2.d0*phiqs)
-        enddo
-    enddo
-end subroutine
 
 subroutine azimth(ellips,slat,slon,rlat,rlon,delta,azim,bazim)
 
@@ -565,66 +574,67 @@ subroutine angles(x,y,z,theta,phi)
 end subroutine angles
 
 
-     SUBROUTINE DIRCT1(GLAT1,GLON1,GLAT2,GLON2,FAZ,BAZ,S)
-C
-C *** SOLUTION OF THE GEODETIC DIRECT PROBLEM AFTER T.VINCENTY
-C *** MODIFIED RAINSFORD'S METHOD WITH HELMERT'S ELLIPTICAL TERMS
-C *** EFFECTIVE IN ANY AZIMUTH AND AT ANY DISTANCE SHORT OF ANTIPODAL
-C
-C *** A IS THE SEMI-MAJOR AXIS OF THE REFERENCE ELLIPSOID
-C *** F IS THE FLATTENING OF THE REFERENCE ELLIPSOID
-C *** LATITUDES AND LONGITUDES IN RADIANS POSITIVE NORTH AND EAST
-C *** AZIMUTHS IN RADIANS CLOCKWISE FROM NORTH
-C *** GEODESIC DISTANCE S ASSUMED IN UNITS OF SEMI-MAJOR AXIS A
-C
-C *** PROGRAMMED FOR CDC-6600 BY LCDR L.PFEIFER NGS ROCKVILLE MD 20FEB75
-C *** MODIFIED FOR SYSTEM 360 BY JOHN G GERGEN NGS ROCKVILLE MD 750608
-C
-      IMPLICIT REAL*8 (A-H,O-Z)
-      !COMMON/CONST/PI,RAD
-      !COMMON/ELIPSOID/A,F
-      a=1
-      pi=4.d0*datan(1.d0)
-      f=0
-      DATA EPS/0.5D-13/
-      R=1.-F
-      TU=R*DSIN(GLAT1)/DCOS(GLAT1)
-      SF=DSIN(FAZ)
-      CF=DCOS(FAZ)
-      BAZ=0.
-      IF(CF.NE.0.) BAZ=DATAN2(TU,CF)*2.
-      CU=1./DSQRT(TU*TU+1.)
-      SU=TU*CU
-      SA=CU*SF
-      C2A=-SA*SA+1.
-      X=DSQRT((1./R/R-1.)*C2A+1.)+1.
-      X=(X-2.)/X
-      C=1.-X
-      C=(X*X/4.+1)/C
-      D=(0.375D0*X*X-1.)*X
-      TU=S/R/A/C
-      Y=TU
-  100 SY=DSIN(Y)
-      CY=DCOS(Y)
-      CZ=DCOS(BAZ+Y)
-      E=CZ*CZ*2.-1.
-      C=Y
-      X=E*CY
-      Y=E+E-1.
-      Y=(((SY*SY*4.-3.)*Y*CZ*D/6.+X)*D/4.-CZ)*SY*D+TU
-      IF(DABS(Y-C).GT.EPS)GO TO 100
-      BAZ=CU*CY*CF-SU*SY
-      C=R*DSQRT(SA*SA+BAZ*BAZ)
-      D=SU*CY+CU*SY*CF
-      GLAT2=DATAN2(D,C)
-      C=CU*CY-SU*SY*CF
-      X=DATAN2(SY*SF,C)
-      C=((-3.*C2A+4.)*F+4.)*C2A*F/16.
-      D=((E*CY*C+CZ)*SY*C+Y)*SA
-      GLON2=GLON1+X-(1.-C)*D*F
-      BAZ=DATAN2(SA,BAZ)+PI
-      RETURN
-      END
+subroutine geoCoordinates(glat1,glon1,glat2,glon2,faz,baz,s)
+    !
+    ! *** solution of the geodetic direct problem after t.vincenty
+    ! *** modified rainsford's method with helmert's elliptical terms
+    ! *** effective in any azimuth and at any distance short of antipodal
+    !
+    ! *** a is the semi-major axis of the reference ellipsoid
+    ! *** f is the flattening of the reference ellipsoid
+    ! *** latitudes and longitudes in radians positive north and east
+    ! *** azimuths in radians clockwise from north
+    ! *** geodesic distance s assumed in units of semi-major axis a
+    !
+    ! *** programmed for cdc-6600 by lcdr l.pfeifer ngs rockville md 20feb75
+    ! *** modified for system 360 by john g gergen ngs rockville md 750608
+    !
+    ! Here everything is in radian!
+    implicit real*8 (a-h,o-z)
+    !common/const/pi,rad
+    !common/elipsoid/a,f
+    a=1
+    pi=4.d0*datan(1.d0)
+    f=0
+    data eps/0.5d-13/
+    r=1.-f
+    tu=r*dsin(glat1)/dcos(glat1)
+    sf=dsin(faz)
+    cf=dcos(faz)
+    baz=0.
+    if(abs(cf)>eps) baz=datan2(tu,cf)*2.
+    cu=1./dsqrt(tu*tu+1.)
+    su=tu*cu
+    sa=cu*sf
+    c2a=-sa*sa+1.
+    x=dsqrt((1./r/r-1.)*c2a+1.)+1.
+    x=(x-2.)/x
+    c=1.-x
+    c=(x*x/4.+1)/c
+    d=(0.375d0*x*x-1.)*x
+    tu=s/r/a/c
+    y=tu
+100 sy=dsin(y)
+    cy=dcos(y)
+    cz=dcos(baz+y)
+    e=cz*cz*2.-1.
+    c=y
+    x=e*cy
+    y=e+e-1.
+    y=(((sy*sy*4.-3.)*y*cz*d/6.+x)*d/4.-cz)*sy*d+tu
+    if(dabs(y-c).gt.eps)go to 100
+    baz=cu*cy*cf-su*sy
+    c=r*dsqrt(sa*sa+baz*baz)
+    d=su*cy+cu*sy*cf
+    glat2=datan2(d,c)
+    c=cu*cy-su*sy*cf
+    x=datan2(sy*sf,c)
+    c=((-3.*c2a+4.)*f+4.)*c2a*f/16.
+    d=((e*cy*c+cz)*sy*c+y)*sa
+    glon2=glon1+x-(1.-c)*d*f
+    baz=datan2(sa,baz)+pi
+    return
+end subroutine
 
 
 
@@ -715,7 +725,7 @@ subroutine makingIndependentWindow
         iMovingWindowStart(iloop)=itwinObs(1,iloop)+iMovingWindowStart(iloop)
         iMovingWindowEnd(iloop)=itwinObs(1,iloop)+iMovingWindowEnd(iloop)
         ! check whether syn and obs are available for these indices
-        if(iMovingWindowEnd(iloop)<1) then
+        if(iMovingWindowEnd(iloop)<iWindowStart) then
             print *, "no sufficient data points in syn data for the window", iloop
             stop
         endif
@@ -723,7 +733,7 @@ subroutine makingIndependentWindow
         !    print *, "no sufficient data points in obs data for the window", iloop
         !    stop
         !endif
-        if(iMovingWindowStart(iloop)>npDSM) then
+        if(iMovingWindowStart(iloop)>iWindowEnd) then
             print *, "no sufficient data points in syn data for the window", iloop
             stop
         endif

@@ -8,15 +8,15 @@
 module parameters
     implicit none
   
-    real(kind(0d0)), parameter :: pi=3.1415926535897932d0
+    !real(kind(0d0)), parameter :: pi=3.1415926535897932d0
     integer :: npButterworth
     real(kind(0d0)) :: fmin,fmax
     real(kind(0d0)) :: eps=1.d-5 ! tolerance during MT inversion
     integer :: nmt
-    integer :: npDSM ! integer length of synthetics (to be considered)
-    integer :: npData ! integer lenght of observed
+    !integer :: npDSM ! integer length of synthetics (to be considered)
+    integer :: npData ! integer length of observed
     integer :: ntStep
-    real(kind(0d0)) :: dt, tlenDSM, tlenData
+    real(kind(0d0)) :: dt, tlenData ! tlenDSM
     real(kind(0d0)), allocatable :: twin(:,:),twinObs(:,:)
     real(kind(0d0)) :: movingWindowStep
     integer :: NmovingWindowDimension
@@ -91,15 +91,19 @@ module angles
     !real(kind(0d0)), allocatable :: phi00(:),phi0(:),theta0(:)
     integer :: ntheta,nphi,nr
     real(kind(0d0)), allocatable :: phitheta(:,:),thetaphi(:,:)
+    real(kind(0d0)), allocatable :: latgeo(:,:), longeo(:,:)
     real(kind(0d0)), allocatable :: phi(:,:), theta(:,:)
     real(kind(0d0)), allocatable :: crq(:,:),srq(:,:),crq2(:,:),srq2(:,:)
-    real(kind(0d0)), allocatable :: csq(:,:),ssq(:,:),csq2(:,:),ssq2(:,:)
-    real(kind(0d0)), allocatable :: cqs(:,:),sqs(:,:),cqs2(:,:),sqs2(:,:)
+    !real(kind(0d0)), allocatable :: csq(:,:),ssq(:,:),csq2(:,:),ssq2(:,:)
+    !real(kind(0d0)), allocatable :: cqs(:,:),sqs(:,:),cqs2(:,:),sqs2(:,:)
     real(kind(0d0)), allocatable :: deltar(:,:),deltas(:,:)
     real(kind(0d0)) :: slat,slon,sdep,rlat,rlon
     real(kind(0d0)) :: gcarcmin,gcarcmax,dgcarc,azimuthmin,azimuthmax,dazimuth
     real(kind(0d0)) :: radiusmin,radiusmax,dradius
     real(kind(0d0)), allocatable  :: gcarc(:), azimuth(:),radius(:)
     integer,allocatable :: ithetaD(:)
-
+    !real(kind(0d0)) :: pi=4.d0*datan(1.d0)
+    real(kind(0d0)), parameter :: pi=3.1415926535897932d0
+    real(kind(0d0)) :: radian2degree=180.d0/pi
+    real(kind(0d0)) :: degree2radian=pi/180.d0
 end module angles

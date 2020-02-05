@@ -194,8 +194,8 @@ subroutine rsgt2h3time(ip,ith)
 
     !   Vertical component. Order: 1-rr, 2-tt, 3-pp, 4-rt, 5-rp, 6-tp.
         tmparray(iWindowStart:iWindowEnd,1,1)=rsgtTime(iWindowStart:iWindowEnd,1)
-    tmparray(iWindowStart:iWindowEnd,1,2)=rsgtTime(iWindowStart:iWindowEnd,3)*crq2(ip,ith)-rsgtTime(iWindowStart:iWindowEnd,4)
-    tmparray(iWindowStart:iWindowEnd,1,3)=-rsgtTime(iWindowStart:iWindowEnd,3)*crq2(ip,ith)-rsgtTime(iWindowStart:iWindowEnd,4)
+        tmparray(iWindowStart:iWindowEnd,1,2)=rsgtTime(iWindowStart:iWindowEnd,3)*crq2(ip,ith)-rsgtTime(iWindowStart:iWindowEnd,4)
+        tmparray(iWindowStart:iWindowEnd,1,3)=-rsgtTime(iWindowStart:iWindowEnd,3)*crq2(ip,ith)-rsgtTime(iWindowStart:iWindowEnd,4)
         tmparray(iWindowStart:iWindowEnd,1,4)=-rsgtTime(iWindowStart:iWindowEnd,2)*crq(ip,ith)
         tmparray(iWindowStart:iWindowEnd,1,5)=-rsgtTime(iWindowStart:iWindowEnd,2)*srq(ip,ith)
         tmparray(iWindowStart:iWindowEnd,1,6)=rsgtTime(iWindowStart:iWindowEnd,3)*srq2(ip,ith)
@@ -203,8 +203,8 @@ subroutine rsgt2h3time(ip,ith)
      !   Radial component. Order: 1-rr, 2-tt, 3-pp, 4-rt, 5-rp, 6-tp.
 
         tmparray(iWindowStart:iWindowEnd,2,1)=rsgtTime(iWindowStart:iWindowEnd,5)
-    tmparray(iWindowStart:iWindowEnd,2,2)=-(rsgtTime(iWindowStart:iWindowEnd,7))*crq2(ip,ith)-rsgtTime(iWindowStart:iWindowEnd,6)
-    tmparray(iWindowStart:iWindowEnd,2,3)=(rsgtTime(iWindowStart:iWindowEnd,7))*crq2(ip,ith)-rsgtTime(iWindowStart:iWindowEnd,6)
+        tmparray(iWindowStart:iWindowEnd,2,2)=-(rsgtTime(iWindowStart:iWindowEnd,7))*crq2(ip,ith)-rsgtTime(iWindowStart:iWindowEnd,6)
+        tmparray(iWindowStart:iWindowEnd,2,3)=(rsgtTime(iWindowStart:iWindowEnd,7))*crq2(ip,ith)-rsgtTime(iWindowStart:iWindowEnd,6)
         tmparray(iWindowStart:iWindowEnd,2,4)=(rsgtTime(iWindowStart:iWindowEnd,9))*crq(ip,ith)
         tmparray(iWindowStart:iWindowEnd,2,5)=(rsgtTime(iWindowStart:iWindowEnd,9))*srq(ip,ith)
         tmparray(iWindowStart:iWindowEnd,2,6)=-(rsgtTime(iWindowStart:iWindowEnd,7))*srq2(ip,ith)
