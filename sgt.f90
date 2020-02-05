@@ -171,7 +171,15 @@ real(kind(0d0)) :: omegai_log
   do j = 1,n
      eachcvec=dcmplx(0.d0)
      eachcvec(0:2*np1-1)=cvec(0:2*np1-1,j)
-     call cdft(4*np1,cos(pi/dble(2*np1)),sin(pi/dble(2*np1)), eachcvec(0:2*np1-1))
+
+    
+    do i=0,np1-1
+        write(12,*) i,cvec(i,1)
+    enddo
+    stop
+
+
+     call cdft(4*np1,dcos(pi/dble(2*np1)),dsin(pi/dble(2*np1)), eachcvec(0:2*np1-1))
      do i = iWindowStart, iWindowEnd
         rvec(i,j) = dble(eachcvec(i))*dexp(omegai_log*dble(i)/samplingHz)/tlen*1.d3
         !rvec(i,j) = dble(eachcvec(i))*dble(exp(omegai*tlen*dble(i)/dble(np1)))/tlen*1.d3
