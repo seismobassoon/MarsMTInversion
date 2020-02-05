@@ -47,33 +47,6 @@ program MarsInversion
     allocate(taperDSM(1:npDSM))
     allocate(taperOBS(1:npData))
 
-    ! For the observed data we taper the whole signal of a length of npData
-    
-    ! For the observed data we filter the whole signal of a length of npData
-    
-    do icomp=1,3
-       call bwfilt(obsRaw(1:npData,icomp),obsFilt(1:npData,icomp),dt,npData,1,npButterworth,fmin,fmax)
-    enddo
-    
-
-    ! Raw data and filtered data are written as fort.11-13 for references
-    
-
-    open(21,file="obsZtreated.txt",status='unknown')
-    open(22,file="obsNtreated.txt",status='unknown')
-    open(23,file="obsEtreated.txt",status='unknown')
-    do it=1,npData
-       write(21,*) dble(it)*dt,obsRaw(it,1),obsFilt(it,1)
-       write(22,*) dble(it)*dt,obsRaw(it,2),obsFilt(it,2)
-       write(23,*) dble(it)*dt,obsRaw(it,3),obsFilt(it,3)
-    enddo
-    close(21)
-    close(22)
-    close(23)
-
-
-
-
 
   !print *, iMovingWindowStart(1), iMovingWindowStart(2)
   !print *, iMovingWindowEnd(1), iMovingWindowEnd(2)
@@ -119,6 +92,44 @@ program MarsInversion
             endif
         enddo
     enddo
+
+
+    ! For the observed data we taper the whole signal of a length of npData
+    
+    ! A priori taper for stabilising bwfilt
+    taperOBS=1.d0
+    do it=1,npData/20
+        xfwin=dsin(0.5d0*pi*dble(it-1)/dble(npData/20-1))
+        taperOBS(it)=xfwin*xfwin
+    enddo
+    do it=npData-npData/20,npData
+        xfwin=dsin(0.5d0*pi*dble(it-npData)/dble(-npData/20))
+        taperOBS(it)=xfwin*xfwin
+    enddo
+    
+    ! For the observed data we filter the whole signal of a length of npData
+
+    do icomp=1,3
+        obsRaw(1:npData,icomp)=obsRaw(1:npData,icomp)*taperOBS
+       call bwfilt(obsRaw(1:npData,icomp),obsFilt(1:npData,icomp),dt,npData,1,npButterworth,fmin,fmax)
+    enddo
+    
+
+    ! Raw data and filtered data are written as fort.11-13 for references
+    
+
+    open(21,file="obsZtreated.txt",status='unknown')
+    open(22,file="obsNtreated.txt",status='unknown')
+    open(23,file="obsEtreated.txt",status='unknown')
+    do it=1,npData
+       write(21,*) dble(it)*dt,obsRaw(it,1),obsFilt(it,1)
+       write(22,*) dble(it)*dt,obsRaw(it,2),obsFilt(it,2)
+       write(23,*) dble(it)*dt,obsRaw(it,3),obsFilt(it,3)
+    enddo
+    close(21)
+    close(22)
+    close(23)
+
   
     ! making taper for observed data
     taperOBS=0.d0

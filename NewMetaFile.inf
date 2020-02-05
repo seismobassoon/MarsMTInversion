@@ -16,6 +16,11 @@ versionSGT
 # with this versionSGT, the order of parameters in this inf file is no more important.
 # however, always the first declaration of parameters is valid (when you declare them twice or more).
 
+# attention for tapering:
+#      regardless of your input tapers, the programme will apply a priori tapers on the beginning and 
+#      the end of syn and obs before butterworth filter (0.05 per cent of time window for each).
+#      This is why you need to prepare signals long enough before and after the phases that interest you!
+
 SGTinfo=./database_Small.inf
 
 parentDir=./databaseDWAKr_Small/RSGT/
@@ -52,8 +57,8 @@ dt = 0.05d0 # delta t in seconds -> this should be identical in syn and obs
 
 # butterworth filters (order, fmin, fmax)
 npButterworth =  4 # order (integer)
-fmin= 0.01 # min frequency (in Hz)
-fmax= 0.05 # max frequency (in Hz)
+fmin= 0.125 # min frequency (in Hz)
+fmax= 0.3 # max frequency (in Hz)
 
 
 # SGT version has window cutting option
@@ -62,6 +67,7 @@ effectiveSynWindow = 0.0 3000.0
 #  observed data information
 
 tlenData= 800.0d0 # total length of the seismic data in seconds, this should be bigger than the synthetic window length described above
+
 
 
 # number of taper windows 
