@@ -14,9 +14,10 @@ program MarsInversion
     use tmpSGTs
     use angles
     implicit none
+    character(200) :: dummyFile
 
     integer :: mtcomp,jmtcomp
-    integer ::icomp,iWindow,it,jjj
+    integer ::icomp,iWindow,it,jjj,iloop
     integer :: iMovingWindow,iConfiguration,iMovingWindowStep
     real(kind(0d0)), allocatable :: taperDSM(:),taperOBS(:)
     real(kind(0d0)), allocatable :: GreenArray(:,:,:)
@@ -180,18 +181,40 @@ program MarsInversion
 
 
     do iConfR=1,nr
-
+        rsgtomega=dcmplx(0.d0)
         call rdsgtomega(r_(iradiusD(iConfR)),num_rsgtPSV,num_rsgtPSV,20)
         call rdsgtomega(r_(iradiusD(iConfR)),num_rsgtSH,num_rsgtPSV,10)
+
+
+        do iConfTheta=1,theta_n,20
+            rsgtomegatmp(1:num_rsgtPSV,imin:imax)=rsgtomega(1:num_rsgtPSV,imin:imax,iConfTheta)
+            rsgtTime=0.d0
+            call tensorFFT_double(num_rsgtPSV,imin,imax,np1,rsgtomegatmp,rsgtTime,omegai, &
+            tlenFull,iWindowStart,iWindowEnd)
+            iConfPhi=1
+            call rsgt2h3time(iConfPhi,iConfTheta)
+
+            write(dummyFile,*)iConfTheta
+            dummyFile="tmptmptmptmp."//trim(adjustl(dummyFile))
+            open(1,file=dummyFile,form='formatted',status='unknown')
+            do it=iWindowStart,iWindowEnd
+                write(1,*) dble(it)*dt,tmparray(it,1,1),tmparray(it,2,1),tmparray(it,3,1)
+            enddo
+            close(1)
+        enddo
+
+        stop ! NF above do iConfTheta is really for debugging
         
         do iConfTheta=1,ntheta
-            
+            print *,"distance is", thetaD(ithetaD(iConfTheta)),theta_n, ntheta,ithetaD(iConfTheta)
             rsgtomegatmp(1:num_rsgtPSV,imin:imax)=rsgtomega(1:num_rsgtPSV,imin:imax,ithetaD(iConfTheta))
             !call tensorFFT_double(num_rsgtPSV,imin,imax,np1,rsgtomegatmp(1:num_rsgtPSV,imin:imax),rsgtTime(iWindowStart:iWindowEnd,1:num_rsgtPSV),omegai,tlenFull,iWindowStart,iWindowEnd)
+          
             call tensorFFT_double(num_rsgtPSV,imin,imax,np1,rsgtomegatmp,rsgtTime,omegai, &
                 tlenFull,iWindowStart,iWindowEnd)
-
-
+           ! do iloop=1,num_rsgtPSV
+            !    call vectorFFT_double(imin,imax,np1,rsgtomegatmp(iloop,imin:imax),rsgtTime(iWindowStart:iWindowEnd,iloop),omegai,tlenFull,iWindowStart,iWindowEnd)
+            !enddo
 
             do iConfPhi=1,nphi
 
@@ -200,7 +223,7 @@ program MarsInversion
                 call rsgt2h3time(iConfPhi,iConfTheta)
                         
 
-                if(0.eq.1) then
+                if(0.eq.0) then
                     do it=iWindowStart,iWindowEnd
                         write(11,*) dble(it)*dt,tmparray(it,1,1),tmparray(it,2,1),tmparray(it,3,1)
                     enddo
@@ -227,7 +250,7 @@ program MarsInversion
                 print *, "iConfR, iConfTheta,iConfPhi,iConfiguration=", iConfR, iConfTheta, iConfPhi, iConfiguration
                     
 
-
+                stop
                 ! Here we first filter Green's function as a whole and taper them
                 
                 do mtcomp=1,nmt

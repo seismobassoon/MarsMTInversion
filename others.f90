@@ -270,9 +270,6 @@ subroutine pinput
 
 
         
-
-        
-        
         !commandline = 'mkdir -p '//trim(parentDir)
         !call system(commandline)
         call pinputDSM(DSMconfFile,PoutputDir,psvmodel,&
@@ -796,7 +793,7 @@ subroutine pinputDSM(DSMconfFile,outputDir,psvmodel, &
 120 continue
   close(1)
   close(2)
-
+  
   open(unit=1,file=tmpfile,status='unknown')
   read(1,110) DSMconfFile
   read(1,110) outputDir

@@ -21,7 +21,7 @@ versionSGT
 #      the end of syn and obs before butterworth filter (0.05 per cent of time window for each).
 #      This is why you need to prepare signals long enough before and after the phases that interest you!
 
-SGTinfo=./database_Small.inf
+SGTinfo=./database_small.inf
 
 parentDir=./databaseDWAKr_Small/RSGT/
 
@@ -62,7 +62,7 @@ fmax= 0.3 # max frequency (in Hz)
 
 
 # SGT version has window cutting option
-effectiveSynWindow = 0.0 3000.0
+effectiveSynWindow = 0.0 3276.8
 
 #  observed data information
 
