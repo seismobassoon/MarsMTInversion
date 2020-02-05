@@ -124,6 +124,7 @@ subroutine pinput
 
         nr = int((radiusmax-radiusmin)/dradius)+1
         allocate(radius(1:nr))
+        allocate(iradiusD(1:nr))
         do iloop=1,nr
             radius(iloop) = radiusmin + dble(iloop-1)*dradius
         enddo
@@ -336,12 +337,13 @@ subroutine pinput
 
 
         ! check r(:) and r_(:) because we don't interpolate for depth
-
+        iradiusD=0
         do iloop=1,nr
             icheck=0
             do jloop=1,r_n
                 if(dabs(r_(jloop)-radius(iloop))< 1.d-5*radius(iloop)) then
                     icheck=1
+                    iradiusD(iloop)=jloop
                 endif
             enddo
             if(icheck.eq.0) then

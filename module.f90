@@ -101,7 +101,7 @@ module angles
     real(kind(0d0)) :: gcarcmin,gcarcmax,dgcarc,azimuthmin,azimuthmax,dazimuth
     real(kind(0d0)) :: radiusmin,radiusmax,dradius
     real(kind(0d0)), allocatable  :: gcarc(:), azimuth(:),radius(:)
-    integer,allocatable :: ithetaD(:)
+    integer,allocatable :: ithetaD(:), iradiusD(:)
     !real(kind(0d0)) :: pi=4.d0*datan(1.d0)
     real(kind(0d0)), parameter :: pi=3.1415926535897932d0
     real(kind(0d0)) :: radian2degree=180.d0/pi

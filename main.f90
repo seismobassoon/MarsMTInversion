@@ -41,10 +41,37 @@ program MarsInversion
   ! making taper function
 
     call pinput
+    npDSM = iWindowEnd-iWindowStart+1
   
   !print *, np,ntwin
     allocate(taperDSM(1:npDSM))
     allocate(taperOBS(1:npData))
+
+    ! For the observed data we taper the whole signal of a length of npData
+    
+    ! For the observed data we filter the whole signal of a length of npData
+    
+    do icomp=1,3
+       call bwfilt(obsRaw(1:npData,icomp),obsFilt(1:npData,icomp),dt,npData,1,npButterworth,fmin,fmax)
+    enddo
+    
+
+    ! Raw data and filtered data are written as fort.11-13 for references
+    
+
+    open(21,file="obsZtreated.txt",status='unknown')
+    open(22,file="obsNtreated.txt",status='unknown')
+    open(23,file="obsEtreated.txt",status='unknown')
+    do it=1,npData
+       write(21,*) dble(it)*dt,obsRaw(it,1),obsFilt(it,1)
+       write(22,*) dble(it)*dt,obsRaw(it,2),obsFilt(it,2)
+       write(23,*) dble(it)*dt,obsRaw(it,3),obsFilt(it,3)
+    enddo
+    close(21)
+    close(22)
+    close(23)
+
+
 
 
 
@@ -75,7 +102,7 @@ program MarsInversion
     allocate(modRawE(1:nTimeCombination,1:nConfiguration))
 
 
-    npDSM = iWindowEnd-iWindowStart+1
+    
 
     ! making taper for synthetics
     taperDSM=0.d0
@@ -114,7 +141,7 @@ program MarsInversion
 
 
     allocate(tmparray(iWindowStart:iWindowEnd,1:3,1:nmt))
-    allocate(GreenArray(iWindowStart:iWindowEnd,1:3,1:nmt))
+    allocate(GreenArray(1:npDSM,1:3,1:nmt))
 
     !! NF should think how to do this
     allocate(obsArray(1:npDSM,1:3),obsRawArray(1:npDSM,1:3))
@@ -143,8 +170,8 @@ program MarsInversion
 
     do iConfR=1,nr
 
-        call rdsgtomega(r_(iConfR),num_rsgtPSV,num_rsgtPSV,20)
-        call rdsgtomega(r_(iConfR),num_rsgtSH,num_rsgtPSV,10)
+        call rdsgtomega(r_(iradiusD(iConfR)),num_rsgtPSV,num_rsgtPSV,20)
+        call rdsgtomega(r_(iradiusD(iConfR)),num_rsgtSH,num_rsgtPSV,10)
         
         do iConfTheta=1,ntheta
             
@@ -195,6 +222,7 @@ program MarsInversion
                 do mtcomp=1,nmt
                     do icomp=1,3
                         filtbefore(1:npDSM)=tmparray(iWindowStart:iWindowEnd,icomp,mtcomp)
+                        !filtbefore(1:npDSM)=filtbefore(1:npDSM)*taperDSM(1:npDSM)
                         call bwfilt(filtbefore,filtafter,dt,npDSM,1,npButterworth,fmin,fmax)
                         tmparray(1:npDSM,icomp,mtcomp)=filtafter(1:npDSM)
                         GreenArray(1:npDSM,icomp,mtcomp)=filtafter(1:npDSM)*taperDSM(1:npDSM)
@@ -202,8 +230,10 @@ program MarsInversion
                 enddo
                 
     
-    
-
+                !do it=1,npDSM
+                !    write(11,*) dble(it)*dt,GreenArray(it,1,1),GreenArray(it,2,1),GreenArray(it,3,1)
+                !enddo
+                stop
                 
 
 
@@ -265,31 +295,8 @@ program MarsInversion
 !!!!!!! NOW WE START MT INVERSION FOR EACH TIME iMovingWindow
      
      
-     ! For the observed data we taper the whole signal of a length of npData
-     
-     ! For the observed data we filter the whole signal of a length of npData
-     
-     do icomp=1,3
-        call bwfilt(obsRaw(1:npData,icomp),obsFilt(1:npData,icomp),dt,npData,1,npButterworth,fmin,fmax)
-     enddo
-     
 
-     ! Raw data and filtered data are written as fort.11-13 for references
      
-
-     open(11,file="obsZtreated.txt",status='unknown')
-     open(12,file="obsNtreated.txt",status='unknown')
-     open(13,file="obsEtreated.txt",status='unknown')
-     do it=1,npData
-        write(11,*) dble(it)*dt,obsRaw(it,1),obsFilt(it,1)
-        write(12,*) dble(it)*dt,obsRaw(it,2),obsFilt(it,2)
-        write(13,*) dble(it)*dt,obsRaw(it,3),obsFilt(it,3)
-     enddo
-     close(11)
-     close(12)
-     close(13)
-
-     if(calculMode.eq.1) stop
      
      ! Here we taper the observed function for each moving window of np
      
