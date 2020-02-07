@@ -73,8 +73,10 @@ subroutine rdsgtomega(rx,num_sgt,num_psv,ipsvorsh)
         open(1,file=coutfile,status='unknown',form='unformatted', &
              access = 'direct', recl=2*num_sgt*kind(0e0)*theta_n)
         read(1,rec=1)sgtsngl(1:num_sgt,1:theta_n)
+        
+    
         sgtdouble(1:num_sgt,1:theta_n) = sgtsngl(1:num_sgt,1:theta_n)
-
+        
         !open(1,file=coutfile,status='old',form='unformatted',action='read')
         !read(1) sgtsngl(1:num_sgt,1:theta_n)
         !sgtdouble(1:num_sgt,1:theta_n)=sgtsngl(1:num_sgt,1:theta_n)
@@ -130,8 +132,9 @@ subroutine rdsgtomega(rx,num_sgt,num_psv,ipsvorsh)
         !   tsgtomega(12:20,i,1:theta_n)= tsgtomega(12:20,i,1:theta_n)+ sgtdouble(2:10,1:theta_n)
         endif
      endif
+
   enddo
-      
+ 
   return
 end subroutine rdsgtomega
 
@@ -146,12 +149,13 @@ subroutine tensorFFT_double(n,imin,imax,np1,ccvec,rvec,omegai,tlen,iWindowStart,
   real(kind(0d0)) :: rvec(iWindowStart:iWindowEnd,1:n)
   real(kind(0d0)), parameter :: pi = 3.141592653589793d0
   real(kind(0d0)) :: omegai, tlen,samplingHz
-real(kind(0d0)) :: omegai_log
+  real(kind(0d0)) :: omegai_log
   cvec = dcmplx(0.d0)
-  cvec(imin:imax,1:n)=ccvec(imin:imax,1:n)
+  cvec(imin:imax,1:n)=transpose(ccvec(1:n,imin:imax))
 
+  
 
-    print *, "this is FFT", np1, imin,imax, omegai,np1-(np1-imax),np1-(np1-imin),dble(imax)/dble(2*np1),dble(2*np1)/dble(imax)
+    !print *, "this is FFT", np1, imin,imax, omegai,np1-(np1-imax),np1-(np1-imin),dble(imax)/dble(2*np1),dble(2*np1)/dble(imax)
     samplingHz = dble(2*np1)/tlen
   
     omegai_log=-dlog(omegai)/tlen
@@ -173,11 +177,7 @@ real(kind(0d0)) :: omegai_log
      eachcvec(0:2*np1-1)=cvec(0:2*np1-1,j)
 
     
-    do i=0,np1-1
-        write(12,*) i,cvec(i,1)
-    enddo
-    stop
-
+   
 
      call cdft(4*np1,dcos(pi/dble(2*np1)),dsin(pi/dble(2*np1)), eachcvec(0:2*np1-1))
      do i = iWindowStart, iWindowEnd

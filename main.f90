@@ -184,8 +184,10 @@ program MarsInversion
         rsgtomega=dcmplx(0.d0)
         call rdsgtomega(r_(iradiusD(iConfR)),num_rsgtPSV,num_rsgtPSV,20)
         call rdsgtomega(r_(iradiusD(iConfR)),num_rsgtSH,num_rsgtPSV,10)
+        
+       
 
-
+if(0.eq.1) then
         do iConfTheta=1,theta_n,20
             rsgtomegatmp(1:num_rsgtPSV,imin:imax)=rsgtomega(1:num_rsgtPSV,imin:imax,iConfTheta)
             rsgtTime=0.d0
@@ -204,6 +206,8 @@ program MarsInversion
         enddo
 
         stop ! NF above do iConfTheta is really for debugging
+
+endif
         
         do iConfTheta=1,ntheta
             print *,"distance is", thetaD(ithetaD(iConfTheta)),theta_n, ntheta,ithetaD(iConfTheta)
@@ -217,7 +221,7 @@ program MarsInversion
             !enddo
 
             do iConfPhi=1,nphi
-
+                print *, "source location is ", latgeo(iConfPhi,iConfTheta), longeo(iConfPhi,iConfTheta)
                 iConfiguration=(iConfR-1)*(nphi*ntheta)+(iConfTheta-1)*nphi+iConfPhi
                     
                 call rsgt2h3time(iConfPhi,iConfTheta)
