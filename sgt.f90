@@ -204,9 +204,6 @@ subroutine rsgt2h3time(ip,ith)
     !   cosines of the azimuths.
 
 
-    
-
-
     !   Vertical component. Order: 1-rr, 2-tt, 3-pp, 4-rt, 5-rp, 6-tp.
         tmparray(iWindowStart:iWindowEnd,1,1)=rsgtTime(iWindowStart:iWindowEnd,1)
         tmparray(iWindowStart:iWindowEnd,1,2)=rsgtTime(iWindowStart:iWindowEnd,3)*crq2(ip,ith)-rsgtTime(iWindowStart:iWindowEnd,4)
