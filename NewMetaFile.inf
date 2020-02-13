@@ -23,7 +23,7 @@ versionSGT
 
 SGTinfo=./database_small.inf
 
-parentDir=./databaseDWAKr_Small/RSGT/
+parentDir=./databaseDWAKr_Small2/RSGT/
 
 eventName = sol173
 
@@ -41,6 +41,7 @@ searchAreaDistance =  20.d0 30.d0 10.d0
 # azimuth to search
 
 searchAreaAzimuth = -10.d0 10.d0 10.d0
+#searchAreaAzimuth = 10.d0 10.d0 90.d0
 
 # radius to search
 
@@ -57,8 +58,8 @@ dt = 0.05d0 # delta t in seconds -> this should be identical in syn and obs
 
 # butterworth filters (order, fmin, fmax)
 npButterworth =  4 # order (integer)
-fmin= 0.125 # min frequency (in Hz)
-fmax= 0.3 # max frequency (in Hz)
+fmin= 0.005 # min frequency (in Hz)
+fmax= 0.03 # max frequency (in Hz)
 
 
 # SGT version has window cutting option
@@ -72,10 +73,10 @@ tlenData= 800.0d0 # total length of the seismic data in seconds, this should be 
 
 # number of taper windows 
 
-numberofSynWindows =2
-
+#numberofSynWindows =2
+numberofSynWindows=1
 # taper windows in obs should be written as: t1, t2, t3, t4
-synWindow2 = 500.0 520.0 540.0 580.0
+#synWindow2 = 500.0 520.0 540.0 580.0
 synWindow1= 0.0 200.0 800.0 1000.0
 # 
 

@@ -153,7 +153,7 @@ subroutine tensorFFT_double(n,imin,imax,np1,ccvec,rvec,omegai,tlen,iWindowStart,
   cvec = dcmplx(0.d0)
   cvec(imin:imax,1:n)=transpose(ccvec(1:n,imin:imax))
 
-rvec=0.d0
+  rvec=0.d0
 
     !print *, "this is FFT", np1, imin,imax, omegai,np1-(np1-imax),np1-(np1-imin),dble(imax)/dble(2*np1),dble(2*np1)/dble(imax)
     samplingHz = dble(2*np1)/tlen

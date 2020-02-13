@@ -36,17 +36,17 @@ program MarsInversion
     real(kind(0d0)), allocatable :: varRawZ(:,:),varRawN(:,:),varRawE(:,:)
     real(kind(0d0)), allocatable :: modRawZ(:,:),modRawN(:,:),modRawE(:,:)
     complex(kind(0d0)), allocatable :: rsgtomegatmp(:,:)
-    integer :: npDSM
+    !integer :: npDSM
     !real(kind(0d0)) :: fakeMT(1:6)
 
   ! making taper function
 
     call pinput
-    npDSM = iWindowEnd-iWindowStart+1
+    !npDSM = iWindowEnd-iWindowStart+1
   
   !print *, np,ntwin
-    allocate(taperDSM(1:npDSM))
-    allocate(taperOBS(1:npData))
+    allocate(taperDSM(iWindowStart:iWindowEnd))
+    allocate(taperOBS(iWindowStart:iWindowEnd))
 
 
   !print *, iMovingWindowStart(1), iMovingWindowStart(2)
@@ -153,14 +153,14 @@ program MarsInversion
 
 
     allocate(tmparray(iWindowStart:iWindowEnd,1:3,1:nmt))
-    allocate(GreenArray(1:npDSM,1:3,1:nmt))
+    allocate(GreenArray(iWindowStart:iWindowEnd,1:3,1:nmt))
 
     !! NF should think how to do this
-    allocate(obsArray(1:npDSM,1:3),obsRawArray(1:npDSM,1:3))
-    allocate(filtbefore(1:npDSM),filtafter(1:npDSM))
+    allocate(obsArray(iWindowStart:iWindowEnd,1:3),obsRawArray(iWindowStart:iWindowEnd,1:3))
+    allocate(filtbefore(iWindowStart:iWindowEnd),filtafter(iWindowStart:iWindowEnd))
 
-    allocate(modArray(1:npDSM,1:3))
-    allocate(modRawArray(1:npDSM,1:3))
+    allocate(modArray(iWindowStart:iWindowEnd,1:3))
+    allocate(modRawArray(iWindowStart:iWindowEnd,1:3))
 
 
     mtInverted=0.d0
@@ -227,7 +227,7 @@ endif
                     
                 call rsgt2h3time(iConfPhi,iConfTheta)
                         
-
+    
                 if(0.eq.0) then
                     do it=iWindowStart,iWindowEnd
                         write(11,*) dble(it)*dt,tmparray(it,1,1),tmparray(it,2,1),tmparray(it,3,1)
@@ -250,28 +250,50 @@ endif
                    
                
                 endif
+                stop
                         
 
-                print *, "iConfR, iConfTheta,iConfPhi,iConfiguration=", iConfR, iConfTheta, iConfPhi, iConfiguration
+                !print *, "iConfR, iConfTheta,iConfPhi,iConfiguration=", iConfR, iConfTheta, iConfPhi, iConfiguration
                     
 
-                stop
+                !stop
                 ! Here we first filter Green's function as a whole and taper them
                 
                 do mtcomp=1,nmt
                     do icomp=1,3
-                        filtbefore(1:npDSM)=tmparray(iWindowStart:iWindowEnd,icomp,mtcomp)
-                        !filtbefore(1:npDSM)=filtbefore(1:npDSM)*taperDSM(1:npDSM)
-                        call bwfilt(filtbefore,filtafter,dt,npDSM,1,npButterworth,fmin,fmax)
-                        tmparray(1:npDSM,icomp,mtcomp)=filtafter(1:npDSM)
-                        GreenArray(1:npDSM,icomp,mtcomp)=filtafter(1:npDSM)*taperDSM(1:npDSM)
+                        filtbefore(iWindowStart:iWindowEnd)=tmparray(iWindowStart:iWindowEnd,icomp,mtcomp)
+                        filtbefore(iWindowStart:iWindowEnd)=filtbefore(iWindowStart:iWindowEnd)*taperDSM(iWindowStart:iWindowEnd)
+                        call bwfilt(filtbefore(iWindowStart:iWindowEnd),filtafter(iWindowStart:iWindowEnd), &
+                            dt,iWindowEnd-iWindowStart+1,1,npButterworth,fmin,fmax)
+                        tmparray(iWindowStart:iWindowEnd,icomp,mtcomp)=filtafter(iWindowStart:iWindowEnd)
+                        GreenArray(iWindowStart:iWindowEnd,icomp,mtcomp)=filtafter(iWindowStart:iWindowEnd)! *taperDSM(1:npDSM)
                    enddo
                 enddo
                 
+
+                if(0.eq.0) then
+                    do it=iWindowStart,iWindowEnd
+                        write(11,*) dble(it)*dt,tmparray(it,1,1),tmparray(it,2,1),tmparray(it,3,1)
+                    enddo
+                                   do it=iWindowStart,iWindowEnd
+                                       write(12,*) dble(it)*dt,tmparray(it,1,2),tmparray(it,2,2),tmparray(it,3,2)
+                                   enddo
+                                   do it=iWindowStart,iWindowEnd
+                                       write(13,*) dble(it)*dt,tmparray(it,1,3),tmparray(it,2,3),tmparray(it,3,3)
+                                   enddo
+                                   do it=iWindowStart,iWindowEnd
+                                       write(14,*) dble(it)*dt,tmparray(it,1,4),tmparray(it,2,4),tmparray(it,3,4)
+                                   enddo
+                                   do it=iWindowStart,iWindowEnd
+                                       write(15,*) dble(it)*dt,tmparray(it,1,5),tmparray(it,2,5),tmparray(it,3,5)
+                                   enddo
+                                   do it=iWindowStart,iWindowEnd
+                                       write(16,*) dble(it)*dt,tmparray(it,1,6),tmparray(it,2,6),tmparray(it,3,6)
+                                   enddo
+                                  
+                              
+                endif
     
-                !do it=1,npDSM
-                !    write(11,*) dble(it)*dt,GreenArray(it,1,1),GreenArray(it,2,1),GreenArray(it,3,1)
-                !enddo
                 stop
                 
 
@@ -307,7 +329,7 @@ endif
      ata=0.d0
      do mtcomp=1,nmt
         do jmtcomp=1,mtcomp
-           ata(mtcomp,jmtcomp)=sum(GreenArray(1:npDSM,1:3,mtcomp)*GreenArray(1:npDSM,1:3,jmtcomp))
+           ata(mtcomp,jmtcomp)=sum(GreenArray(iWindowStart:iWindowEnd,1:3,mtcomp)*GreenArray(iWindowStart:iWindowEnd,1:3,jmtcomp))
         enddo
      enddo
      
@@ -342,14 +364,14 @@ endif
      do iMovingWindowStep=1,nTimeCombination
         iMovingWindow=(iMovingWindowStep-1)*ntStep+1
         do icomp=1,3
-           obsRawArray(1:npDSM,icomp)=obsFilt(iMovingWindow:iMovingWindow+npDSM-1,icomp)
-           obsArray(1:npDSM,icomp)=obsRawArray(1:npDSM,icomp)*taperDSM(1:npDSM)
+           obsRawArray(iWindowStart:iWindowEnd,icomp)=obsFilt(iMovingWindow:iMovingWindow+(iWindowEnd-iWindowStart),icomp)
+           obsArray(iWindowStart:iWindowEnd,icomp)=obsRawArray(iWindowStart:iWindowEnd,icomp)*taperDSM(iWindowStart:iWindowEnd)
         enddo
         atd=0.d0
         ! Atd construction
         
         do mtcomp=1,nmt
-           atd(mtcomp)=sum(GreenArray(1:npDSM,1:3,mtcomp)*obsArray(1:npDSM,1:3))
+           atd(mtcomp)=sum(GreenArray(iWindowStart:iWindowEnd,1:3,mtcomp)*obsArray(iWindowStart:iWindowEnd,1:3))
         enddo
        
       
@@ -372,10 +394,10 @@ endif
         modRawArray=0.d0
         modArray=0.d0
         do mtcomp=1,nmt
-           modRawArray(1:npDSM,1:3)=modRawArray(1:npDSM,1:3) &
-                +tmparray(1:npDSM,1:3,mtcomp)*mtInverted(mtcomp,iMovingWindowStep,iConfiguration)
-           modArray(1:npDSM,1:3)=modArray(1:npDSM,1:3) &
-                +GreenArray(1:npDSM,1:3,mtcomp)*mtInverted(mtcomp,iMovingWindowStep,iConfiguration)
+           modRawArray(iWindowStart:iWindowEnd,1:3)=modRawArray(iWindowStart:iWindowEnd,1:3) &
+                +tmparray(iWindowStart:iWindowEnd,1:3,mtcomp)*mtInverted(mtcomp,iMovingWindowStep,iConfiguration)
+           modArray(iWindowStart:iWindowEnd,1:3)=modArray(iWindowStart:iWindowEnd,1:3) &
+                +GreenArray(iWindowStart:iWindowEnd,1:3,mtcomp)*mtInverted(mtcomp,iMovingWindowStep,iConfiguration)
         enddo
 
         write(list,'(I7,".",I7)') iConfiguration,iMovingWindowStep
@@ -408,7 +430,7 @@ endif
         modRawN(iMovingWindowStep,iConfiguration)=0.d0
         modRawE(iMovingWindowStep,iConfiguration)=0.d0
 
-        do it=1,npDSM
+        do it=iWindowStart,iWindowEnd
 
            write(21,*) dt*dble(it), modRawArray(it,1), modRawArray(it,2), modRawArray(it,3)
            write(22,*) dt*dble(it), modArray(it,1), modArray(it,2), modArray(it,3)

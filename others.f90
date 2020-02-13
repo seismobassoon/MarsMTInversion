@@ -388,12 +388,13 @@ subroutine pinput
         do iloop=1,ntheta
             do jloop=1,nphi
                 print *, gcarc(iloop),azimuth(jloop), latgeo(jloop,iloop),longeo(jloop,iloop)
+                !azimuth(jloop)=-azimuth(jloop)
                 call azimth(0,latgeo(jloop,iloop),longeo(jloop,iloop),stla,stlo,fdummy2,phirq,fdummy)
-                !print *, " inverse: ",fdummy2,phirq,fdummy
+                print *, " inverse: ",fdummy2,phirq,fdummy
+                
 
-
-                phirq=pi-phirq*degree2radian
-
+                !phirq=pi-phirq*degree2radian
+                phirq=phirq*degree2radian
                 if(phirq.lt.0.d0) phirq=phirq+2.d0*pi
                 if(phirq.gt.(2.d0*pi)) phirq=phirq-2.d0*pi
                 
@@ -407,7 +408,7 @@ subroutine pinput
 
 
         
-
+        stop
 
 
        
