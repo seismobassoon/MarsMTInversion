@@ -192,7 +192,8 @@ subroutine tensorFFT_double(n,imin,imax,np1,ccvec,rvec,omegai,tlen,iWindowStart,
   return
 end subroutine tensorFFT_double
 
-subroutine rsgt2h3time(ip,ith)
+
+subroutine rsgt2h3time_authentic(ip,ith)
     use parameters
     use angles
     use tmpSGTs
@@ -202,6 +203,9 @@ subroutine rsgt2h3time(ip,ith)
     !   This subroutine calculates the 18 independent elements of the 3rd-order
     !   SSGT from the 10 azimuth independent coefficients and the sines and
     !   cosines of the azimuths.
+
+! during RSGT calculation I did some misakes: phi_RQ =pi instead of 0
+
 
 
     !   Vertical component. Order: 1-rr, 2-tt, 3-pp, 4-rt, 5-rp, 6-tp.
@@ -231,7 +235,50 @@ subroutine rsgt2h3time(ip,ith)
         tmparray(iWindowStart:iWindowEnd,3,6)=-(rsgtTime(iWindowStart:iWindowEnd,8))*crq2(ip,ith)
 
   return
-end subroutine rsgt2h3time
+end subroutine rsgt2h3time_authentic
+
+subroutine rsgt2h3time_adhoc(ip,ith)
+    use parameters
+    use angles
+    use tmpSGTs
+    !use kernels
+    implicit none
+    integer ip,ith
+    !   This subroutine calculates the 18 independent elements of the 3rd-order
+    !   SSGT from the 10 azimuth independent coefficients and the sines and
+    !   cosines of the azimuths.
+
+
+
+    !   Vertical component. Order: 1-rr, 2-tt, 3-pp, 4-rt, 5-rp, 6-tp. Perfectly modified
+        tmparray(iWindowStart:iWindowEnd,1,1)=rsgtTime(iWindowStart:iWindowEnd,1) ! valid
+        tmparray(iWindowStart:iWindowEnd,1,2)=rsgtTime(iWindowStart:iWindowEnd,3)*crq2(ip,ith)-rsgtTime(iWindowStart:iWindowEnd,4)
+        tmparray(iWindowStart:iWindowEnd,1,3)=-rsgtTime(iWindowStart:iWindowEnd,3)*crq2(ip,ith)-rsgtTime(iWindowStart:iWindowEnd,4)
+        tmparray(iWindowStart:iWindowEnd,1,4)=2.d0*rsgtTime(iWindowStart:iWindowEnd,2)*crq(ip,ith) !modified
+        tmparray(iWindowStart:iWindowEnd,1,5)=2.d0*rsgtTime(iWindowStart:iWindowEnd,2)*srq(ip,ith)
+            !modified
+        tmparray(iWindowStart:iWindowEnd,1,6)=2.d0*rsgtTime(iWindowStart:iWindowEnd,3)*srq2(ip,ith) ! modified
+
+     !   Radial component. Order: 1-rr, 2-tt, 3-pp, 4-rt, 5-rp, 6-tp.
+
+        tmparray(iWindowStart:iWindowEnd,2,1)=rsgtTime(iWindowStart:iWindowEnd,5)
+        tmparray(iWindowStart:iWindowEnd,2,2)=-(rsgtTime(iWindowStart:iWindowEnd,7))*crq2(ip,ith)-rsgtTime(iWindowStart:iWindowEnd,6)
+        tmparray(iWindowStart:iWindowEnd,2,3)=(rsgtTime(iWindowStart:iWindowEnd,7))*crq2(ip,ith)-rsgtTime(iWindowStart:iWindowEnd,6)
+        tmparray(iWindowStart:iWindowEnd,2,4)=(rsgtTime(iWindowStart:iWindowEnd,9))*crq(ip,ith)
+        tmparray(iWindowStart:iWindowEnd,2,5)=(rsgtTime(iWindowStart:iWindowEnd,9))*srq(ip,ith)
+        tmparray(iWindowStart:iWindowEnd,2,6)=-(rsgtTime(iWindowStart:iWindowEnd,7))*srq2(ip,ith)
+
+     !   Transverse component. Order: 1-rr, 2-tt, 3-pp, 4-rt, 5-rp, 6-tp. Perfectly modified
+ 
+        tmparray(iWindowStart:iWindowEnd,3,1)=0.d0
+        tmparray(iWindowStart:iWindowEnd,3,2)=(rsgtTime(iWindowStart:iWindowEnd,8))*srq2(ip,ith)
+        tmparray(iWindowStart:iWindowEnd,3,3)=-tmparray(iWindowStart:iWindowEnd,3,2)
+        tmparray(iWindowStart:iWindowEnd,3,4)=2.d0*(rsgtTime(iWindowStart:iWindowEnd,10))*srq(ip,ith) !modified
+        tmparray(iWindowStart:iWindowEnd,3,5)=-2.d0*(rsgtTime(iWindowStart:iWindowEnd,10))*crq(ip,ith) ! modified
+        tmparray(iWindowStart:iWindowEnd,3,6)=-2.d0*(rsgtTime(iWindowStart:iWindowEnd,8))*crq2(ip,ith) ! modified
+
+  return
+end subroutine rsgt2h3time_adhoc
 
 
 

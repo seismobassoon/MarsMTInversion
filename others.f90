@@ -394,7 +394,7 @@ subroutine pinput
                 !print *, " inverse: ",fdummy2,phirq,fdummy
                 
 
-phirq=5.d-1*pi-phirq*degree2radian
+                phirq=pi-phirq*degree2radian
            
                 if(phirq.lt.0.d0) phirq=phirq+2.d0*pi
                 if(phirq.gt.(2.d0*pi)) phirq=phirq-2.d0*pi

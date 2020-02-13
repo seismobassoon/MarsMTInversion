@@ -225,7 +225,7 @@ endif
                 print *, "source location is ", latgeo(iConfPhi,iConfTheta), longeo(iConfPhi,iConfTheta)
                 iConfiguration=(iConfR-1)*(nphi*ntheta)+(iConfTheta-1)*nphi+iConfPhi
                     
-                call rsgt2h3time(iConfPhi,iConfTheta)
+                call rsgt2h3time_adhoc(iConfPhi,iConfTheta)
                         
     
                 if(0.eq.0) then
