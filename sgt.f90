@@ -282,6 +282,7 @@ end subroutine rsgt2h3time_adhoc
 
 
 
+
 subroutine vectorFFT_double(imin,imax,np1,ccvec,rvec,omegai,tlen,iWindowStart,iWindowEnd)
   ! this subroutine particularly calculates the FFT of the given tensor and make a double tensor
   
