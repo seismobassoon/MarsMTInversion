@@ -261,7 +261,7 @@ subroutine rsgt2h3time_adhoc(ip,ith)
 
      !   Radial component. Order: 1-rr, 2-tt, 3-pp, 4-rt, 5-rp, 6-tp.
 
-        tmparray(iWindowStart:iWindowEnd,2,1)=rsgtTime(iWindowStart:iWindowEnd,5)
+        tmparray(iWindowStart:iWindowEnd,2,1)=rsgtTime(iWindowStart:iWindowEnd,5)+rsgtTime(iWindowStart:iWindowEnd,10)
         tmparray(iWindowStart:iWindowEnd,2,2)=-(rsgtTime(iWindowStart:iWindowEnd,7))*crq2(ip,ith)-rsgtTime(iWindowStart:iWindowEnd,6)
         tmparray(iWindowStart:iWindowEnd,2,3)=(rsgtTime(iWindowStart:iWindowEnd,7))*crq2(ip,ith)-rsgtTime(iWindowStart:iWindowEnd,6)
         tmparray(iWindowStart:iWindowEnd,2,4)=(rsgtTime(iWindowStart:iWindowEnd,9))*crq(ip,ith)
