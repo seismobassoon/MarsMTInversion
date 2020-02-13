@@ -183,9 +183,9 @@ program MarsInversion
     do iConfR=1,nr
         print *, "depth is ", r_(iradiusD(iConfR))
         rsgtomega=dcmplx(0.d0)
-        call rdsgtomega(r_(iradiusD(iConfR)),num_rsgtPSV,num_rsgtPSV,20)
-        call rdsgtomega(r_(iradiusD(iConfR)),num_rsgtSH,num_rsgtPSV,10)
         
+        call rdsgtomega(r_(iradiusD(iConfR)),num_rsgtSH,num_rsgtPSV,10)
+        call rdsgtomega(r_(iradiusD(iConfR)),num_rsgtPSV,num_rsgtPSV,20)
        
 
 if(0.eq.1) then
