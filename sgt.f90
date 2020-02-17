@@ -259,14 +259,14 @@ subroutine rsgt2h3time_adhoc(ip,ith)
             !modified
         tmparray(iWindowStart:iWindowEnd,1,6)=2.d0*rsgtTime(iWindowStart:iWindowEnd,3)*srq2(ip,ith) ! modified
 
-     !   Radial component. Order: 1-rr, 2-tt, 3-pp, 4-rt, 5-rp, 6-tp.
+    !   Radial component. Order: 1-rr, 2-tt, 3-pp, 4-rt, 5-rp, 6-tp.
 
-        tmparray(iWindowStart:iWindowEnd,2,1)=-rsgtTime(iWindowStart:iWindowEnd,5)+(rsgtTime(iWindowStart:iWindowEnd,8))*srq2(ip,ith)
-tmparray(iWindowStart:iWindowEnd,2,2)=5.d-1*(rsgtTime(iWindowStart:iWindowEnd,7))*crq2(ip,ith)+rsgtTime(iWindowStart:iWindowEnd,6)!+2.d0*rsgtTime(iWindowStart:iWindowEnd,7)*crq2(ip,ith)-rsgtTime(iWindowStart:iWindowEnd,6)
-tmparray(iWindowStart:iWindowEnd,2,3)=1.d0/sqrt(2.d0)*rsgtTime(iWindowStart:iWindowEnd,6)
-        tmparray(iWindowStart:iWindowEnd,2,4)=(rsgtTime(iWindowStart:iWindowEnd,9))*crq(ip,ith)
-        tmparray(iWindowStart:iWindowEnd,2,5)=(rsgtTime(iWindowStart:iWindowEnd,9))*srq(ip,ith)
-        tmparray(iWindowStart:iWindowEnd,2,6)=-(rsgtTime(iWindowStart:iWindowEnd,7))*srq2(ip,ith)
+     tmparray(iWindowStart:iWindowEnd,2,1)=rsgtTime(iWindowStart:iWindowEnd,5)
+     tmparray(iWindowStart:iWindowEnd,2,2)=-(rsgtTime(iWindowStart:iWindowEnd,7))*crq2(ip,ith)-rsgtTime(iWindowStart:iWindowEnd,6)
+     tmparray(iWindowStart:iWindowEnd,2,3)=(rsgtTime(iWindowStart:iWindowEnd,7))*crq2(ip,ith)-rsgtTime(iWindowStart:iWindowEnd,6)
+     tmparray(iWindowStart:iWindowEnd,2,4)=(rsgtTime(iWindowStart:iWindowEnd,9))*crq(ip,ith)
+     tmparray(iWindowStart:iWindowEnd,2,5)=(rsgtTime(iWindowStart:iWindowEnd,9))*srq(ip,ith)
+     tmparray(iWindowStart:iWindowEnd,2,6)=-(rsgtTime(iWindowStart:iWindowEnd,7))*srq2(ip,ith)
 
      !   Transverse component. Order: 1-rr, 2-tt, 3-pp, 4-rt, 5-rp, 6-tp. Perfectly modified
  
