@@ -14,10 +14,9 @@ program MarsInversion
     use tmpSGTs
     use angles
     implicit none
-    character(200) :: dummyFile
 
     integer :: mtcomp,jmtcomp
-    integer ::icomp,iWindow,it,jjj,iloop
+    integer ::icomp,iWindow,it,jjj
     integer :: iMovingWindow,iConfiguration,iMovingWindowStep
     real(kind(0d0)), allocatable :: taperDSM(:),taperOBS(:)
     real(kind(0d0)), allocatable :: GreenArray(:,:,:)
@@ -188,27 +187,6 @@ program MarsInversion
         call rdsgtomega(r_(iradiusD(iConfR)),num_rsgtPSV,num_rsgtPSV,20)
        
 
-if(0.eq.1) then
-        do iConfTheta=1,theta_n,20
-            rsgtomegatmp(1:num_rsgtPSV,imin:imax)=rsgtomega(1:num_rsgtPSV,imin:imax,iConfTheta)
-            rsgtTime=0.d0
-            call tensorFFT_double(num_rsgtPSV,imin,imax,np1,rsgtomegatmp,rsgtTime,omegai, &
-            tlenFull,iWindowStart,iWindowEnd)
-            iConfPhi=1
-            call rsgt2h3time(iConfPhi,iConfTheta)
-
-            write(dummyFile,*)iConfTheta
-            dummyFile="tmptmptmptmp."//trim(adjustl(dummyFile))
-            open(1,file=dummyFile,form='formatted',status='unknown')
-            do it=iWindowStart,iWindowEnd
-                write(1,*) dble(it)*dt,tmparray(it,1,1),tmparray(it,2,1),tmparray(it,3,1)
-            enddo
-            close(1)
-        enddo
-
-        stop ! NF above do iConfTheta is really for debugging
-
-endif
         
         do iConfTheta=1,ntheta
             print *,"distance is", thetaD(ithetaD(iConfTheta)),theta_n, ntheta,ithetaD(iConfTheta)
@@ -228,29 +206,6 @@ endif
                 call rsgt2h3time_adhoc(iConfPhi,iConfTheta)
                         
     
-                if(0.eq.0) then
-                    do it=iWindowStart,iWindowEnd
-                        write(11,*) dble(it)*dt,tmparray(it,1,1),tmparray(it,2,1),tmparray(it,3,1)
-                    enddo
-                    do it=iWindowStart,iWindowEnd
-                        write(12,*) dble(it)*dt,tmparray(it,1,2),tmparray(it,2,2),tmparray(it,3,2)
-                    enddo
-                    do it=iWindowStart,iWindowEnd
-                        write(13,*) dble(it)*dt,tmparray(it,1,3),tmparray(it,2,3),tmparray(it,3,3)
-                    enddo
-                    do it=iWindowStart,iWindowEnd
-                        write(14,*) dble(it)*dt,tmparray(it,1,4),tmparray(it,2,4),tmparray(it,3,4)
-                    enddo
-                    do it=iWindowStart,iWindowEnd
-                        write(15,*) dble(it)*dt,tmparray(it,1,5),tmparray(it,2,5),tmparray(it,3,5)
-                    enddo
-                    do it=iWindowStart,iWindowEnd
-                        write(16,*) dble(it)*dt,tmparray(it,1,6),tmparray(it,2,6),tmparray(it,3,6)
-                    enddo
-                   
-               
-                endif
-                stop
                         
 
                 !print *, "iConfR, iConfTheta,iConfPhi,iConfiguration=", iConfR, iConfTheta, iConfPhi, iConfiguration
@@ -270,89 +225,39 @@ endif
                    enddo
                 enddo
                 
-
-                if(0.eq.0) then
-                    do it=iWindowStart,iWindowEnd
-                        write(11,*) dble(it)*dt,tmparray(it,1,1),tmparray(it,2,1),tmparray(it,3,1)
-                    enddo
-                                   do it=iWindowStart,iWindowEnd
-                                       write(12,*) dble(it)*dt,tmparray(it,1,2),tmparray(it,2,2),tmparray(it,3,2)
-                                   enddo
-                                   do it=iWindowStart,iWindowEnd
-                                       write(13,*) dble(it)*dt,tmparray(it,1,3),tmparray(it,2,3),tmparray(it,3,3)
-                                   enddo
-                                   do it=iWindowStart,iWindowEnd
-                                       write(14,*) dble(it)*dt,tmparray(it,1,4),tmparray(it,2,4),tmparray(it,3,4)
-                                   enddo
-                                   do it=iWindowStart,iWindowEnd
-                                       write(15,*) dble(it)*dt,tmparray(it,1,5),tmparray(it,2,5),tmparray(it,3,5)
-                                   enddo
-                                   do it=iWindowStart,iWindowEnd
-                                       write(16,*) dble(it)*dt,tmparray(it,1,6),tmparray(it,2,6),tmparray(it,3,6)
-                                   enddo
-                                  
-                              
-                endif
-    
+                ! Construct AtA
+                
+                
+                ata=0.d0
+                do mtcomp=1,nmt
+                   do jmtcomp=1,mtcomp
+                      ata(mtcomp,jmtcomp)=sum(GreenArray(iWindowStart:iWindowEnd,1:3,mtcomp)*GreenArray(iWindowStart:iWindowEnd,1:3,jmtcomp))
+                   enddo
+                enddo
+                
+                ! AtA is symmetric
+                
+                do mtcomp=1,nmt
+                   do jmtcomp=mtcomp,nmt
+                      ata(mtcomp,jmtcomp)=ata(jmtcomp,mtcomp)
+                   enddo
+                enddo
+                
                 stop
                 
 
 
 
-            enddo
-        enddo
-    enddo
+            enddo ! iConfPhi loop
+        enddo ! iConfTheta loop
+    enddo ! iConfR loop
 
 
 
 
                 stop
 
-        ! NF redefine u and reconsider the order of rsgtomega
 
-        ! Hey here, we can even rotate with 360 phi!!!
-        ! mais bon c'est just trop couteux
-
-     !
-
-
-  
-
-     
-  
-
-
-     
-     ! Construct AtA
-     
-     
-     ata=0.d0
-     do mtcomp=1,nmt
-        do jmtcomp=1,mtcomp
-           ata(mtcomp,jmtcomp)=sum(GreenArray(iWindowStart:iWindowEnd,1:3,mtcomp)*GreenArray(iWindowStart:iWindowEnd,1:3,jmtcomp))
-        enddo
-     enddo
-     
-     ! AtA is symmetric
-     
-     do mtcomp=1,nmt
-        do jmtcomp=mtcomp,nmt
-           ata(mtcomp,jmtcomp)=ata(jmtcomp,mtcomp)
-        enddo
-     enddo
-     
-     
-     ! Try the inverse of ata
-     
-     !call inverse(ata,atainv,mtcomp)
-
-     !do mtcomp=1,nmt
-     !   do jmtcomp=1,nmt
-     !      print *, mtcomp,jmtcomp,ata(mtcomp,jmtcomp),atainv(mtcomp,jmtcomp)
-     !  enddo
-     !enddo
-     !stop
-     
 !!!!!!! NOW WE START MT INVERSION FOR EACH TIME iMovingWindow
      
      

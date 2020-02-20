@@ -1,0 +1,28 @@
+# Nobuaki Fuji generated this for ./configure
+# 0. DSM configuration file
+#/home/nobuaki/gpfs/git/DSM-Kernel/etc/DSMconfiguration/DSM.config 
+DSM.config
+# 1. outputDir
+#/home/nobuaki/scratch/Mars/databaseDWAKr/
+./databaseDWAKr_Small2
+# 2. psvmodel
+DWAKr.psv.model
+#3. modelname
+DWAKr
+# 4. tlen (preferred to be set as 2^n*0.1 seconds
+3276.8d0
+# 5. minQ radius (km), maxQ radius, delta radius
+2.780d3 3.380d3 20.d0
+# 6. source radius (km)
+3.300d3
+# 7. minQ theta (degrees), maxQ theta, delta theta
+0.d0 45.d0 5.d-1
+#.d0 60.d0 5.d-1
+# 8. imin imax (omega index: tlen/imax is the shortest period)
+#0  2048 
+0 256
+# 9. switching calculation of RSGT, TSGT, synthetics
+# if 1 we calculate
+1 0 1
+# don't forget to write 'end'
+end
