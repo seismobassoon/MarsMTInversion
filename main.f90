@@ -147,16 +147,25 @@ program MarsInversion
         enddo
     enddo
 
+    ! we taper the filtered OBS
 
-    ! we apply the butterworth filter to the Green's functions
+    ! For the observed data we filter the whole signal of a length of npData
 
+    do icomp=1,3
+        obsFilt(1:npData,icomp)=obsFilt(1:npData,icomp)*taperOBS
+    enddo
+    
+
+
+
+    ! GreenArray will be the filtered Green's function of 3 x 6 components
 
     allocate(tmparray(iWindowStart:iWindowEnd,1:3,1:nmt))
     allocate(GreenArray(iWindowStart:iWindowEnd,1:3,1:nmt))
 
     !! NF should think how to do this
     allocate(obsArray(iWindowStart:iWindowEnd,1:3),obsRawArray(iWindowStart:iWindowEnd,1:3))
-    allocate(filtbefore(iWindowStart:iWindowEnd),filtafter(iWindowStart:iWindowEnd))
+    !allocate(filtbefore(iWindowStart:iWindowEnd),filtafter(iWindowStart:iWindowEnd))
 
     allocate(modArray(iWindowStart:iWindowEnd,1:3))
     allocate(modRawArray(iWindowStart:iWindowEnd,1:3))
@@ -225,8 +234,9 @@ program MarsInversion
                    enddo
                 enddo
                 
-                ! Construct AtA
+
                 
+                ! Construct AtA
                 
                 ata=0.d0
                 do mtcomp=1,nmt
