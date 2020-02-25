@@ -19,7 +19,7 @@ program MarsInversion
     integer ::icomp,iWindow,it,jjj
     integer :: iMovingWindow,iConfiguration,iMovingWindowStep
     real(kind(0d0)), allocatable :: taperDSM(:),taperOBS(:)
-    real(kind(0d0)), allocatable :: GreenArray(:,:,:)
+    real(kind(0d0)), allocatable :: GreenArray(:,:,:),GreenArrayShifted(:,:,:)
     real(kind(0d0)), allocatable :: obsArray(:,:),obsRawArray(:,:)
     real(kind(0d0)), allocatable :: modArray(:,:),modRawArray(:,:)
     real(kind(0d0)), allocatable :: filtbefore(:),filtafter(:)
@@ -152,7 +152,7 @@ program MarsInversion
     ! For the observed data we filter the whole signal of a length of npData
 
     do icomp=1,3
-        obsFilt(1:npData,icomp)=obsFilt(1:npData,icomp)*taperOBS
+        obsFiltTapered(1:npData,icomp)=obsFilt(1:npData,icomp)*taperOBS
     enddo
     
 
@@ -162,7 +162,7 @@ program MarsInversion
 
     allocate(tmparray(iWindowStart:iWindowEnd,1:3,1:nmt))
     allocate(GreenArray(iWindowStart:iWindowEnd,1:3,1:nmt))
-
+    allocate(GreenArrayShifted(1:npData,1:3,1:nmt)) ! Attention this is ok (1:npData) because we shift SYN to OBS
     !! NF should think how to do this
     allocate(obsArray(iWindowStart:iWindowEnd,1:3),obsRawArray(iWindowStart:iWindowEnd,1:3))
     !allocate(filtbefore(iWindowStart:iWindowEnd),filtafter(iWindowStart:iWindowEnd))
@@ -237,17 +237,21 @@ program MarsInversion
 
 
                 
+                !!! NF -> Do it now!!!
+
 
 
                 ! Here we start moving window procedure
                 
                 do jloop=1,nTimeCombination
                     ! This is for each time moving window set (independent or fixed)
+                    GreenArrayShifted=0.d0
+                
                     do iloop=1,NmovingWindowDimension
-                            
-
-
-
+                         ! First shift th GreenArray in order to get to the same timing as OBS
+                         GreenArrayShifted(
+                        
+                        
 
                     enddo
                 enddo

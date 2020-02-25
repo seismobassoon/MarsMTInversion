@@ -206,6 +206,7 @@ subroutine pinput
 
         allocate(obsRaw(1:npData,1:3))
         allocate(obsFilt(1:npData,1:3))
+        allocate(obsFiltTaper(1:npData,1:3))
 
         paramName="obsZfile"
         call searchForParams(tmpfile,paramName,obsfile,0)
