@@ -427,8 +427,10 @@ subroutine pinput
         nConfiguration=nr*ntheta*nphi
         print *, "source locations to be tested (in r, theta, phi, total): "
         print *, "      ", nr,ntheta,nphi,nConfiguration
-    elseif((dummy(1:6).eq.'normal').or.(dummy(1:4).eq.'test')) then
+    
 
+   !elseif((dummy(1:6).eq.'normal').or.(dummy(1:4).eq.'test')) then
+    else
 
         print *, "no more support for non RSGT methods. Sorry."
         stop
@@ -725,23 +727,6 @@ subroutine makingIndependentWindow
     do iloop=1,NmovingWindowDimension
         iMovingWindowStart(iloop)=itwinObs(1,iloop)+iMovingWindowStart(iloop)
         iMovingWindowEnd(iloop)=itwinObs(1,iloop)+iMovingWindowEnd(iloop)
-        ! check whether syn and obs are available for these indices
-        if(iMovingWindowEnd(iloop)<iWindowStart) then
-            print *, "no sufficient data points in syn data for the window", iloop
-            stop
-        endif
-        !if(itwinObs(1,iloop)<1) then
-        !    print *, "no sufficient data points in obs data for the window", iloop
-        !    stop
-        !endif
-        if(iMovingWindowStart(iloop)>iWindowEnd) then
-            print *, "no sufficient data points in syn data for the window", iloop
-            stop
-        endif
-        !if(itwinObs(4,iloop)+iMovingWindowEnd(iloop)>npData) then
-        !    print *, "no sufficient data points in obs data for the window", iloop
-        !    stop
-        !endif
         totalNumberInWindowDimension(iloop)=(iMovingWindowEnd(iloop)-iMovingWindowStart(iloop))/ntStep+1
         nTimeCombination = nTimeCombination*totalNumberInWindowDimension(iloop)
         !print *, iloop, totalNumberInWindowDimension(iloop)
@@ -756,9 +741,20 @@ subroutine makingIndependentWindow
             indexInWindow(iloop)=mod(tmpinteger,totalNumberInWindowDimension(iloop))+1
 
             tmpinteger=tmpinteger/totalNumberInWindowDimension(iloop)
+
             iEachWindowStart(jloop,iloop)=iMovingWindowStart(iloop)+ntStep*(indexInWindow(iloop)-1)
             iEachWindowEnd(jloop,iloop)=iMovingWindowEnd(iloop)+ntStep*(indexInWindow(iloop)-1)
             
+            ! check whether syn and obs are available for these indices
+            if(iEachWindowEnd(jloop,iloop)<iWindowStart) then
+                print *, "no sufficient data points in syn data for the window", iloop
+                stop
+            endif
+            
+            if(iEachWindowStart(jloop,iloop)>iWindowEnd) then
+                print *, "no sufficient data points in syn data for the window", iloop
+                stop
+            endif
         enddo
         !print *, jloop,indexInWindow(:),iEachWindowStart(jloop,:),iEachWindowEnd(jloop,:)
     enddo

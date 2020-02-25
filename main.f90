@@ -215,8 +215,6 @@ program MarsInversion
                 call rsgt2h3time_adhoc(iConfPhi,iConfTheta)
                         
     
-                        
-
                 !print *, "iConfR, iConfTheta,iConfPhi,iConfiguration=", iConfR, iConfTheta, iConfPhi, iConfiguration
                     
 
@@ -235,7 +233,26 @@ program MarsInversion
                 enddo
                 
 
+                ! Here we have to rotate from ZRT to ZNE
+
+
                 
+
+
+                ! Here we start moving window procedure
+                
+                do jloop=1,nTimeCombination
+                    ! This is for each time moving window set (independent or fixed)
+                    do iloop=1,NmovingWindowDimension
+                            
+
+
+
+
+                    enddo
+                enddo
+
+
                 ! Construct AtA
                 
                 ata=0.d0
