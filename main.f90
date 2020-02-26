@@ -249,7 +249,8 @@ program MarsInversion
                 
                     do iloop=1,NmovingWindowDimension
                          ! First shift th GreenArray in order to get to the same timing as OBS
-                         GreenArrayShifted(
+                        GreenArrayShifted() &
+                            =GreenArray(iEachWindowStart(jloop,iloop):iEachWindowEnd(jloop,iloop))
                         
                         
 

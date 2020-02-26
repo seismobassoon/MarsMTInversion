@@ -722,7 +722,7 @@ subroutine makingIndependentWindow
 
     iMovingWindowStart=int(fMovingWindowStart/dt)
     iMovingWindowEnd=int(fMovingWindowEnd/dt)
-    
+
 
     nTimeCombination = 1
     do iloop=1,NmovingWindowDimension
