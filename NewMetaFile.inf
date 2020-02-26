@@ -97,7 +97,7 @@ numberofObsWindows= 2
 #        attention, 'independent' will take much more time since it will move your windows independently
 
 
-obsMovingWindowOption = independent
+obsMovingWindowOption =  independent 
 
 
 obsWindow1= 160.0 200.0 240.0 300.0

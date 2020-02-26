@@ -18,6 +18,7 @@ program MarsInversion
     integer :: mtcomp,jmtcomp
     integer ::icomp,iWindow,it,jjj
     integer :: iMovingWindow,iConfiguration,iMovingWindowStep
+    integer :: iloop, jloop
     real(kind(0d0)), allocatable :: taperDSM(:),taperOBS(:)
     real(kind(0d0)), allocatable :: GreenArray(:,:,:),GreenArrayShifted(:,:,:)
     real(kind(0d0)), allocatable :: obsArray(:,:),obsRawArray(:,:)
@@ -35,6 +36,7 @@ program MarsInversion
     real(kind(0d0)), allocatable :: varRawZ(:,:),varRawN(:,:),varRawE(:,:)
     real(kind(0d0)), allocatable :: modRawZ(:,:),modRawN(:,:),modRawE(:,:)
     complex(kind(0d0)), allocatable :: rsgtomegatmp(:,:)
+    
     !integer :: npDSM
     !real(kind(0d0)) :: fakeMT(1:6)
 
@@ -247,10 +249,10 @@ program MarsInversion
                     ! This is for each time moving window set (independent or fixed)
                     GreenArrayShifted=0.d0
                 
-                    do iloop=1,NmovingWindowDimension
-                         ! First shift th GreenArray in order to get to the same timing as OBS
-                        GreenArrayShifted() &
-                            =GreenArray(iEachWindowStart(jloop,iloop):iEachWindowEnd(jloop,iloop))
+                    do iloop=1,ntwinObs
+                        ! First shift th GreenArray in order to get to the same timing as OBS
+                        GreenArrayShifted(itwinObs(1,iloop):itwinObs(4,iloop),1:3,1:nmt) &
+                            =GreenArray(iEachWindowStart(jloop,iloop):iEachWindowEnd(jloop,iloop),1:3,1:nmt)
                         
                         
 

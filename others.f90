@@ -206,7 +206,7 @@ subroutine pinput
 
         allocate(obsRaw(1:npData,1:3))
         allocate(obsFilt(1:npData,1:3))
-        allocate(obsFiltTaper(1:npData,1:3))
+        allocate(obsFiltTapered(1:npData,1:3))
 
         paramName="obsZfile"
         call searchForParams(tmpfile,paramName,obsfile,0)
@@ -250,7 +250,7 @@ subroutine pinput
         endif
 
         print *, "the number of Obs Windows is ", ntwinObs, " and the dimension is ",  &
-            NmovingWindowDimension, " since you chose ", trim(dummy), " option."
+            NmovingWindowDimension, " since you chose the ", trim(dummy), " option."
 
 
 
@@ -733,18 +733,18 @@ subroutine makingIndependentWindow
         !print *, iloop, totalNumberInWindowDimension(iloop)
     enddo
 
-    allocate(iEachWindowStart(1:nTimeCombination,1:NmovingWindowDimension))
-    allocate(iEachWindowEnd(1:nTimeCombination,1:NmovingWindowDimension))
+    allocate(iEachWindowStart(1:nTimeCombination,1:ntwinObs))
+    allocate(iEachWindowEnd(1:nTimeCombination,1:ntwinObs))
 
     do jloop=1,nTimeCombination
         tmpinteger=jloop-1
-        do iloop=1,NmovingWindowDimension
+        do iloop=1,ntwinObs
             indexInWindow(iloop)=mod(tmpinteger,totalNumberInWindowDimension(iloop))+1
 
             tmpinteger=tmpinteger/totalNumberInWindowDimension(iloop)
 
             iEachWindowStart(jloop,iloop)=iMovingWindowStart(iloop)+ntStep*(indexInWindow(iloop)-1)
-            iEachWindowEnd(jloop,iloop)=iMovingWindowEnd(iloop)+ntStep*(indexInWindow(iloop)-1)
+            iEachWindowEnd(jloop,iloop)=iEachWindowStart(jloop,iloop)+itwinObs(4,iloop)-itwinObs(1,iloop)+1
             
             ! check whether syn and obs are available for these indices
             if(iEachWindowEnd(jloop,iloop)<iWindowStart) then
@@ -757,10 +757,10 @@ subroutine makingIndependentWindow
                 stop
             endif
         enddo
-        !print *, jloop,indexInWindow(:),iEachWindowStart(jloop,:),iEachWindowEnd(jloop,:)
+        print *, jloop,indexInWindow(:),iEachWindowStart(jloop,:),iEachWindowEnd(jloop,:)
     enddo
 
-
+    stop
 end subroutine
 
 
