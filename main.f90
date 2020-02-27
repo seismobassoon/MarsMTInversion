@@ -17,9 +17,10 @@ program MarsInversion
 
     integer :: mtcomp,jmtcomp
     integer ::icomp,iWindow,it,jjj
-    integer :: iMovingWindow,iConfiguration,iMovingWindowStep
+    integer :: iConfiguration,iMovingWindowStep
     integer :: iloop, jloop
     real(kind(0d0)), allocatable :: taperDSM(:),taperOBS(:)
+    real(kind(0d0)), allocatable :: northTemp(:),eastTemp(:)
     real(kind(0d0)), allocatable :: GreenArray(:,:,:),GreenArrayShifted(:,:,:),GreenArrayShiftedTapered(:,:,:)
     real(kind(0d0)), allocatable :: obsArray(:,:),obsRawArray(:,:)
     real(kind(0d0)), allocatable :: modArray(:,:),modRawArray(:,:)
@@ -82,9 +83,9 @@ program MarsInversion
     allocate(xcorrRawZ(1:nTimeCombination,1:nConfiguration))
     allocate(xcorrRawN(1:nTimeCombination,1:nConfiguration))
     allocate(xcorrRawE(1:nTimeCombination,1:nConfiguration))
-    allocate(xcorrRawZ(1:nTimeCombination,1:nConfiguration))
-    allocate(xcorrRawN(1:nTimeCombination,1:nConfiguration))
-    allocate(xcorrRawE(1:nTimeCombination,1:nConfiguration))
+    allocate(xcorrZ(1:nTimeCombination,1:nConfiguration))
+    allocate(xcorrN(1:nTimeCombination,1:nConfiguration))
+    allocate(xcorrE(1:nTimeCombination,1:nConfiguration))
     
 
     allocate(conf_depth(1:nConfiguration))
@@ -176,6 +177,8 @@ program MarsInversion
     ! GreenArray will be the filtered Green's function of 3 x 6 components
 
     allocate(tmparray(iWindowStart:iWindowEnd,1:3,1:nmt))
+    allocate(northTemp(iWindowStart:iWindowEnd))
+    allocate(eastTemp(iWindowStart:iWindowEnd))
     allocate(GreenArray(iWindowStart:iWindowEnd,1:3,1:nmt))
     allocate(GreenArrayShifted(1:npData,1:3,1:nmt)) ! Attention this is ok (1:npData) because we shift SYN to OBS
     !! NF should think how to do this
@@ -184,12 +187,6 @@ program MarsInversion
 
     allocate(modArray(1:npData,1:3))
     allocate(modRawArray(1:npData,1:3))
-
-
-    mtInverted=0.d0
-    ! Grande boucle pour chaque configuration
-
-
 
     allocate(rsgtomega(1:num_rsgtPSV,imin:imax,1:theta_n))
     allocate(rsgtTime(iWindowStart:iWindowEnd,1:num_rsgtPSV))
@@ -203,7 +200,7 @@ program MarsInversion
     obsArray=obsFiltTapered
     obsRawArray=obsFilt
 
-
+    mtInverted=0.d0
     do iConfR=1,nr
         print *, "depth is ", r_(iradiusD(iConfR))
         rsgtomega=dcmplx(0.d0)
@@ -238,10 +235,23 @@ program MarsInversion
     
                 !print *, "iConfR, iConfTheta,iConfPhi,iConfiguration=", iConfR, iConfTheta, iConfPhi, iConfiguration
                     
+                ! Here we have to rotate from ZRT to ZNE
 
+                do mtcomp=1,nmt
+                    northTemp(iWindowStart:iWindowEnd) = &
+                        -cqr(iConfPhi,iConfTheta)*tmparray(iWindowStart:iWindowEnd,2,mtcomp) &
+                        +sqr(iConfPhi,iConfTheta)*tmparray(iWindowStart:iWindowEnd,3,mtcomp)
+                    eastTemp(iWindowStart:iWindowEnd) = &
+                        -sqr(iConfPhi,iConfTheta)*tmparray(iWindowStart:iWindowEnd,2,mtcomp) &
+                        -cqr(iConfPhi,iConfTheta)*tmparray(iWindowStart:iWindowEnd,3,mtcomp)
+                    tmparray(iWindowStart:iWindowEnd,2,mtcomp)=northTemp(iWindowStart:iWindowEnd)
+                    tmparray(iWindowStart:iWindowEnd,3,mtcomp)=eastTemp(iWindowStart:iWindowEnd)
+                enddo
+
+            
                 !stop
                 ! Here we first filter Green's function as a whole and taper them
-                
+                    
                 do mtcomp=1,nmt
                     do icomp=1,3
                         filtbefore(iWindowStart:iWindowEnd)=tmparray(iWindowStart:iWindowEnd,icomp,mtcomp)
@@ -254,11 +264,6 @@ program MarsInversion
                 enddo
                 
 
-                ! Here we have to rotate from ZRT to ZNE
-
-
-                
-                !!! NF -> Do it now!!!
 
 
 
@@ -373,8 +378,12 @@ program MarsInversion
                     xcorrRawE(iMovingWindowStep,iConfiguration)=0.d0
     
                 
-                    normaliseMod=0.d0
-                    normaliseModRaw=0.d0
+                    normaliseModZ=0.d0
+                    normaliseModRawN=0.d0
+                    normaliseModE=0.d0
+                    normaliseModRawZ=0.d0
+                    normaliseModN=0.d0
+                    normaliseModRawE=0.d0
                         
                     do it=1,npData
 
@@ -407,12 +416,12 @@ program MarsInversion
                             modN(iMovingWindowStep,iConfiguration)+(modRawArray(it,2)-obsRawArray(it,2))**2
                         modRawE(iMovingWindowStep,iConfiguration)= &
                             modE(iMovingWindowStep,iConfiguration)+(modRawArray(it,3)-obsRawArray(it,3))**2
-                        normaliseModZ=normaliseMod+modArray(it,1)**2
-                        normaliseModRawZ=normaliseModRaw+modRawArray(it,1)**2
-                        normaliseModN=normaliseMod+modArray(it,2)**2
-                        normaliseModRawN=normaliseModRaw+modRawArray(it,2)**2
-                        normaliseModE=normaliseMod+modArray(it,3)**2
-                        normaliseModRawE=normaliseModRaw+modRawArray(it,3)**2
+                        normaliseModZ=normaliseModZ+modArray(it,1)**2
+                        normaliseModRawZ=normaliseModRawZ+modRawArray(it,1)**2
+                        normaliseModN=normaliseModN+modArray(it,2)**2
+                        normaliseModRawN=normaliseModRawN+modRawArray(it,2)**2
+                        normaliseModE=normaliseModE+modArray(it,3)**2
+                        normaliseModRawE=normaliseModRawE+modRawArray(it,3)**2
                         xcorrZ(iMovingWindowStep,iConfiguration)= &
                             xcorrZ(iMovingWindowStep,iConfiguration)+obsArray(it,1)*modArray(it,1)
                         xcorrN(iMovingWindowStep,iConfiguration)= &
@@ -460,38 +469,45 @@ program MarsInversion
     enddo ! iConfR loop
 
 
-
-!!!!!!! NOW WE START MT INVERSION FOR EACH TIME iMovingWindow
-     
-     
-
-     
-    
-
-
-
-  open(unit=1,file=trim(inversionName)//".inv_result",status='unknown')
-  open(unit=2,file=trim(inversionName)//".raw_var",status='unknown')
-  open(unit=3,file=trim(inversionName)//".tap_var",status='unknown')
-  do iConfiguration=1,nConfiguration
-     do iMovingWindowStep=1,nTimeCombination
-        iMovingWindow=iMovingWindowStep*ntStep
-        iMovingWindow=(iMovingWindowStep-1)*ntStep+1
-        write(1,*) iConfiguration, dble(iMovingWindow-1)*dt, &
-             mtInverted(1:nmt,iMovingWindowStep,iConfiguration)
-        write(2,*) iConfiguration, dble(iMovingWindow-1)*dt, &
-             modRawZ(iMovingWindowStep,iConfiguration),modRawN(iMovingWindowStep,iConfiguration), &
-             modRawE(iMovingWindowStep,iConfiguration)
-        write(3,*) iConfiguration, dble(iMovingWindow-1)*dt, &
-             modZ(iMovingWindowStep,iConfiguration),modN(iMovingWindowStep,iConfiguration), &
-             modE(iMovingWindowStep,iConfiguration)
-     enddo
-  enddo
-  close(1)
-  close(2)
-  close(3)
-     
-
+    open(unit=1,file=trim(inversionName)//".inv_result",status='unknown')
+    open(unit=2,file=trim(inversionName)//".raw_var",status='unknown')
+    open(unit=3,file=trim(inversionName)//".tap_var",status='unknown')
+    open(unit=4,file=trim(inversionName)//".conf_info",status='unknown')
+    open(unit=5,file=trim(inversionName)//".tap_xcorr",status='unknown')
+    open(unit=6,file=trim(inversionName)//".raw_xcorr",status='unknown')
+    open(unit=7,file=trim(inversionName)//".shift_info",status='unknown')
+    do jloop=1,nTimeCombination
+        write(7,*) jloop,fEachShift(jloop,1:ntwinObs)
+    enddo
+    do iConfiguration=1,nConfiguration
+        write(4,*) iConfiguration, conf_depth(iConfiguration), conf_lat(iConfiguration), &
+            conf_lon(iConfiguration), conf_gcarc(iConfiguration), conf_azimuth(iConfiguration)
+        do jloop=1,nTimeCombination
+            ! This is for each time moving window set (independent or fixed)
+            iMovingWindowStep=jloop
+            write(1,*) iConfiguration, iMovingWindowStep, &
+                mtInverted(1:nmt,iMovingWindowStep,iConfiguration)
+            write(2,*) iConfiguration, iMovingWindowStep, &
+                modRawZ(iMovingWindowStep,iConfiguration),modRawN(iMovingWindowStep,iConfiguration), &
+                modRawE(iMovingWindowStep,iConfiguration)
+            write(3,*) iConfiguration,iMovingWindowStep,  &
+                modZ(iMovingWindowStep,iConfiguration),modN(iMovingWindowStep,iConfiguration), &
+                modE(iMovingWindowStep,iConfiguration)
+            write(5,*) iConfiguration,iMovingWindowStep,  &
+                xcorrZ(iMovingWindowStep,iConfiguration),xcorrN(iMovingWindowStep,iConfiguration), &
+                xcorrE(iMovingWindowStep,iConfiguration)
+            write(6,*) iConfiguration,iMovingWindowStep,  &
+                xcorrRawZ(iMovingWindowStep,iConfiguration),xcorrRawN(iMovingWindowStep,iConfiguration), &
+                xcorrRawE(iMovingWindowStep,iConfiguration)
+        enddo
+    enddo
+    close(1)
+    close(2)
+    close(3)
+    close(4)
+    close(5)
+    close(6)
+    close(7)
      
   
 

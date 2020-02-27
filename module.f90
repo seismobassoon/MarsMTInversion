@@ -95,7 +95,7 @@ module angles
     real(kind(0d0)), allocatable :: phitheta(:,:),thetaphi(:,:)
     real(kind(0d0)), allocatable :: latgeo(:,:), longeo(:,:)
     real(kind(0d0)), allocatable :: phi(:,:), theta(:,:)
-    real(kind(0d0)), allocatable :: crq(:,:),srq(:,:),crq2(:,:),srq2(:,:)
+    real(kind(0d0)), allocatable :: crq(:,:),srq(:,:),crq2(:,:),srq2(:,:),cqr(:,:),sqr(:,:)
     !real(kind(0d0)), allocatable :: csq(:,:),ssq(:,:),csq2(:,:),ssq2(:,:)
     !real(kind(0d0)), allocatable :: cqs(:,:),sqs(:,:),cqs2(:,:),sqs2(:,:)
     real(kind(0d0)), allocatable :: deltar(:,:),deltas(:,:)

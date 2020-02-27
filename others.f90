@@ -369,7 +369,7 @@ subroutine pinput
         allocate(latgeo(1:nphi,1:ntheta),longeo(1:nphi,1:ntheta))
         allocate(crq(1:nphi,1:ntheta),crq2(1:nphi,1:ntheta))
         allocate(srq(1:nphi,1:ntheta),srq2(1:nphi,1:ntheta))
-
+        allocate(cqr(1:nphi,1:ntheta),sqr(1:nphi,1:ntheta))
         latgeo=0.d0
         longeo=0.d0
     
@@ -388,14 +388,15 @@ subroutine pinput
 
         do iloop=1,ntheta
             do jloop=1,nphi
-                print *, gcarc(iloop),azimuth(jloop), latgeo(jloop,iloop),longeo(jloop,iloop)
+                !print *, gcarc(iloop),azimuth(jloop), latgeo(jloop,iloop),longeo(jloop,iloop)
                 !azimuth(jloop)=-azimuth(jloop)
                 call azimth(0,latgeo(jloop,iloop),longeo(jloop,iloop),stla,stlo,fdummy2,phirq,fdummy)
                
                 !print *, " inverse: ",fdummy2,phirq,fdummy
                 
-
+                !print *, phirq,fdummy
                 phirq=pi-phirq*degree2radian
+                fdummy=fdummy*degree2radian
            
                 if(phirq.lt.0.d0) phirq=phirq+2.d0*pi
                 if(phirq.gt.(2.d0*pi)) phirq=phirq-2.d0*pi
@@ -404,12 +405,12 @@ subroutine pinput
                 srq(jloop,iloop)=dsin(phirq)
                 crq2(jloop,iloop)=dcos(2.d0*phirq)
                 srq2(jloop,iloop)=dsin(2.d0*phirq)
-                
+                cqr(jloop,iloop)=dcos(fdummy)
+                sqr(jloop,iloop)=dsin(fdummy)
             enddo
         enddo
 
-
-        
+      
       
 
 
