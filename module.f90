@@ -23,7 +23,7 @@ module parameters
     integer, allocatable :: itwin(:,:)
     integer, allocatable :: itwinObs(:,:)
     integer :: ntwin,ntwinObs
-    real(kind(0d0)), allocatable :: fMovingWindowStart(:), fMovingWindowEnd(:)
+    real(kind(0d0)), allocatable :: fMovingWindowStart(:), fMovingWindowEnd(:), fEachShift(:,:)
     integer, allocatable :: iMovingWindowStart(:),iMovingWindowEnd(:)
     integer, allocatable :: totalNumberInWindowDimension(:)
     integer :: nTimeCombination
@@ -39,6 +39,8 @@ module parameters
     character(200) :: resultDir
     character(200) :: inversionName
     integer :: nConfiguration ! The number of configurations (source location in 3D space, model)
+    real(kind(0d0)), allocatable :: conf_depth(:),conf_lat(:),conf_lon(:),conf_gcarc(:),conf_azimuth(:)
+
     character(200) :: SGTinfo
     character(200) :: parentDir
     character(200) :: eventName

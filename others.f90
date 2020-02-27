@@ -704,7 +704,7 @@ subroutine makingIndependentWindow
     allocate(iMovingWindowStart(1:NmovingWindowDimension))
     allocate(iMovingWindowEnd(1:NmovingWindowDimension))
 
-    allocate(indexInWindow(1:NmovingWindowDimension))
+    allocate(indexInWindow(1:ntwinObs))
 
     allocate(totalNumberInWindowDimension(1:NmovingWindowDimension))
 
@@ -730,37 +730,70 @@ subroutine makingIndependentWindow
         iMovingWindowEnd(iloop)=itwinObs(1,iloop)+iMovingWindowEnd(iloop)
         totalNumberInWindowDimension(iloop)=(iMovingWindowEnd(iloop)-iMovingWindowStart(iloop))/ntStep+1
         nTimeCombination = nTimeCombination*totalNumberInWindowDimension(iloop)
+        
         !print *, iloop, totalNumberInWindowDimension(iloop)
     enddo
 
+    allocate(fEachShift(1:nTimeCombination,1:ntwinObs))
     allocate(iEachWindowStart(1:nTimeCombination,1:ntwinObs))
     allocate(iEachWindowEnd(1:nTimeCombination,1:ntwinObs))
 
     do jloop=1,nTimeCombination
         tmpinteger=jloop-1
-        do iloop=1,ntwinObs
-            indexInWindow(iloop)=mod(tmpinteger,totalNumberInWindowDimension(iloop))+1
 
-            tmpinteger=tmpinteger/totalNumberInWindowDimension(iloop)
+        if(NmovingWindowDimension.eq.ntwinObs) then ! independent time window
+            do iloop=1,NmovingWindowDimension
+                
+                indexInWindow(iloop)=mod(tmpinteger,totalNumberInWindowDimension(iloop))+1
 
-            iEachWindowStart(jloop,iloop)=iMovingWindowStart(iloop)+ntStep*(indexInWindow(iloop)-1)
-            iEachWindowEnd(jloop,iloop)=iEachWindowStart(jloop,iloop)+itwinObs(4,iloop)-itwinObs(1,iloop)+1
+                tmpinteger=tmpinteger/totalNumberInWindowDimension(iloop)
+
+                fEachShift(jloop,iloop)=fMovingWindowStart(iloop)+dt*dble(ntStep)*dble(indexInWindow(iloop)-1)
+
+                iEachWindowStart(jloop,iloop)=iMovingWindowStart(iloop)+ntStep*(indexInWindow(iloop)-1)
+                iEachWindowEnd(jloop,iloop)=iEachWindowStart(jloop,iloop)+itwinObs(4,iloop)-itwinObs(1,iloop)+1
             
-            ! check whether syn and obs are available for these indices
-            if(iEachWindowEnd(jloop,iloop)<iWindowStart) then
-                print *, "no sufficient data points in syn data for the window", iloop
-                stop
-            endif
+                ! check whether syn and obs are available for these indices
+                if(iEachWindowEnd(jloop,iloop)<iWindowStart) then
+                    print *, "no sufficient data points in syn data for the window", iloop
+                    stop
+                endif
             
-            if(iEachWindowStart(jloop,iloop)>iWindowEnd) then
-                print *, "no sufficient data points in syn data for the window", iloop
-                stop
-            endif
-        enddo
-        print *, jloop,indexInWindow(:),iEachWindowStart(jloop,:),iEachWindowEnd(jloop,:)
+                if(iEachWindowStart(jloop,iloop)>iWindowEnd) then
+                    print *, "no sufficient data points in syn data for the window", iloop
+                    stop
+                endif
+            enddo
+        else
+            do iloop=1,ntwinObs ! fixed time window
+                indexInWindow(iloop)=jloop
+
+                fEachShift(jloop,iloop)=fMovingWindowStart(iloop)+dt*dble(ntStep)*dble(indexInWindow(iloop)-1)
+
+                iEachWindowStart(jloop,iloop)=iMovingWindowStart(iloop)+ntStep*(indexInWindow(iloop)-1)
+                iEachWindowEnd(jloop,iloop)=iEachWindowStart(jloop,iloop)+itwinObs(4,iloop)-itwinObs(1,iloop)+1
+            
+                ! check whether syn and obs are available for these indices
+                if(iEachWindowEnd(jloop,iloop)<iWindowStart) then
+                    print *, "no sufficient data points in syn data for the window", iloop
+                    stop
+                endif
+            
+                if(iEachWindowStart(jloop,iloop)>iWindowEnd) then
+                    print *, "no sufficient data points in syn data for the window", iloop
+                    stop
+                endif
+            enddo
+
+
+        endif
+
+    
+        !print *, jloop,indexInWindow(:),iEachWindowStart(jloop,:),iEachWindowEnd(jloop,:)
+        !print *, fEachShift(jloop,:)
     enddo
 
-    stop
+    !stop
 end subroutine
 
 

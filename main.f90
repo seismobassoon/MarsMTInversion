@@ -20,7 +20,7 @@ program MarsInversion
     integer :: iMovingWindow,iConfiguration,iMovingWindowStep
     integer :: iloop, jloop
     real(kind(0d0)), allocatable :: taperDSM(:),taperOBS(:)
-    real(kind(0d0)), allocatable :: GreenArray(:,:,:),GreenArrayShifted(:,:,:)
+    real(kind(0d0)), allocatable :: GreenArray(:,:,:),GreenArrayShifted(:,:,:),GreenArrayShiftedTapered(:,:,:)
     real(kind(0d0)), allocatable :: obsArray(:,:),obsRawArray(:,:)
     real(kind(0d0)), allocatable :: modArray(:,:),modRawArray(:,:)
     real(kind(0d0)), allocatable :: filtbefore(:),filtafter(:)
@@ -35,6 +35,9 @@ program MarsInversion
     real(kind(0d0)), allocatable :: modZ(:,:),modN(:,:),modE(:,:)
     real(kind(0d0)), allocatable :: varRawZ(:,:),varRawN(:,:),varRawE(:,:)
     real(kind(0d0)), allocatable :: modRawZ(:,:),modRawN(:,:),modRawE(:,:)
+    real(kind(0d0)), allocatable :: xcorrZ(:,:),xcorrN(:,:),xcorrE(:,:)
+    real(kind(0d0)), allocatable :: xcorrRawZ(:,:), xcorrRawN(:,:), xcorrRawE(:,:)
+    real(kind(0d0)) :: normaliseModZ,normaliseModRawN,normaliseModE,normaliseModRawZ,normaliseModN,normaliseModRawE
     complex(kind(0d0)), allocatable :: rsgtomegatmp(:,:)
     
     !integer :: npDSM
@@ -47,7 +50,7 @@ program MarsInversion
   
   !print *, np,ntwin
     allocate(taperDSM(iWindowStart:iWindowEnd))
-    allocate(taperOBS(iWindowStart:iWindowEnd))
+    allocate(taperOBS(1:npData))
 
 
   !print *, iMovingWindowStart(1), iMovingWindowStart(2)
@@ -76,9 +79,19 @@ program MarsInversion
     allocate(modRawN(1:nTimeCombination,1:nConfiguration))
     allocate(modRawE(1:nTimeCombination,1:nConfiguration))
 
-
+    allocate(xcorrRawZ(1:nTimeCombination,1:nConfiguration))
+    allocate(xcorrRawN(1:nTimeCombination,1:nConfiguration))
+    allocate(xcorrRawE(1:nTimeCombination,1:nConfiguration))
+    allocate(xcorrRawZ(1:nTimeCombination,1:nConfiguration))
+    allocate(xcorrRawN(1:nTimeCombination,1:nConfiguration))
+    allocate(xcorrRawE(1:nTimeCombination,1:nConfiguration))
     
 
+    allocate(conf_depth(1:nConfiguration))
+    allocate(conf_lat(1:nConfiguration))
+    allocate(conf_lon(1:nConfiguration))
+    allocate(conf_gcarc(1:nConfiguration))
+    allocate(conf_azimuth(1:nConfiguration))
     ! making taper for synthetics
     taperDSM=0.d0
     do iWindow=1,ntwin
@@ -112,7 +125,7 @@ program MarsInversion
     ! For the observed data we filter the whole signal of a length of npData
 
     do icomp=1,3
-        obsRaw(1:npData,icomp)=obsRaw(1:npData,icomp)*taperOBS
+        obsRaw(1:npData,icomp)=obsRaw(1:npData,icomp)*taperOBS(1:npData)
        call bwfilt(obsRaw(1:npData,icomp),obsFilt(1:npData,icomp),dt,npData,1,npButterworth,fmin,fmax)
     enddo
     
@@ -154,7 +167,7 @@ program MarsInversion
     ! For the observed data we filter the whole signal of a length of npData
 
     do icomp=1,3
-        obsFiltTapered(1:npData,icomp)=obsFilt(1:npData,icomp)*taperOBS
+        obsFiltTapered(1:npData,icomp)=obsFilt(1:npData,icomp)*taperOBS(1:npData)
     enddo
     
 
@@ -166,11 +179,11 @@ program MarsInversion
     allocate(GreenArray(iWindowStart:iWindowEnd,1:3,1:nmt))
     allocate(GreenArrayShifted(1:npData,1:3,1:nmt)) ! Attention this is ok (1:npData) because we shift SYN to OBS
     !! NF should think how to do this
-    allocate(obsArray(iWindowStart:iWindowEnd,1:3),obsRawArray(iWindowStart:iWindowEnd,1:3))
+    allocate(obsArray(1:npData,1:3),obsRawArray(1:npData,1:3))
     !allocate(filtbefore(iWindowStart:iWindowEnd),filtafter(iWindowStart:iWindowEnd))
 
-    allocate(modArray(iWindowStart:iWindowEnd,1:3))
-    allocate(modRawArray(iWindowStart:iWindowEnd,1:3))
+    allocate(modArray(1:npData,1:3))
+    allocate(modRawArray(1:npData,1:3))
 
 
     mtInverted=0.d0
@@ -185,9 +198,10 @@ program MarsInversion
     allocate(rsgtomegatmp(1:num_rsgtPSV,imin:imax))
 
    
+    
 
-
-
+    obsArray=obsFiltTapered
+    obsRawArray=obsFilt
 
 
     do iConfR=1,nr
@@ -213,7 +227,12 @@ program MarsInversion
             do iConfPhi=1,nphi
                 print *, "source location is ", latgeo(iConfPhi,iConfTheta), longeo(iConfPhi,iConfTheta)
                 iConfiguration=(iConfR-1)*(nphi*ntheta)+(iConfTheta-1)*nphi+iConfPhi
-                    
+                
+                conf_depth(iConfiguration)=r_(iradiusD(iConfR))
+                conf_lat(iConfiguration)=latgeo(iConfPhi,iConfTheta)
+                conf_lon(iConfiguration)=longeo(iConfPhi,iConfTheta)
+                conf_gcarc(iConfiguration)=thetaD(ithetaD(iConfTheta))
+                conf_azimuth(iConfiguration)=azimuth(iConfPhi)
                 call rsgt2h3time_adhoc(iConfPhi,iConfTheta)
                         
     
@@ -247,39 +266,193 @@ program MarsInversion
                 
                 do jloop=1,nTimeCombination
                     ! This is for each time moving window set (independent or fixed)
+                    iMovingWindowStep=jloop
                     GreenArrayShifted=0.d0
-                
+                    GreenArrayShiftedTapered=0.d0
                     do iloop=1,ntwinObs
-                        ! First shift th GreenArray in order to get to the same timing as OBS
+                        ! First shift the GreenArray in order to get to the same timing as OBS
                         GreenArrayShifted(itwinObs(1,iloop):itwinObs(4,iloop),1:3,1:nmt) &
                             =GreenArray(iEachWindowStart(jloop,iloop):iEachWindowEnd(jloop,iloop),1:3,1:nmt)
-                        
-                        
-
                     enddo
-                enddo
+                    
+                    ! Applying the same taper as OBS
+                        
+                    do mtcomp=1,nmt
+                        do icomp=1,3
+                            GreenArrayShiftedTapered(1:npData,icomp,mtcomp) &
+                                =GreenArrayShifted(1:npData,icomp,mtcomp)*taperOBS(1:npData)
+                        enddo
+                    enddo
 
 
-                ! Construct AtA
-                
-                ata=0.d0
-                do mtcomp=1,nmt
-                   do jmtcomp=1,mtcomp
-                      ata(mtcomp,jmtcomp)=sum(GreenArray(iWindowStart:iWindowEnd,1:3,mtcomp)*GreenArray(iWindowStart:iWindowEnd,1:3,jmtcomp))
-                   enddo
-                enddo
-                
-                ! AtA is symmetric
-                
-                do mtcomp=1,nmt
-                   do jmtcomp=mtcomp,nmt
-                      ata(mtcomp,jmtcomp)=ata(jmtcomp,mtcomp)
-                   enddo
-                enddo
-                
-                stop
-                
+                    ! Construct AtA
+                    
+                    ata=0.d0
+                    do mtcomp=1,nmt
+                       do jmtcomp=1,mtcomp
+                          ata(mtcomp,jmtcomp) &
+                            = sum(GreenArrayShiftedTapered(1:npData,1:3,mtcomp) &
+                                *GreenArrayShiftedTapered(1:npData,1:3,jmtcomp))
+                       enddo
+                    enddo
+                    
+                    ! AtA is symmetric
+                    
+                    do mtcomp=1,nmt
+                       do jmtcomp=mtcomp,nmt
+                          ata(mtcomp,jmtcomp)=ata(jmtcomp,mtcomp)
+                       enddo
+                    enddo
 
+                    ! Atd construction
+                    atd=0.d0
+                    do mtcomp=1,nmt
+                       atd(mtcomp) &
+                        =sum(GreenArrayShiftedTapered(1:npData,1:3,mtcomp) &
+                            *obsFiltTapered(1:npData,1:3))
+                    enddo
+
+
+                    ! MT inversion by CG
+                    call invbyCG(nmt,ata,atd,eps,mtInverted(1:nmt,iMovingWindowStep,iConfiguration))
+
+                    ! MT inversion by CG for 5 components (without Mpp)
+
+                    !call invbyCG(5,ata(1:5,1:5),atd(1:5),eps,mtInverted(1:5,iMovingWindowStep,iConfiguration))
+                    !mtInverted(6,iMovingWindowStep,iConfiguration)= &
+                    !     -(mtInverted(1,iMovingWindowStep,iConfiguration) &
+                    !     + mtInverted(4,iMovingWindowStep,iConfiguration))
+                    
+                    !NF: note that for the shifting window version we don't really have any difference between modRaw and mod but
+                    !    I keep it deliberately so that I can use for the further use.
+
+                    ! residual evaluation with/without tapering
+                    !modRawArray=0.d0
+                    modArray=0.d0
+                    do mtcomp=1,nmt
+                        modRawArray(1:npData,1:3)=modRawArray(1:npData,1:3) &
+                            +GreenArrayShifted(1:npData,1:3,mtcomp)*mtInverted(mtcomp,iMovingWindowStep,iConfiguration)
+                        modArray(1:npData,1:3)=modArray(1:npData,1:3) &
+                            +GreenArrayShiftedTapered(1:npData,1:3,mtcomp)*mtInverted(mtcomp,iMovingWindowStep,iConfiguration)
+                    enddo
+
+                    write(list,'(I7,".",I7)') iConfiguration,iMovingWindowStep
+                    do jjj=1,15
+                       if(list(jjj:jjj).eq.' ') list(jjj:jjj)='0'
+                    enddo
+
+                    tmpfile=trim(resultDir)//'/'//trim(list)//"modRaw.dat"
+                    open(unit=21,file=tmpfile,status='unknown')
+
+                    tmpfile=trim(resultDir)//'/'//trim(list)//"mod.dat"
+                    open(unit=22,file=tmpfile,status='unknown')
+                    
+                    !tmpfile=trim(resultDir)//'/'//trim(list)//"obsRaw.dat"
+                    !open(unit=23,file=tmpfile,status='unknown')
+
+                    !tmpfile=trim(resultDir)//'/'//trim(list)//"obs.dat"
+                    !open(unit=24,file=tmpfile,status='unknown')
+
+                    varZ(iMovingWindowStep,iConfiguration)=0.d0
+                    varN(iMovingWindowStep,iConfiguration)=0.d0
+                    varE(iMovingWindowStep,iConfiguration)=0.d0
+                    modZ(iMovingWindowStep,iConfiguration)=0.d0
+                    modN(iMovingWindowStep,iConfiguration)=0.d0
+                    modE(iMovingWindowStep,iConfiguration)=0.d0
+                    varRawZ(iMovingWindowStep,iConfiguration)=0.d0
+                    varRawN(iMovingWindowStep,iConfiguration)=0.d0
+                    varRawE(iMovingWindowStep,iConfiguration)=0.d0
+                    modRawZ(iMovingWindowStep,iConfiguration)=0.d0
+                    modRawN(iMovingWindowStep,iConfiguration)=0.d0
+                    modRawE(iMovingWindowStep,iConfiguration)=0.d0
+                    xcorrZ(iMovingWindowStep,iConfiguration)=0.d0
+                    xcorrN(iMovingWindowStep,iConfiguration)=0.d0
+                    xcorrE(iMovingWindowStep,iConfiguration)=0.d0
+                    xcorrRawZ(iMovingWindowStep,iConfiguration)=0.d0
+                    xcorrRawN(iMovingWindowStep,iConfiguration)=0.d0
+                    xcorrRawE(iMovingWindowStep,iConfiguration)=0.d0
+    
+                
+                    normaliseMod=0.d0
+                    normaliseModRaw=0.d0
+                        
+                    do it=1,npData
+
+                        write(21,*) dt*dble(it), modRawArray(it,1), modRawArray(it,2), modRawArray(it,3)
+                        write(22,*) dt*dble(it), modArray(it,1), modArray(it,2), modArray(it,3)
+                        !write(23,*) dt*dble(it), obsRawArray(it,1), obsRawArray(it,2), obsRawArray(it,3)
+                        !write(24,*) dt*dble(it), obsArray(it,1), obsArray(it,2), obsArray(it,3)
+
+                        varZ(iMovingWindowStep,iConfiguration)= &
+                            varZ(iMovingWindowStep,iConfiguration)+obsArray(it,1)**2
+                        varN(iMovingWindowStep,iConfiguration)= &
+                            varN(iMovingWindowStep,iConfiguration)+obsArray(it,2)**2
+                        varE(iMovingWindowStep,iConfiguration)= &
+                            varE(iMovingWindowStep,iConfiguration)+obsArray(it,3)**2
+                        modZ(iMovingWindowStep,iConfiguration)= &
+                            modZ(iMovingWindowStep,iConfiguration)+(modArray(it,1)-obsArray(it,1))**2
+                        modN(iMovingWindowStep,iConfiguration)= &
+                            modN(iMovingWindowStep,iConfiguration)+(modArray(it,2)-obsArray(it,2))**2
+                        modE(iMovingWindowStep,iConfiguration)= &
+                            modE(iMovingWindowStep,iConfiguration)+(modArray(it,3)-obsArray(it,3))**2
+                        varRawZ(iMovingWindowStep,iConfiguration)= &
+                            varZ(iMovingWindowStep,iConfiguration)+obsRawArray(it,1)**2
+                        varRawN(iMovingWindowStep,iConfiguration)= &
+                            varN(iMovingWindowStep,iConfiguration)+obsRawArray(it,2)**2
+                        varRawE(iMovingWindowStep,iConfiguration)= &
+                            varE(iMovingWindowStep,iConfiguration)+obsRawArray(it,3)**2
+                        modRawZ(iMovingWindowStep,iConfiguration)= &
+                            modZ(iMovingWindowStep,iConfiguration)+(modRawArray(it,1)-obsRawArray(it,1))**2
+                        modRawN(iMovingWindowStep,iConfiguration)= &
+                            modN(iMovingWindowStep,iConfiguration)+(modRawArray(it,2)-obsRawArray(it,2))**2
+                        modRawE(iMovingWindowStep,iConfiguration)= &
+                            modE(iMovingWindowStep,iConfiguration)+(modRawArray(it,3)-obsRawArray(it,3))**2
+                        normaliseModZ=normaliseMod+modArray(it,1)**2
+                        normaliseModRawZ=normaliseModRaw+modRawArray(it,1)**2
+                        normaliseModN=normaliseMod+modArray(it,2)**2
+                        normaliseModRawN=normaliseModRaw+modRawArray(it,2)**2
+                        normaliseModE=normaliseMod+modArray(it,3)**2
+                        normaliseModRawE=normaliseModRaw+modRawArray(it,3)**2
+                        xcorrZ(iMovingWindowStep,iConfiguration)= &
+                            xcorrZ(iMovingWindowStep,iConfiguration)+obsArray(it,1)*modArray(it,1)
+                        xcorrN(iMovingWindowStep,iConfiguration)= &
+                            xcorrN(iMovingWindowStep,iConfiguration)+obsArray(it,2)*modArray(it,2)
+                        xcorrE(iMovingWindowStep,iConfiguration)= &
+                            xcorrE(iMovingWindowStep,iConfiguration)+obsArray(it,3)*modArray(it,3)
+                        xcorrRawZ(iMovingWindowStep,iConfiguration)= &
+                            xcorrRawZ(iMovingWindowStep,iConfiguration)+obsRawArray(it,1)*modRawArray(it,1)
+                        xcorrRawN(iMovingWindowStep,iConfiguration)= &
+                            xcorrRawN(iMovingWindowStep,iConfiguration)+obsRawArray(it,2)*modRawArray(it,2)
+                        xcorrRawE(iMovingWindowStep,iConfiguration)= &
+                            xcorrRawE(iMovingWindowStep,iConfiguration)+obsRawArray(it,3)*modRawArray(it,3)
+                    enddo
+
+                    close(21)
+                    close(22)
+
+                    xcorrZ(iMovingWindowStep,iConfiguration) &
+                        =xcorrZ(iMovingWindowStep,iConfiguration)/sqrt(normaliseModZ) &
+                        /sqrt(varZ(iMovingWindowStep,iConfiguration))
+                    xcorrN(iMovingWindowStep,iConfiguration) &
+                        =xcorrN(iMovingWindowStep,iConfiguration)/sqrt(normaliseModN) &
+                        /sqrt(varN(iMovingWindowStep,iConfiguration))
+                    xcorrE(iMovingWindowStep,iConfiguration) &
+                        =xcorrE(iMovingWindowStep,iConfiguration)/sqrt(normaliseModE) &
+                        /sqrt(varE(iMovingWindowStep,iConfiguration))
+                    xcorrRawZ(iMovingWindowStep,iConfiguration) &
+                        =xcorrRawZ(iMovingWindowStep,iConfiguration)/sqrt(normaliseModRawZ) &
+                        /sqrt(varRawZ(iMovingWindowStep,iConfiguration))
+                    xcorrRawN(iMovingWindowStep,iConfiguration) &
+                        =xcorrRawN(iMovingWindowStep,iConfiguration)/sqrt(normaliseModRawN) &
+                        /sqrt(varRawN(iMovingWindowStep,iConfiguration))
+                    xcorrRawE(iMovingWindowStep,iConfiguration) &
+                        =xcorrRawE(iMovingWindowStep,iConfiguration)/sqrt(normaliseModRawE) &
+                        /sqrt(varRawE(iMovingWindowStep,iConfiguration))
+
+
+                enddo ! for each time shift
+
+                
 
 
             enddo ! iConfPhi loop
@@ -288,129 +461,12 @@ program MarsInversion
 
 
 
-
-                stop
-
-
 !!!!!!! NOW WE START MT INVERSION FOR EACH TIME iMovingWindow
      
      
 
      
-     
-     ! Here we taper the observed function for each moving window of np
-     
-     do iMovingWindowStep=1,nTimeCombination
-        iMovingWindow=(iMovingWindowStep-1)*ntStep+1
-        do icomp=1,3
-           obsRawArray(iWindowStart:iWindowEnd,icomp)=obsFilt(iMovingWindow:iMovingWindow+(iWindowEnd-iWindowStart),icomp)
-           obsArray(iWindowStart:iWindowEnd,icomp)=obsRawArray(iWindowStart:iWindowEnd,icomp)*taperDSM(iWindowStart:iWindowEnd)
-        enddo
-        atd=0.d0
-        ! Atd construction
-        
-        do mtcomp=1,nmt
-           atd(mtcomp)=sum(GreenArray(iWindowStart:iWindowEnd,1:3,mtcomp)*obsArray(iWindowStart:iWindowEnd,1:3))
-        enddo
-       
-      
-        ! MT inversion by CG
-        call invbyCG(nmt,ata,atd,eps,mtInverted(1:nmt,iMovingWindowStep,iConfiguration))
     
-        ! MT inversion by CG for 5 components (without Mpp)
-
-        !call invbyCG(5,ata(1:5,1:5),atd(1:5),eps,mtInverted(1:5,iMovingWindowStep,iConfiguration))
-        !mtInverted(6,iMovingWindowStep,iConfiguration)= &
-        !     -(mtInverted(1,iMovingWindowStep,iConfiguration) &
-        !     + mtInverted(4,iMovingWindowStep,iConfiguration))
-        
-
-
-        !mtInverted(1:nmt,iMovingWindowStep,iConfiguration)=matmul(atainv,atd)
-
-
-        ! residual evaluation with/without tapering
-        modRawArray=0.d0
-        modArray=0.d0
-        do mtcomp=1,nmt
-           modRawArray(iWindowStart:iWindowEnd,1:3)=modRawArray(iWindowStart:iWindowEnd,1:3) &
-                +tmparray(iWindowStart:iWindowEnd,1:3,mtcomp)*mtInverted(mtcomp,iMovingWindowStep,iConfiguration)
-           modArray(iWindowStart:iWindowEnd,1:3)=modArray(iWindowStart:iWindowEnd,1:3) &
-                +GreenArray(iWindowStart:iWindowEnd,1:3,mtcomp)*mtInverted(mtcomp,iMovingWindowStep,iConfiguration)
-        enddo
-
-        write(list,'(I7,".",I7)') iConfiguration,iMovingWindowStep
-        do jjj=1,15
-           if(list(jjj:jjj).eq.' ') list(jjj:jjj)='0'
-        enddo
-
-        tmpfile=trim(resultDir)//'/'//trim(list)//"modRaw.dat"
-        open(unit=21,file=tmpfile,status='unknown')
-
-        tmpfile=trim(resultDir)//'/'//trim(list)//"mod.dat"
-        open(unit=22,file=tmpfile,status='unknown')
-        
-        tmpfile=trim(resultDir)//'/'//trim(list)//"obsRaw.dat"
-        open(unit=23,file=tmpfile,status='unknown')
-
-        tmpfile=trim(resultDir)//'/'//trim(list)//"obs.dat"
-        open(unit=24,file=tmpfile,status='unknown')
-
-        varZ(iMovingWindowStep,iConfiguration)=0.d0
-        varN(iMovingWindowStep,iConfiguration)=0.d0
-        varE(iMovingWindowStep,iConfiguration)=0.d0
-        modZ(iMovingWindowStep,iConfiguration)=0.d0
-        modN(iMovingWindowStep,iConfiguration)=0.d0
-        modE(iMovingWindowStep,iConfiguration)=0.d0
-        varRawZ(iMovingWindowStep,iConfiguration)=0.d0
-        varRawN(iMovingWindowStep,iConfiguration)=0.d0
-        varRawE(iMovingWindowStep,iConfiguration)=0.d0
-        modRawZ(iMovingWindowStep,iConfiguration)=0.d0
-        modRawN(iMovingWindowStep,iConfiguration)=0.d0
-        modRawE(iMovingWindowStep,iConfiguration)=0.d0
-
-        do it=iWindowStart,iWindowEnd
-
-           write(21,*) dt*dble(it), modRawArray(it,1), modRawArray(it,2), modRawArray(it,3)
-           write(22,*) dt*dble(it), modArray(it,1), modArray(it,2), modArray(it,3)
-           write(23,*) dt*dble(it), obsRawArray(it,1), obsRawArray(it,2), obsRawArray(it,3)
-           write(24,*) dt*dble(it), obsArray(it,1), obsArray(it,2), obsArray(it,3)
-
-           varZ(iMovingWindowStep,iConfiguration)= &
-                varZ(iMovingWindowStep,iConfiguration)+obsArray(it,1)**2
-           varN(iMovingWindowStep,iConfiguration)= &
-                varN(iMovingWindowStep,iConfiguration)+obsArray(it,2)**2
-           varE(iMovingWindowStep,iConfiguration)= &
-                varE(iMovingWindowStep,iConfiguration)+obsArray(it,3)**2
-           modZ(iMovingWindowStep,iConfiguration)= &
-                modZ(iMovingWindowStep,iConfiguration)+(modArray(it,1)-obsArray(it,1))**2
-           modN(iMovingWindowStep,iConfiguration)= &
-                modN(iMovingWindowStep,iConfiguration)+(modArray(it,2)-obsArray(it,2))**2
-           modE(iMovingWindowStep,iConfiguration)= &
-                modE(iMovingWindowStep,iConfiguration)+(modArray(it,3)-obsArray(it,3))**2
-           varRawZ(iMovingWindowStep,iConfiguration)= &
-                varZ(iMovingWindowStep,iConfiguration)+obsRawArray(it,1)**2
-           varRawN(iMovingWindowStep,iConfiguration)= &
-                varN(iMovingWindowStep,iConfiguration)+obsRawArray(it,2)**2
-           varRawE(iMovingWindowStep,iConfiguration)= &
-                varE(iMovingWindowStep,iConfiguration)+obsRawArray(it,3)**2
-           modRawZ(iMovingWindowStep,iConfiguration)= &
-                modZ(iMovingWindowStep,iConfiguration)+(modRawArray(it,1)-obsRawArray(it,1))**2
-           modRawN(iMovingWindowStep,iConfiguration)= &
-                modN(iMovingWindowStep,iConfiguration)+(modRawArray(it,2)-obsRawArray(it,2))**2
-           modRawE(iMovingWindowStep,iConfiguration)= &
-                modE(iMovingWindowStep,iConfiguration)+(modRawArray(it,3)-obsRawArray(it,3))**2
-
-        enddo
-
-        close(21)
-        close(22)
-
-        
-        
-     enddo
-
-     
 
 
 
