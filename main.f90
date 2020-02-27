@@ -181,9 +181,10 @@ program MarsInversion
     allocate(eastTemp(iWindowStart:iWindowEnd))
     allocate(GreenArray(iWindowStart:iWindowEnd,1:3,1:nmt))
     allocate(GreenArrayShifted(1:npData,1:3,1:nmt)) ! Attention this is ok (1:npData) because we shift SYN to OBS
+    allocate(GreenArrayShiftedTapered(1:npData,1:3,1:nmt))
     !! NF should think how to do this
     allocate(obsArray(1:npData,1:3),obsRawArray(1:npData,1:3))
-    !allocate(filtbefore(iWindowStart:iWindowEnd),filtafter(iWindowStart:iWindowEnd))
+    allocate(filtbefore(iWindowStart:iWindowEnd),filtafter(iWindowStart:iWindowEnd))
 
     allocate(modArray(1:npData,1:3))
     allocate(modRawArray(1:npData,1:3))
@@ -249,24 +250,28 @@ program MarsInversion
                 enddo
 
             
-                !stop
+                
                 ! Here we first filter Green's function as a whole and taper them
                     
                 do mtcomp=1,nmt
                     do icomp=1,3
                         filtbefore(iWindowStart:iWindowEnd)=tmparray(iWindowStart:iWindowEnd,icomp,mtcomp)
                         filtbefore(iWindowStart:iWindowEnd)=filtbefore(iWindowStart:iWindowEnd)*taperDSM(iWindowStart:iWindowEnd)
+                        
                         call bwfilt(filtbefore(iWindowStart:iWindowEnd),filtafter(iWindowStart:iWindowEnd), &
                             dt,iWindowEnd-iWindowStart+1,1,npButterworth,fmin,fmax)
                         tmparray(iWindowStart:iWindowEnd,icomp,mtcomp)=filtafter(iWindowStart:iWindowEnd)
                         GreenArray(iWindowStart:iWindowEnd,icomp,mtcomp)=filtafter(iWindowStart:iWindowEnd)! *taperDSM(1:npDSM)
+
+
+                        !do it=iWindowStart,iWindowEnd
+                        !    write(15,*) GreenArray(it,1,mtcomp), GreenArray(it,2,mtcomp),GreenArray(it,3,mtcomp)
+                        !enddo
                    enddo
                 enddo
                 
-
-
-
-
+                
+                
                 ! Here we start moving window procedure
                 
                 do jloop=1,nTimeCombination
@@ -274,6 +279,7 @@ program MarsInversion
                     iMovingWindowStep=jloop
                     GreenArrayShifted=0.d0
                     GreenArrayShiftedTapered=0.d0
+                    !print  *, "now time combination", jloop
                     do iloop=1,ntwinObs
                         ! First shift the GreenArray in order to get to the same timing as OBS
                         GreenArrayShifted(itwinObs(1,iloop):itwinObs(4,iloop),1:3,1:nmt) &
