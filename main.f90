@@ -26,7 +26,7 @@ program MarsInversion
     real(kind(0d0)), allocatable :: modArray(:,:),modRawArray(:,:)
     real(kind(0d0)), allocatable :: filtbefore(:),filtafter(:)
     real(kind(0d0)) :: xfwin
-    real(kind(0d0)), allocatable :: ata(:,:),atd(:),atainv(:,:)
+    real(kind(0d0)), allocatable :: ata(:,:),atd(:)!,atainv(:,:)
     real(kind(0d0)), allocatable  :: mtInverted(:,:,:)
     real(kind(0d0)), allocatable :: misfitTaper(:,:,:)
     real(kind(0d0)), allocatable :: misfitRaw(:,:,:)
@@ -59,9 +59,11 @@ program MarsInversion
   !print *, nTimeCombination, npData, npDSM, ntStep
 
 
-    allocate(ata(1:nmt,1:nmt))
-    allocate(atainv(1:nmt,1:nmt))
-    allocate(atd(1:nmt))
+    if(calculMode.eq.2) allocate(ata(1:nmt,1:nmt))
+    if(calculMode.eq.3) allocate(ata(1:nmt*nConfiguration,1:nmt*nConfiguration))
+    !allocate(atainv(1:nmt,1:nmt))
+    if(calculMode.eq.2) allocate(atd(1:nmt))
+    if(calculMode.eq.3) allocate(atd(1:nmt*nConfiguration))
     allocate(mtInverted(1:nmt,1:nTimeCombination,1:nConfiguration))
     allocate(misfitTaper(1:nmt,1:nTimeCombination,1:nConfiguration))
     allocate(misfitRaw(1:nmt,1:nTimeCombination,1:nConfiguration))
@@ -93,6 +95,7 @@ program MarsInversion
     allocate(conf_lon(1:nConfiguration))
     allocate(conf_gcarc(1:nConfiguration))
     allocate(conf_azimuth(1:nConfiguration))
+
     ! making taper for synthetics
     taperDSM=0.d0
     do iWindow=1,ntwin
@@ -202,6 +205,11 @@ program MarsInversion
     obsRawArray=obsFilt
 
     mtInverted=0.d0
+
+    
+
+if(calculMode,.eq.2) then
+
     do iConfR=1,nr
         print *, "depth is ", r_(iradiusD(iConfR))
         rsgtomega=dcmplx(0.d0)
@@ -516,8 +524,10 @@ program MarsInversion
     close(7)
      
   
-
+elseif(calculMode,.eq.3) then
   
+
+endif
   
   
 end program MarsInversion
