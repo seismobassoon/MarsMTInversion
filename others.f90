@@ -738,15 +738,20 @@ subroutine makingIndependentWindow
 
 
     nTimeCombination = 1
-    do iloop=1,NmovingWindowDimension
-        iMovingWindowStart(iloop)=itwinObs(1,iloop)+iMovingWindowStart(iloop)
-        iMovingWindowEnd(iloop)=itwinObs(1,iloop)+iMovingWindowEnd(iloop)
-        totalNumberInWindowDimension(iloop)=(iMovingWindowEnd(iloop)-iMovingWindowStart(iloop))/ntStep+1
-        nTimeCombination = nTimeCombination*totalNumberInWindowDimension(iloop)
-        
-        !print *, iloop, totalNumberInWindowDimension(iloop)
-    enddo
 
+    if(calculMode.eq.2) then
+        do iloop=1,NmovingWindowDimension
+            iMovingWindowStart(iloop)=itwinObs(1,iloop)+iMovingWindowStart(iloop)
+            iMovingWindowEnd(iloop)=itwinObs(1,iloop)+iMovingWindowEnd(iloop)
+            totalNumberInWindowDimension(iloop)=(iMovingWindowEnd(iloop)-iMovingWindowStart(iloop))/ntStep+1
+            nTimeCombination = nTimeCombination*totalNumberInWindowDimension(iloop)
+        
+            !print *, iloop, totalNumberInWindowDimension(iloop)
+        enddo
+    elseif(calculMode.eq.3) then
+        totalNumberInWindowDimension(1)=(iMovingWindowEnd(1)-iMovingWindowStart(1))/ntStep+1
+        nTimeCombination = totalNumberInWindowDimension(1)
+    endif
     allocate(fEachShift(1:nTimeCombination,1:ntwinObs))
     allocate(iEachWindowStart(1:nTimeCombination,1:ntwinObs))
     allocate(iEachWindowEnd(1:nTimeCombination,1:ntwinObs))
@@ -802,8 +807,18 @@ subroutine makingIndependentWindow
             !print *, jloop,indexInWindow(:),iEachWindowStart(jloop,:),iEachWindowEnd(jloop,:)
             !print *, fEachShift(jloop,:)
         enddo
-    elseif(calculMode.eq.3) then
- 
+    elseif(calculMode.eq.3) then ! here the syn is normally shorter than the obs
+        do iloop=1,ntwinObs
+            if(iMovingWindowStart(1)+iWindowStart<itwinObs(1,iloop)) then
+                print *, "no sufficient data points in obs data for the window", iloop
+                stop
+            endif
+
+            if(iMovingWindowStart(1)+ntStep*(totalNumberInWindowDimension(1)-1)+iWindowEnd>itwinObs(4,iloop)) then
+                print *, "no sufficient data points in obs data for the window", iloop
+                stop
+            endif
+        enddo
     endif
 
 !stop
