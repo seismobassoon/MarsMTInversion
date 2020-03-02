@@ -59,6 +59,7 @@ module parameters
     real(kind(0d0)) :: tlenFull
     integer :: r_n, theta_n,phi_n,iWindowStart,iWindowEnd,lsmooth,np0,np1
     integer :: iConfTheta,iConfPhi,iConfR
+    integer :: kConfTheta, kConfPhi, kConfR ! for a big ata
     real(kind(0d0)), allocatable :: r_(:),thetaD(:),phiD(:),omega(:)
     real(kind(0d0)) :: dtn,start,end,samplingHz
 end module parameters
@@ -72,10 +73,10 @@ module tmpSGTs
     ! in frequency domain
     complex(kind(0d0)), allocatable :: rsgtF(:,:)
     complex(kind(0d0)), allocatable :: h3(:,:),h4(:,:)
-    complex(kind(0d0)), allocatable :: rsgtomega(:,:,:)
+    complex(kind(0d0)), allocatable :: rsgtomega(:,:,:),rsgtomegaK(:,:,:)
     complex(kind(0d0)), allocatable :: u_freq(:)
     ! in time domain
-    real(kind(0d0)), allocatable :: t(:),rsgtTime(:,:),u0(:,:),v(:),v0(:,:),hu(:),hu0(:,:)
+    real(kind(0d0)), allocatable :: t(:),rsgtTime(:,:),rsgtTimeK(:,:),u0(:,:),v(:),v0(:,:),hu(:),hu0(:,:)
     real(kind(0d0)), allocatable :: fwin(:,:)
     integer, allocatable :: nt1(:),nt2(:)
     real(kind(0d0)), allocatable :: denomv(:),denomu(:),coeff(:,:,:,:),coeffV(:,:)

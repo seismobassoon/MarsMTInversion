@@ -207,11 +207,12 @@ program MarsInversion
     mtInverted=0.d0
 
 
-if(calculMode.eq.3) then
+    if(calculMode.eq.3) then
 
+        allocate(rsgtomegaK(1:num_rsgtPSV,imin:imax,1:theta_n))
+        allocate(rsgtTimeK(iWindowStart:iWindowEnd,1:num_rsgtPSV))
 
-
-endif
+    endif
 
     
 
@@ -532,7 +533,36 @@ if(calculMode.eq.2) then
      
   
 elseif(calculMode,.eq.3) then
-  
+
+    ata=0.d0
+    atd=0.d0
+    ! big ata and atd construction (maybe we should paralellise this)
+    do iConfR=1,nr
+        do kConfR=1,iConfR
+
+            rsgtomega=dcmplx(0.d0)
+            call rdsgtomega(r_(iradiusD(kConfR)),num_rsgtSH,num_rsgtPSV,10)
+            call rdsgtomega(r_(iradiusD(kConfR)),num_rsgtPSV,num_rsgtPSV,20)
+
+            rsgtomegaK=rsgtomega
+
+            rsgtomega=dcmplx(0.d0)
+            call rdsgtomega(r_(iradiusD(iConfR)),num_rsgtSH,num_rsgtPSV,10)
+            call rdsgtomega(r_(iradiusD(iConfR)),num_rsgtPSV,num_rsgtPSV,20)
+
+            do iConfTheta=1,ntheta
+                do kConfTheta=1,iConfTheta
+                    !print *,"distance is", thetaD(ithetaD(iConfTheta)),theta_n, ntheta,ithetaD(iConfTheta)
+                    rsgtomegatmp(1:num_rsgtPSV,imin:imax)=rsgtomega(1:num_rsgtPSV,imin:imax,ithetaD(iConfTheta))
+               
+                    call tensorFFT_double(num_rsgtPSV,imin,imax,np1,rsgtomegatmp,rsgtTime,omegai, &
+                        tlenFull,iWindowStart,iWindowEnd)
+            
+
+
+
+        enddo ! kConfR
+    enddo ! iConfR
 
 endif
   
