@@ -15,13 +15,15 @@ program MarsInversion
     use angles
     implicit none
 
-    integer :: mtcomp,jmtcomp
+    integer :: mtcomp,jmtcomp,kmtcomp
     integer ::icomp,iWindow,it,jjj
     integer :: iConfiguration,iMovingWindowStep
-    integer :: iloop, jloop
+    integer :: iloop, jloop,kloop
+    integer :: iBig, kBig
     real(kind(0d0)), allocatable :: taperDSM(:),taperOBS(:)
     real(kind(0d0)), allocatable :: northTemp(:),eastTemp(:)
     real(kind(0d0)), allocatable :: GreenArray(:,:,:),GreenArrayShifted(:,:,:),GreenArrayShiftedTapered(:,:,:)
+    real(kind(0d0)), allocatable :: GreenArrayK(:,:,:)
     real(kind(0d0)), allocatable :: obsArray(:,:),obsRawArray(:,:)
     real(kind(0d0)), allocatable :: modArray(:,:),modRawArray(:,:)
     real(kind(0d0)), allocatable :: filtbefore(:),filtafter(:)
@@ -180,9 +182,11 @@ program MarsInversion
     ! GreenArray will be the filtered Green's function of 3 x 6 components
 
     allocate(tmparray(iWindowStart:iWindowEnd,1:3,1:nmt))
+    if(calculMode.eq.3) allocate(tmparrayI(iWindowStart:iWindowEnd,1:3,1:nmt))
     allocate(northTemp(iWindowStart:iWindowEnd))
     allocate(eastTemp(iWindowStart:iWindowEnd))
     allocate(GreenArray(iWindowStart:iWindowEnd,1:3,1:nmt))
+    if(calculMode.eq.3) allocate(GreenArrayK(iWindowStart:iWindowEnd,1:3,1:nmt))
     allocate(GreenArrayShifted(1:npData,1:3,1:nmt)) ! Attention this is ok (1:npData) because we shift SYN to OBS
     allocate(GreenArrayShiftedTapered(1:npData,1:3,1:nmt))
     !! NF should think how to do this
@@ -538,32 +542,182 @@ elseif(calculMode,.eq.3) then
     atd=0.d0
     ! big ata and atd construction (maybe we should paralellise this)
     do iConfR=1,nr
+
+        rsgtomega=dcmplx(0.d0)
+        call rdsgtomega(r_(iradiusD(iConfR)),num_rsgtSH,num_rsgtPSV,10)
+        call rdsgtomega(r_(iradiusD(iConfR)),num_rsgtPSV,num_rsgtPSV,20)
+
+
+        
         do kConfR=1,iConfR
 
             rsgtomega=dcmplx(0.d0)
             call rdsgtomega(r_(iradiusD(kConfR)),num_rsgtSH,num_rsgtPSV,10)
             call rdsgtomega(r_(iradiusD(kConfR)),num_rsgtPSV,num_rsgtPSV,20)
 
-            rsgtomegaK=rsgtomega
-
-            rsgtomega=dcmplx(0.d0)
-            call rdsgtomega(r_(iradiusD(iConfR)),num_rsgtSH,num_rsgtPSV,10)
-            call rdsgtomega(r_(iradiusD(iConfR)),num_rsgtPSV,num_rsgtPSV,20)
+            rsgtomegaK=rsgtomega ! all the rsgt in freq. for kConfR depth are stored
 
             do iConfTheta=1,ntheta
+
+                !print *,"distance is", thetaD(ithetaD(iConfTheta)),theta_n, ntheta,ithetaD(iConfTheta)
+                rsgtomegatmp(1:num_rsgtPSV,imin:imax)=rsgtomega(1:num_rsgtPSV,imin:imax,ithetaD(iConfTheta))
+                
+                call tensorFFT_double(num_rsgtPSV,imin,imax,np1,rsgtomegatmp,rsgtTime,omegai, &
+                    tlenFull,iWindowStart,iWindowEnd) ! rsgtTim is for iConfR and iConfTheta
+
+
                 do kConfTheta=1,iConfTheta
-                    !print *,"distance is", thetaD(ithetaD(iConfTheta)),theta_n, ntheta,ithetaD(iConfTheta)
-                    rsgtomegatmp(1:num_rsgtPSV,imin:imax)=rsgtomega(1:num_rsgtPSV,imin:imax,ithetaD(iConfTheta))
-               
-                    call tensorFFT_double(num_rsgtPSV,imin,imax,np1,rsgtomegatmp,rsgtTime,omegai, &
-                        tlenFull,iWindowStart,iWindowEnd)
+                    
+                    rsgtomegatmp(1:num_rsgtPSV,imin:imax)=rsgtomegaK(1:num_rsgtPSV,imin:imax,ithetaD(iConfTheta))
+                    
+                    call tensorFFT_double(num_rsgtPSV,imin,imax,np1,rsgtomegatmp,rsgtTimeK,omegai, &
+                             tlenFull,iWindowStart,iWindowEnd) ! rsgtTimeK is for kConfR and kConfTheta
+
+                    do iConfPhi=1,nphi
+
+                        print *, "source location is ", latgeo(iConfPhi,iConfTheta), longeo(iConfPhi,iConfTheta)
+                                iConfiguration=(iConfR-1)*(nphi*ntheta)+(iConfTheta-1)*nphi+iConfPhi
+                        
+                        conf_depth(iConfiguration)=r_(iradiusD(iConfR))
+                        conf_lat(iConfiguration)=latgeo(iConfPhi,iConfTheta)
+                        conf_lon(iConfiguration)=longeo(iConfPhi,iConfTheta)
+                        conf_gcarc(iConfiguration)=thetaD(ithetaD(iConfTheta))
+                        conf_azimuth(iConfiguration)=azimuth(iConfPhi)
+
+                        call rsgt2h3time_adhoc(iConfPhi,iConfTheta) ! tmparray is for iConfR, iConfTheta, iConfPhi
+                        
+                        
+                        ! Here we have to rotate from ZRT to ZNE
+
+                        do mtcomp=1,nmt
+                            northTemp(iWindowStart:iWindowEnd) = &
+                                -cqr(iConfPhi,iConfTheta)*tmparray(iWindowStart:iWindowEnd,2,mtcomp) &
+                                +sqr(iConfPhi,iConfTheta)*tmparray(iWindowStart:iWindowEnd,3,mtcomp)
+                            eastTemp(iWindowStart:iWindowEnd) = &
+                                -sqr(iConfPhi,iConfTheta)*tmparray(iWindowStart:iWindowEnd,2,mtcomp) &
+                                -cqr(iConfPhi,iConfTheta)*tmparray(iWindowStart:iWindowEnd,3,mtcomp)
+                            tmparray(iWindowStart:iWindowEnd,2,mtcomp)=northTemp(iWindowStart:iWindowEnd)
+                            tmparray(iWindowStart:iWindowEnd,3,mtcomp)=eastTemp(iWindowStart:iWindowEnd)
+                        enddo
+
+                        
+                            
+                        ! Here we first filter Green's function as a whole and taper them
+                                
+                        do mtcomp=1,nmt
+                            do icomp=1,3
+                                filtbefore(iWindowStart:iWindowEnd)=tmparray(iWindowStart:iWindowEnd,icomp,mtcomp)
+                                filtbefore(iWindowStart:iWindowEnd)=filtbefore(iWindowStart:iWindowEnd)*taperDSM(iWindowStart:iWindowEnd)
+                                    
+                                call bwfilt(filtbefore(iWindowStart:iWindowEnd),filtafter(iWindowStart:iWindowEnd), &
+                                    dt,iWindowEnd-iWindowStart+1,1,npButterworth,fmin,fmax)
+                                tmparray(iWindowStart:iWindowEnd,icomp,mtcomp)=filtafter(iWindowStart:iWindowEnd)
+                                GreenArray(iWindowStart:iWindowEnd,icomp,mtcomp)=filtafter(iWindowStart:iWindowEnd)! *taperDSM(1:npDSM)
+
+
+                                !do it=iWindowStart,iWindowEnd
+                                !    write(15,*) GreenArray(it,1,mtcomp), GreenArray(it,2,mtcomp),GreenArray(it,3,mtcomp)
+                                !enddo
+                            enddo
+                        enddo
+                            
+
+
+                        do kConfPhi=1,iConfPhi
+                                    
+                            rsgtTime=rsgtTimeK
+                            call rsgt2h3time_adhoc(kConfPhi,kConfTheta) ! tmparray is for kConfR, kConfTheta, kConfPhi
+                            
+                            ! Here we have to rotate from ZRT to ZNE
+
+                            do mtcomp=1,nmt
+                                northTemp(iWindowStart:iWindowEnd) = &
+                                    -cqr(iConfPhi,iConfTheta)*tmparray(iWindowStart:iWindowEnd,2,mtcomp) &
+                                    +sqr(iConfPhi,iConfTheta)*tmparray(iWindowStart:iWindowEnd,3,mtcomp)
+                                eastTemp(iWindowStart:iWindowEnd) = &
+                                    -sqr(iConfPhi,iConfTheta)*tmparray(iWindowStart:iWindowEnd,2,mtcomp) &
+                                    -cqr(iConfPhi,iConfTheta)*tmparray(iWindowStart:iWindowEnd,3,mtcomp)
+                                tmparray(iWindowStart:iWindowEnd,2,mtcomp)=northTemp(iWindowStart:iWindowEnd)
+                                tmparray(iWindowStart:iWindowEnd,3,mtcomp)=eastTemp(iWindowStart:iWindowEnd)
+                            enddo
+
+                            
+                                
+                            ! Here we first filter Green's function as a whole and taper them
+                                    
+                            do mtcomp=1,nmt
+                                do icomp=1,3
+                                    filtbefore(iWindowStart:iWindowEnd)=tmparray(iWindowStart:iWindowEnd,icomp,mtcomp)
+                                    filtbefore(iWindowStart:iWindowEnd)=filtbefore(iWindowStart:iWindowEnd)*taperDSM(iWindowStart:iWindowEnd)
+                                        
+                                    call bwfilt(filtbefore(iWindowStart:iWindowEnd),filtafter(iWindowStart:iWindowEnd), &
+                                        dt,iWindowEnd-iWindowStart+1,1,npButterworth,fmin,fmax)
+                                    tmparray(iWindowStart:iWindowEnd,icomp,mtcomp)=filtafter(iWindowStart:iWindowEnd)
+                                    GreenArrayK(iWindowStart:iWindowEnd,icomp,mtcomp)=filtafter(iWindowStart:iWindowEnd)! *taperDSM(1:npDSM)
+
+
+                                    !do it=iWindowStart,iWindowEnd
+                                    !    write(15,*) GreenArray(it,1,mtcomp), GreenArray(it,2,mtcomp),GreenArray(it,3,mtcomp)
+                                    !enddo
+                                enddo
+                            enddo
+
+                            ! normally all the GreenArray and GreenArrayK are fulfilled
+                            do jloop=1,totalNumberInWindowDimension(1) ! we fix to the first timeshift for the K-th green
+                                do jmtcomp=1,nmt
+                                    do kmtcomp=1,jmtcomp
+                                        iBig=(jloop-1)*nConfiguration*nmt+(iConfR-1)*nmt*nphi*ntheta &
+                                            +(iConfTheta-1)*nmt*nphi+(iConfPhi-1)*nmt+jmtcomp
+                                        kBig=(1-1)+(kConfR-1)*nmt*nphi*ntheta &
+                                        +(kConfTheta-1)*nmt*nphi+(kConfPhi-1)*nmt+kmtcomp
+                                      
+                                        do it=iWindowStart+(jloop-1)*ntStep,iWindowEnd
+                                            do icomp=1,3
+                                                ata(iBig,kBig)= ata(iBig,kBig)+ &
+                                                    GreenArray(it-(kloop-1)*ntStep,icomp,jmtcomp)* &
+                                                    GreenArrayK(it,icomp,kmtcomp)
+                                            enddo ! icomp
+                                        enddo ! time series
+                                    enddo ! jmtcomp
+                                enddo ! mtcomp
+                            enddo ! kloop: moving window
+                            ! NF should put the other contributions (when I-th green is for the other timeshift)
+
+                            do jloop=2,totalNumberInWindowDimension(1)
+                                do kloop=2,jloop
+                                    do jmtcomp=1,nmt
+                                        do kmtcomp=1,jmtcomp
+                                            iBig=(jloop-1)*nConfiguration*nmt+(iConfR-1)*nmt*nphi*ntheta &
+                                                +(iConfTheta-1)*nmt*nphi+(iConfPhi-1)*nmt+jmtcomp
+                                            kBig=(kloop-1)*nConfiguration*nmt+(kConfR-1)*nmt*nphi*ntheta &
+                                                +(kConfTheta-1)*nmt*nphi+(kConfPhi-1)*nmt+kmtcomp
+                                            iBigEquivalent=(jloop-kloop)*nConfiguration*nmt+(iConfR-1)*nmt*nphi*ntheta &
+                                                +(iConfTheta-1)*nmt*nphi+(iConfPhi-1)*nmt+jmtcomp
+                                            kBigEquivalent=(1-1)*nConfiguration*nmt+(kConfR-1)*nmt*nphi*ntheta &
+                                                +(kConfTheta-1)*nmt*nphi+(kConfPhi-1)*nmt+kmtcomp
+                                            
+                                            ata(iBig,kBig)=(iBigEquivalent,kBigEquivalent)
+                                            ! NF have to verify all above NF
+                                        enddo
+                                    enddo
+                                enddo
+                            enddo
+
+                            !!!
+
+                        enddo ! kConfPhi
+                    enddo !iConfPhi
+                enddo !kConfTheta
+            enddo !iConfTheta
             
 
-
+    
 
         enddo ! kConfR
     enddo ! iConfR
 
+
+    ! ata is symmetric : fulfil the other half!
 endif
   
   
