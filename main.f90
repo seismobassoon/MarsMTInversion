@@ -674,10 +674,19 @@ elseif(calculMode,.eq.3) then
                                         do it=iWindowStart+(jloop-1)*ntStep,iWindowEnd
                                             do icomp=1,3
                                                 ata(iBig,kBig)= ata(iBig,kBig)+ &
-                                                    GreenArray(it-(kloop-1)*ntStep,icomp,jmtcomp)* &
+                                                    GreenArray(it-(jloop-1)*ntStep,icomp,jmtcomp)* &
                                                     GreenArrayK(it,icomp,kmtcomp)
                                             enddo ! icomp
                                         enddo ! time series
+
+                                        if(kConfR*kConfTheta*kConfPhi*kmtcomp.eq.1) then
+                                            do it=iWindowStart,iWindowEnd
+                                                do icomp=1,3
+                                                    atd(iBig)=atd(iBig)+GreenArray(it,icomp,jmtcomp)* &
+                                                                obsFiltTapered(it+(jloop-1)*ntStep,icomp)
+                                                enddo
+                                            enddo
+                                        endif
                                     enddo ! jmtcomp
                                 enddo ! mtcomp
                             enddo ! kloop: moving window
@@ -709,15 +718,26 @@ elseif(calculMode,.eq.3) then
                     enddo !iConfPhi
                 enddo !kConfTheta
             enddo !iConfTheta
-            
-
-    
-
         enddo ! kConfR
     enddo ! iConfR
 
 
     ! ata is symmetric : fulfil the other half!
+
+
+    ! ata is symmetric
+    do iBig=1,nTimeCombination*nConfiguration*nmt
+        do kBig=iBig,nTimeCombination*nConfiguration*nmt
+            ata(iBig,kBig)=ata(kBig,iBig)
+        enddo
+    enddo
+
+    ! MT inversion by CG
+    call invbyCG(nTimeCombination*nConfiguration*nmt,ata,atd,eps,mtInverted(??))
+    
+    ! NF should verify the above equation mtInverted???
+
+
 endif
   
   
