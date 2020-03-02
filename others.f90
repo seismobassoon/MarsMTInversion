@@ -236,7 +236,6 @@ subroutine pinput
             read(10,*) obsRaw(it,3)
         enddo
         
-
         paramName="numberofObsWindows"
         call searchForParams(tmpfile,paramName,dummy,1)
         read(dummy,*) ntwinObs
@@ -254,7 +253,13 @@ subroutine pinput
             NmovingWindowDimension, " since you chose the ", trim(dummy), " option."
 
 
+        if((calculMode.eq.3).and.(NmovingWindowDimension.ne.1)) then
+            print *, "monitoring mode is not supporting independent window shifting"
+            stop
+        endif
 
+
+        
         allocate(twinObs(1:4,1:ntwinObs))
         allocate(itwinObs(1:4,1:ntwinObs))
 
@@ -712,15 +717,21 @@ subroutine makingIndependentWindow
 
     tmpfile='tmpfileMarsInversion'
 
-    do iloop=1,NmovingWindowDimension
-        write(paramName,*) iloop
-        paramName="movingWindowRange"//trim(adjustl(paramName))
+    if(calculMode.eq.2) then
+        do iloop=1,NmovingWindowDimension
+            write(paramName,*) iloop
+            paramName="movingWindowRange"//trim(adjustl(paramName))
         
+            call searchForParams(tmpfile,paramName,dummy,1)
+            read(dummy,*) fMovingWindowStart(iloop), fMovingWindowEnd(iloop)
+            print *, iloop,"-th moving range in obs is characterised by:", &
+                fMovingWindowStart(iloop), fMovingWindowEnd(iloop)
+        enddo
+    elseif(calculMode.eq.3) then
+        paramName="movingWindowRangeMonitoring"
         call searchForParams(tmpfile,paramName,dummy,1)
-        read(dummy,*) fMovingWindowStart(iloop), fMovingWindowEnd(iloop)
-        print *, iloop,"-th moving range in obs is characterised by:", &
-            fMovingWindowStart(iloop), fMovingWindowEnd(iloop)
-    enddo
+        read(dummy,*)fMovingWindowStart(1), fMovingWindowEnd(1)
+    endif
 
     iMovingWindowStart=int(fMovingWindowStart/dt)
     iMovingWindowEnd=int(fMovingWindowEnd/dt)
@@ -740,62 +751,62 @@ subroutine makingIndependentWindow
     allocate(iEachWindowStart(1:nTimeCombination,1:ntwinObs))
     allocate(iEachWindowEnd(1:nTimeCombination,1:ntwinObs))
 
-    do jloop=1,nTimeCombination
-        tmpinteger=jloop-1
+    if(calculMode.eq.2) then
+        do jloop=1,nTimeCombination
+            tmpinteger=jloop-1
 
-        if(NmovingWindowDimension.eq.ntwinObs) then ! independent time window
-            do iloop=1,NmovingWindowDimension
+            if(NmovingWindowDimension.eq.ntwinObs) then ! independent time window
+                do iloop=1,NmovingWindowDimension
                 
-                indexInWindow(iloop)=mod(tmpinteger,totalNumberInWindowDimension(iloop))+1
+                    indexInWindow(iloop)=mod(tmpinteger,totalNumberInWindowDimension(iloop))+1
 
-                tmpinteger=tmpinteger/totalNumberInWindowDimension(iloop)
+                    tmpinteger=tmpinteger/totalNumberInWindowDimension(iloop)
 
-                fEachShift(jloop,iloop)=fMovingWindowStart(iloop)+dt*dble(ntStep)*dble(indexInWindow(iloop)-1)
+                    fEachShift(jloop,iloop)=fMovingWindowStart(iloop)+dt*dble(ntStep)*dble(indexInWindow(iloop)-1)
 
-                iEachWindowStart(jloop,iloop)=iMovingWindowStart(iloop)+ntStep*(indexInWindow(iloop)-1)
-                iEachWindowEnd(jloop,iloop)=iEachWindowStart(jloop,iloop)+itwinObs(4,iloop)-itwinObs(1,iloop)+1
+                    iEachWindowStart(jloop,iloop)=iMovingWindowStart(iloop)+ntStep*(indexInWindow(iloop)-1)
+                    iEachWindowEnd(jloop,iloop)=iEachWindowStart(jloop,iloop)+itwinObs(4,iloop)-itwinObs(1,iloop)+1
             
-                ! check whether syn and obs are available for these indices
-                if(iEachWindowEnd(jloop,iloop)<iWindowStart) then
-                    print *, "no sufficient data points in syn data for the window", iloop
-                    stop
-                endif
+                    ! check whether syn and obs are available for these indices
+                    if(iEachWindowEnd(jloop,iloop)<iWindowStart) then
+                        print *, "no sufficient data points in syn data for the window", iloop
+                        stop
+                    endif
             
-                if(iEachWindowStart(jloop,iloop)>iWindowEnd) then
-                    print *, "no sufficient data points in syn data for the window", iloop
-                    stop
-                endif
-            enddo
-        else
-            do iloop=1,ntwinObs ! fixed time window
-                indexInWindow(iloop)=jloop
+                    if(iEachWindowStart(jloop,iloop)>iWindowEnd) then
+                        print *, "no sufficient data points in syn data for the window", iloop
+                        stop
+                    endif
+                enddo
+            else
+                do iloop=1,ntwinObs ! fixed time window
+                    indexInWindow(iloop)=jloop
 
-                fEachShift(jloop,iloop)=fMovingWindowStart(iloop)+dt*dble(ntStep)*dble(indexInWindow(iloop)-1)
+                    fEachShift(jloop,iloop)=fMovingWindowStart(iloop)+dt*dble(ntStep)*dble(indexInWindow(iloop)-1)
 
-                iEachWindowStart(jloop,iloop)=iMovingWindowStart(iloop)+ntStep*(indexInWindow(iloop)-1)
-                iEachWindowEnd(jloop,iloop)=iEachWindowStart(jloop,iloop)+itwinObs(4,iloop)-itwinObs(1,iloop)+1
+                    iEachWindowStart(jloop,iloop)=iMovingWindowStart(iloop)+ntStep*(indexInWindow(iloop)-1)
+                    iEachWindowEnd(jloop,iloop)=iEachWindowStart(jloop,iloop)+itwinObs(4,iloop)-itwinObs(1,iloop)+1
             
-                ! check whether syn and obs are available for these indices
-                if(iEachWindowEnd(jloop,iloop)<iWindowStart) then
-                    print *, "no sufficient data points in syn data for the window", iloop
-                    stop
-                endif
+                    ! check whether syn and obs are available for these indices
+                    if(iEachWindowEnd(jloop,iloop)<iWindowStart) then
+                        print *, "no sufficient data points in syn data for the window", iloop
+                        stop
+                    endif
             
-                if(iEachWindowStart(jloop,iloop)>iWindowEnd) then
-                    print *, "no sufficient data points in syn data for the window", iloop
-                    stop
-                endif
-            enddo
+                    if(iEachWindowStart(jloop,iloop)>iWindowEnd) then
+                        print *, "no sufficient data points in syn data for the window", iloop
+                        stop
+                    endif
+                enddo
+            endif
+            !print *, jloop,indexInWindow(:),iEachWindowStart(jloop,:),iEachWindowEnd(jloop,:)
+            !print *, fEachShift(jloop,:)
+        enddo
+    elseif(calculMode.eq.3) then
+ 
+    endif
 
-
-        endif
-
-    
-        !print *, jloop,indexInWindow(:),iEachWindowStart(jloop,:),iEachWindowEnd(jloop,:)
-        !print *, fEachShift(jloop,:)
-    enddo
-
-    !stop
+!stop
 end subroutine
 
 

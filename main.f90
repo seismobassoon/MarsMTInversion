@@ -60,10 +60,10 @@ program MarsInversion
 
 
     if(calculMode.eq.2) allocate(ata(1:nmt,1:nmt))
-    if(calculMode.eq.3) allocate(ata(1:nmt*nConfiguration,1:nmt*nConfiguration))
+    if(calculMode.eq.3) allocate(ata(1:nmt*nConfiguration*nTimeCombination,1:nmt*nConfiguration*nTimeCombination))
     !allocate(atainv(1:nmt,1:nmt))
     if(calculMode.eq.2) allocate(atd(1:nmt))
-    if(calculMode.eq.3) allocate(atd(1:nmt*nConfiguration))
+    if(calculMode.eq.3) allocate(atd(1:nmt*nConfiguration*nTimeCombination))
     allocate(mtInverted(1:nmt,1:nTimeCombination,1:nConfiguration))
     allocate(misfitTaper(1:nmt,1:nTimeCombination,1:nConfiguration))
     allocate(misfitRaw(1:nmt,1:nTimeCombination,1:nConfiguration))
@@ -206,9 +206,16 @@ program MarsInversion
 
     mtInverted=0.d0
 
+
+if(calculMode.eq.3) then
+
+
+
+endif
+
     
 
-if(calculMode,.eq.2) then
+if(calculMode.eq.2) then
 
     do iConfR=1,nr
         print *, "depth is ", r_(iradiusD(iConfR))
