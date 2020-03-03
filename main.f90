@@ -25,11 +25,11 @@ program MarsInversion
     real(kind(0d0)), allocatable :: GreenArray(:,:,:),GreenArrayShifted(:,:,:),GreenArrayShiftedTapered(:,:,:)
     real(kind(0d0)), allocatable :: GreenArrayK(:,:,:)
     real(kind(0d0)), allocatable :: obsArray(:,:),obsRawArray(:,:)
-    real(kind(0d0)), allocatable :: modArray(:,:),modRawArray(:,:)
+    real(kind(0d0)), allocatable :: modArray(:,:),modRawArray(:,:),modArray_total(:,:)
     real(kind(0d0)), allocatable :: filtbefore(:),filtafter(:)
     real(kind(0d0)) :: xfwin
     real(kind(0d0)), allocatable :: ata(:,:),atd(:)!,atainv(:,:)
-    real(kind(0d0)), allocatable  :: mtInverted(:,:,:)
+    real(kind(0d0)), allocatable  :: mtInverted(:,:,:),mtInverted_total
     real(kind(0d0)), allocatable :: misfitTaper(:,:,:)
     real(kind(0d0)), allocatable :: misfitRaw(:,:,:)
     character(200) :: list,tmpfile ! synfile,tmpfile,
@@ -66,7 +66,8 @@ program MarsInversion
     !allocate(atainv(1:nmt,1:nmt))
     if(calculMode.eq.2) allocate(atd(1:nmt))
     if(calculMode.eq.3) allocate(atd(1:nmt*nConfiguration*nTimeCombination))
-    allocate(mtInverted(1:nmt,1:nTimeCombination,1:nConfiguration))
+    if(calculMode.eq.2) allocate(mtInverted(1:nmt,1:nTimeCombination,1:nConfiguration))
+    if(calculMode.eq.3) allocate(mtInverted_total(1:nmt*nConfiguration*nTimeCombination))
     allocate(misfitTaper(1:nmt,1:nTimeCombination,1:nConfiguration))
     allocate(misfitRaw(1:nmt,1:nTimeCombination,1:nConfiguration))
 
@@ -193,9 +194,9 @@ program MarsInversion
     allocate(obsArray(1:npData,1:3),obsRawArray(1:npData,1:3))
     allocate(filtbefore(iWindowStart:iWindowEnd),filtafter(iWindowStart:iWindowEnd))
 
-    allocate(modArray(1:npData,1:3))
-    allocate(modRawArray(1:npData,1:3))
-
+    if(calculMode.eq.2) allocate(modArray(1:npData,1:3))
+    if(calculMode.eq.2) allocate(modRawArray(1:npData,1:3))
+    if(calculMode.eq.3) allocate(modArray_total(iWindowStart:iWindowEnd+ntStep*(totalNumberInWindowDimension(1)-1))
     allocate(rsgtomega(1:num_rsgtPSV,imin:imax,1:theta_n))
     allocate(rsgtTime(iWindowStart:iWindowEnd,1:num_rsgtPSV))
         !rsgtomega=dcmplx(0.d0)
@@ -563,7 +564,7 @@ elseif(calculMode,.eq.3) then
                 rsgtomegatmp(1:num_rsgtPSV,imin:imax)=rsgtomega(1:num_rsgtPSV,imin:imax,ithetaD(iConfTheta))
                 
                 call tensorFFT_double(num_rsgtPSV,imin,imax,np1,rsgtomegatmp,rsgtTime,omegai, &
-                    tlenFull,iWindowStart,iWindowEnd) ! rsgtTim is for iConfR and iConfTheta
+                    tlenFull,iWindowStart,iWindowEnd) ! rsgtTime is for iConfR and iConfTheta
 
 
                 do kConfTheta=1,iConfTheta
@@ -733,11 +734,87 @@ elseif(calculMode,.eq.3) then
     enddo
 
     ! MT inversion by CG
-    call invbyCG(nTimeCombination*nConfiguration*nmt,ata,atd,eps,mtInverted(??))
+    call invbyCG(nTimeCombination*nConfiguration*nmt,ata,atd,eps,mtInverted_total)
     
     ! NF should verify the above equation mtInverted???
+    ! then mod waveforms!!
+    
+    !!! Here is how we calculate the whole time series of modeled waveforms !!!!
+    modArray_total=0.d0
+    do iConfR=1,nr
+        rsgtomega=dcmplx(0.d0)
+        call rdsgtomega(r_(iradiusD(iConfR)),num_rsgtSH,num_rsgtPSV,10)
+        call rdsgtomega(r_(iradiusD(iConfR)),num_rsgtPSV,num_rsgtPSV,20)
+
+        do iConfTheta=1,ntheta
+            rsgtomegatmp(1:num_rsgtPSV,imin:imax)=rsgtomega(1:num_rsgtPSV,imin:imax,ithetaD(iConfTheta))
+                       
+            call tensorFFT_double(num_rsgtPSV,imin,imax,np1,rsgtomegatmp,rsgtTime,omegai, &
+                tlenFull,iWindowStart,iWindowEnd)
+
+            do iConfPhi=1,nphi
+                conf_depth(iConfiguration)=r_(iradiusD(iConfR))
+                conf_lat(iConfiguration)=latgeo(iConfPhi,iConfTheta)
+                conf_lon(iConfiguration)=longeo(iConfPhi,iConfTheta)
+                conf_gcarc(iConfiguration)=thetaD(ithetaD(iConfTheta))
+                conf_azimuth(iConfiguration)=azimuth(iConfPhi)
+
+                call rsgt2h3time_adhoc(iConfPhi,iConfTheta) ! tmparray is for iConfR, iConfTheta, iConfPhi
+                
+                
+                ! Here we have to rotate from ZRT to ZNE
+
+                do mtcomp=1,nmt
+                    northTemp(iWindowStart:iWindowEnd) = &
+                        -cqr(iConfPhi,iConfTheta)*tmparray(iWindowStart:iWindowEnd,2,mtcomp) &
+                        +sqr(iConfPhi,iConfTheta)*tmparray(iWindowStart:iWindowEnd,3,mtcomp)
+                    eastTemp(iWindowStart:iWindowEnd) = &
+                        -sqr(iConfPhi,iConfTheta)*tmparray(iWindowStart:iWindowEnd,2,mtcomp) &
+                        -cqr(iConfPhi,iConfTheta)*tmparray(iWindowStart:iWindowEnd,3,mtcomp)
+                    tmparray(iWindowStart:iWindowEnd,2,mtcomp)=northTemp(iWindowStart:iWindowEnd)
+                    tmparray(iWindowStart:iWindowEnd,3,mtcomp)=eastTemp(iWindowStart:iWindowEnd)
+                enddo
+
+                
+                    
+                ! Here we first filter Green's function as a whole and taper them
+                        
+                do mtcomp=1,nmt
+                    do icomp=1,3
+                        filtbefore(iWindowStart:iWindowEnd)=tmparray(iWindowStart:iWindowEnd,icomp,mtcomp)
+                        filtbefore(iWindowStart:iWindowEnd)=filtbefore(iWindowStart:iWindowEnd)*taperDSM(iWindowStart:iWindowEnd)
+                            
+                        call bwfilt(filtbefore(iWindowStart:iWindowEnd),filtafter(iWindowStart:iWindowEnd), &
+                            dt,iWindowEnd-iWindowStart+1,1,npButterworth,fmin,fmax)
+                        tmparray(iWindowStart:iWindowEnd,icomp,mtcomp)=filtafter(iWindowStart:iWindowEnd)
+                        GreenArray(iWindowStart:iWindowEnd,icomp,mtcomp)=filtafter(iWindowStart:iWindowEnd)! *taperDSM(1:npDSM)
 
 
+                        !do it=iWindowStart,iWindowEnd
+                        !    write(15,*) GreenArray(it,1,mtcomp), GreenArray(it,2,mtcomp),GreenArray(it,3,mtcomp)
+                        !enddo
+                    enddo
+                enddo
+                    
+                
+                do jloop=1,totalNumberInWindowDimension(1)
+                    do jmtcomp=1,nmt
+                        iBig=(jloop-1)*nConfiguration*nmt+(iConfR-1)*nmt*nphi*ntheta &
+                                +(iConfTheta-1)*nmt*nphi+(iConfPhi-1)*nmt+jmtcomp
+                        do it=iWindowStart,iWindowEnd
+                            do icomp=1,3
+                                modArray_total(it+(jloop-1)*ntStep,icomp)= &
+                                    modArray_total(it+(jloop-1)*ntStep,icomp)+ &
+                                    GreenArray(it,icomp,jmtcomp)*mtInverted_total(iBig)
+                            enddo ! icomp
+                        enddo ! it
+                    enddo ! jmtcomp
+                enddo ! jloop
+            enddo ! iConfPhi
+        enddo ! iConfTheta
+    enddo ! iConfR
+
+    do it=iWindowStart,iWindowEnd
 endif
   
   
