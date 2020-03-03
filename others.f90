@@ -808,17 +808,15 @@ subroutine makingIndependentWindow
             !print *, fEachShift(jloop,:)
         enddo
     elseif(calculMode.eq.3) then ! here the syn is normally shorter than the obs
-        do iloop=1,ntwinObs
-            if(iMovingWindowStart(1)+iWindowStart<itwinObs(1,iloop)) then
-                print *, "no sufficient data points in obs data for the window", iloop
-                stop
-            endif
+        if(iMovingWindowStart(1)+iWindowStart<1) then
+            print *, "no sufficient data points in obs data for the window"
+            stop
+        endif
 
-            if(iMovingWindowStart(1)+ntStep*(totalNumberInWindowDimension(1)-1)+iWindowEnd>itwinObs(4,iloop)) then
-                print *, "no sufficient data points in obs data for the window", iloop
-                stop
-            endif
-        enddo
+        if(iMovingWindowStart(1)+ntStep*(totalNumberInWindowDimension(1)-1)+iWindowEnd>npData) then
+            print *, "no sufficient data points in obs data for the window"
+            stop
+        endif
     endif
 
 !stop

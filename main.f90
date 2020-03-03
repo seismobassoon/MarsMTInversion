@@ -196,7 +196,7 @@ program MarsInversion
 
     if(calculMode.eq.2) allocate(modArray(1:npData,1:3))
     if(calculMode.eq.2) allocate(modRawArray(1:npData,1:3))
-    if(calculMode.eq.3) allocate(modArray_total(iWindowStart:iWindowEnd+ntStep*(totalNumberInWindowDimension(1)-1))
+    if(calculMode.eq.3) allocate(modArray_total(iWindowStart:iWindowEnd+ntStep*(totalNumberInWindowDimension(1)-1),1:3))
     allocate(rsgtomega(1:num_rsgtPSV,imin:imax,1:theta_n))
     allocate(rsgtTime(iWindowStart:iWindowEnd,1:num_rsgtPSV))
         !rsgtomega=dcmplx(0.d0)
@@ -814,7 +814,9 @@ elseif(calculMode,.eq.3) then
         enddo ! iConfTheta
     enddo ! iConfR
 
-    do it=iWindowStart,iWindowEnd
+    do it=iWindowStart,iWindowEnd+ntStep*(totalNumberInWindowDimension(1)-1)
+        
+    enddo ! it
 endif
   
   
