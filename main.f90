@@ -17,7 +17,7 @@ program MarsInversion
 
     integer :: mtcomp,jmtcomp,kmtcomp
     integer ::icomp,iWindow,it,jjj
-    integer :: iConfiguration,iMovingWindowStep
+    integer :: iConfiguration,kConfiguration,iMovingWindowStep
     integer :: iloop,jloop,kloop
     integer :: iBig,kBig,iBigEquivalent,kBigEquivalent
     real(kind(0d0)), allocatable :: taperDSM(:),taperOBS(:)
@@ -66,7 +66,7 @@ program MarsInversion
     !allocate(atainv(1:nmt,1:nmt))
     if(calculMode.eq.2) allocate(atd(1:nmt))
     if(calculMode.eq.3) allocate(atd(1:nmt*nConfiguration*nTimeCombination))
-    if(calculMode.eq.2) allocate(mtInverted(1:nmt,1:nTimeCombination,1:nConfiguration))
+    allocate(mtInverted(1:nmt,1:nTimeCombination,1:nConfiguration))
     if(calculMode.eq.3) allocate(mtInverted_total(1:nmt*nConfiguration*nTimeCombination))
     allocate(misfitTaper(1:nmt,1:nTimeCombination,1:nConfiguration))
     allocate(misfitRaw(1:nmt,1:nTimeCombination,1:nConfiguration))
@@ -577,7 +577,8 @@ elseif(calculMode.eq.3) then
                     do iConfPhi=1,nphi
 
                         print *, "source location I is ", r_(iradiusD(iConfR)),latgeo(iConfPhi,iConfTheta), longeo(iConfPhi,iConfTheta)
-                                iConfiguration=(iConfR-1)*(nphi*ntheta)+(iConfTheta-1)*nphi+iConfPhi
+                                
+                        iConfiguration=(iConfR-1)*(nphi*ntheta)+(iConfTheta-1)*nphi+iConfPhi
                         
                         conf_depth(iConfiguration)=r_(iradiusD(iConfR))
                         conf_lat(iConfiguration)=latgeo(iConfPhi,iConfTheta)
@@ -627,8 +628,8 @@ elseif(calculMode.eq.3) then
                         do kConfPhi=1,iConfPhi
 
 
-                            print *, "source location K is ",r_(iradiusD(kConfR)), latgeo(iConfPhi,iConfTheta), longeo(iConfPhi,iConfTheta)
-                            iConfiguration=(iConfR-1)*(nphi*ntheta)+(iConfTheta-1)*nphi+iConfPhi
+                            print *, "source location K is ",r_(iradiusD(kConfR)), latgeo(kConfPhi,kConfTheta), longeo(kConfPhi,kConfTheta)
+                            kConfiguration=(kConfR-1)*(nphi*ntheta)+(kConfTheta-1)*nphi+kConfPhi
                                     
                             rsgtTime=rsgtTimeK
                             call rsgt2h3time_adhoc(kConfPhi,kConfTheta) ! tmparray is for kConfR, kConfTheta, kConfPhi
@@ -836,6 +837,69 @@ elseif(calculMode.eq.3) then
         enddo
     enddo ! it
     close(21)
+
+
+    mtInverted=0.d0
+
+    open(unit=1,file=trim(inversionName)//".inv_result",status='unknown')
+   ! open(unit=2,file=trim(inversionName)//".raw_var",status='unknown')
+   ! open(unit=3,file=trim(inversionName)//".tap_var",status='unknown')
+    open(unit=4,file=trim(inversionName)//".conf_info",status='unknown')
+   ! open(unit=5,file=trim(inversionName)//".tap_xcorr",status='unknown')
+   ! open(unit=6,file=trim(inversionName)//".raw_xcorr",status='unknown')
+    open(unit=7,file=trim(inversionName)//".shift_info",status='unknown')
+    do jloop=1,totalNumberInWindowDimension(1)
+        write(7,*) jloop,dt*dble(iMovingWindowStart(1))*dble(ntStep)*dble(jloop)
+    enddo
+
+    do iConfR=1,nr
+        do iConfTheta=1,ntheta
+            do iConfPhi=1,nphi
+                do jloop=1,totalNumberInWindowDimension(1)
+                    iConfiguration=(jloop-1)*nConfiguration+(iConfR-1)*nphi*ntheta &
+                        +(iConfTheta-1)*nphi+(iConfPhi-1)
+                    do jmtcomp=1,nmt
+                        iBig=(jloop-1)*nConfiguration*nmt+(iConfR-1)*nmt*nphi*ntheta &
+                            +(iConfTheta-1)*nmt*nphi+(iConfPhi-1)*nmt+jmtcomp
+                        mtInverted(jmtcomp,jloop,iConfiguration)=mtInverted_total(iBig)
+                    enddo ! jmtcomp
+                enddo ! jloop
+            enddo ! iConfPhi
+        enddo ! iConfTheta
+    enddo ! iConfR
+
+    
+
+    do iConfiguration=1,nConfiguration
+        write(4,*) iConfiguration, conf_depth(iConfiguration), conf_lat(iConfiguration), &
+            conf_lon(iConfiguration), conf_gcarc(iConfiguration), conf_azimuth(iConfiguration)
+        do jloop=1,totalNumberInWindowDimension(1)
+            ! This is for each time moving window set (independent or fixed)
+            iMovingWindowStep=jloop
+
+            write(1,*) iConfiguration, iMovingWindowStep, &
+                mtInverted(1:nmt,iMovingWindowStep,iConfiguration)
+           ! write(2,*) iConfiguration, iMovingWindowStep, &
+           !     modRawZ(iMovingWindowStep,iConfiguration),modRawN(iMovingWindowStep,iConfiguration), &
+           !        modRawE(iMovingWindowStep,iConfiguration)
+           !    write(3,*) iConfiguration,iMovingWindowStep,  &
+           !        modZ(iMovingWindowStep,iConfiguration),modN(iMovingWindowStep,iConfiguration), &
+           !        modE(iMovingWindowStep,iConfiguration)
+           !    write(5,*) iConfiguration,iMovingWindowStep,  &
+           !        xcorrZ(iMovingWindowStep,iConfiguration),xcorrN(iMovingWindowStep,iConfiguration), &
+           !        xcorrE(iMovingWindowStep,iConfiguration)
+           !    write(6,*) iConfiguration,iMovingWindowStep,  &
+           !        xcorrRawZ(iMovingWindowStep,iConfiguration),xcorrRawN(iMovingWindowStep,iConfiguration), &
+           !        xcorrRawE(iMovingWindowStep,iConfiguration)
+        enddo
+    enddo
+    close(1)
+    !   close(2)
+    !   close(3)
+    close(4)
+    !   close(5)
+    !   close(6)
+    close(7)
 
 endif
   
