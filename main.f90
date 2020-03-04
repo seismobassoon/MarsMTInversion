@@ -18,8 +18,8 @@ program MarsInversion
     integer :: mtcomp,jmtcomp,kmtcomp
     integer ::icomp,iWindow,it,jjj
     integer :: iConfiguration,iMovingWindowStep
-    integer :: iloop, jloop,kloop
-    integer :: iBig, kBig
+    integer :: iloop,jloop,kloop
+    integer :: iBig,kBig,iBigEquivalent,kBigEquivalent
     real(kind(0d0)), allocatable :: taperDSM(:),taperOBS(:)
     real(kind(0d0)), allocatable :: northTemp(:),eastTemp(:)
     real(kind(0d0)), allocatable :: GreenArray(:,:,:),GreenArrayShifted(:,:,:),GreenArrayShiftedTapered(:,:,:)
@@ -29,7 +29,7 @@ program MarsInversion
     real(kind(0d0)), allocatable :: filtbefore(:),filtafter(:)
     real(kind(0d0)) :: xfwin
     real(kind(0d0)), allocatable :: ata(:,:),atd(:)!,atainv(:,:)
-    real(kind(0d0)), allocatable  :: mtInverted(:,:,:),mtInverted_total
+    real(kind(0d0)), allocatable  :: mtInverted(:,:,:),mtInverted_total(:)
     real(kind(0d0)), allocatable :: misfitTaper(:,:,:)
     real(kind(0d0)), allocatable :: misfitRaw(:,:,:)
     character(200) :: list,tmpfile ! synfile,tmpfile,
@@ -42,7 +42,7 @@ program MarsInversion
     real(kind(0d0)), allocatable :: xcorrRawZ(:,:), xcorrRawN(:,:), xcorrRawE(:,:)
     real(kind(0d0)) :: normaliseModZ,normaliseModRawN,normaliseModE,normaliseModRawZ,normaliseModN,normaliseModRawE
     complex(kind(0d0)), allocatable :: rsgtomegatmp(:,:)
-    
+    real(kind(0d0)) :: variance_total(3)
     !integer :: npDSM
     !real(kind(0d0)) :: fakeMT(1:6)
 
@@ -183,7 +183,7 @@ program MarsInversion
     ! GreenArray will be the filtered Green's function of 3 x 6 components
 
     allocate(tmparray(iWindowStart:iWindowEnd,1:3,1:nmt))
-    if(calculMode.eq.3) allocate(tmparrayI(iWindowStart:iWindowEnd,1:3,1:nmt))
+    !if(calculMode.eq.3) allocate(tmparrayI(iWindowStart:iWindowEnd,1:3,1:nmt))
     allocate(northTemp(iWindowStart:iWindowEnd))
     allocate(eastTemp(iWindowStart:iWindowEnd))
     allocate(GreenArray(iWindowStart:iWindowEnd,1:3,1:nmt))
@@ -537,7 +537,7 @@ if(calculMode.eq.2) then
     close(7)
      
   
-elseif(calculMode,.eq.3) then
+elseif(calculMode.eq.3) then
 
     ata=0.d0
     atd=0.d0
@@ -706,7 +706,7 @@ elseif(calculMode,.eq.3) then
                                             kBigEquivalent=(1-1)*nConfiguration*nmt+(kConfR-1)*nmt*nphi*ntheta &
                                                 +(kConfTheta-1)*nmt*nphi+(kConfPhi-1)*nmt+kmtcomp
                                             
-                                            ata(iBig,kBig)=(iBigEquivalent,kBigEquivalent)
+                                            ata(iBig,kBig)=ata(iBigEquivalent,kBigEquivalent)
                                             ! NF have to verify all above NF
                                         enddo
                                     enddo
@@ -814,9 +814,25 @@ elseif(calculMode,.eq.3) then
         enddo ! iConfTheta
     enddo ! iConfR
 
+    !write(list,'(I7,".",I7)') iConfiguration,iMovingWindowStep
+    !do jjj=1,15
+    !    if(list(jjj:jjj).eq.' ') list(jjj:jjj)='0'
+    !enddo
+
+    variance_total=0.d0
+    tmpfile=trim(resultDir)//'/mod_waveform_total.dat'
+    open(unit=21,file=tmpfile,status='unknown')
+    tmpfile=trim(resultDir)//'/obs_waveform_total.dat'
+    open(unit=22,file=tmpfile,status='unknown')
     do it=iWindowStart,iWindowEnd+ntStep*(totalNumberInWindowDimension(1)-1)
-        
+        write(21,*) dt*dble(it),modArray_total(it,1),modArray_total(it,2),modArray_total(it,3)
+        write(22,*) dt*dble(it),obsFiltTapered(it,1),obsFiltTapered(it,2),obsFiltTapered(it,3)
+        do icomp=1,3
+            variance_total(icomp)=variance_total(icomp)+dt*(modArray_total(it,icomp)-obsFiltTapered(it,icomp))**2
+        enddo
     enddo ! it
+    close(21)
+
 endif
   
   

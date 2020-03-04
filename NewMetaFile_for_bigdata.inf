@@ -1,0 +1,114 @@
+# 
+# This is the meta information file for MT inversion for one station 3-component seismograms 
+# 
+# The use should sample with the same dt and should not filter the seismograms beforehand
+#
+#                                                                     Nov. 2019 N. Fuji
+#
+#   usage:   ./MarsInversion NewMetaFile.inf dataDir resultDir inversionName
+#
+# synthetics <moment tensor>_sta_<station_number>.txt, col 1 = time, col 2 = N, col 3 = E, col 4 = Z 
+# computation mode (normal:normal; test:filter the GF and stop: fort.11-14)
+#   versionSGT is completely different
+versionSGT
+#
+# with this versionSGT, the order of parameters in this inf file is no more important.
+# however, always the first declaration of parameters is valid (when you declare them twice or more).
+
+# attention for tapering:
+#      regardless of your input tapers, the programme will apply a priori tapers on the beginning and 
+#      the end of syn and obs before butterworth filter (0.05 per cent of time window for each).
+#      This is why you need to prepare signals long enough before and after the phases that interest you!
+
+SGTinfo=./database_small.inf
+
+parentDir=./databaseDWAKr_Small2/RSGT/
+
+eventName = sol173
+
+
+# station information
+
+stationName= ELSE
+
+stlalo= 34.54 -116.39
+
+# gcarc to search
+
+searchAreaDistance =  20.d0 30.d0 10.d0
+
+# azimuth to search
+
+searchAreaAzimuth = -10.d0 10.d0 10.d0
+#searchAreaAzimuth = 10.d0 10.d0 90.d0
+
+# radius to search
+
+searchAreaRadius = 3360.d0 3380.d0 20.d0
+
+# synthetic information
+
+!tlenDSM= 3000.0d0 # window width in seconds (this should be equal or inferior to the total length of synthetics tlen in DSM)
+
+movingWindowStep= 100.0d0 # moving window step in seconds (normally smaller than the dominant period?)
+
+dt = 0.05d0 # delta t in seconds -> this should be identical in syn and obs
+
+
+# butterworth filters (order, fmin, fmax)
+npButterworth =  4 # order (integer)
+fmin= 0.005 # min frequency (in Hz)
+fmax= 0.03 # max frequency (in Hz)
+
+
+# SGT version has window cutting option
+effectiveSynWindow = 0.0 3276.8
+
+#  observed data information
+
+tlenData= 800.0d0 # total length of the seismic data in seconds, this should be bigger than the synthetic window length described above
+
+
+
+# number of taper windows 
+
+#numberofSynWindows =2
+numberofSynWindows=1
+# taper windows in obs should be written as: t1, t2, t3, t4
+#synWindow2 = 500.0 520.0 540.0 580.0
+synWindow1= 0.0 200.0 800.0 1000.0
+# 
+
+
+# observed data files 
+#
+obsZfile= XB.ELYSE.02.BHZ.R.2019-07-26T121335.510000.txt
+obsEfile= XB.ELYSE.02.BHE.R.2019-07-26T121335.510000.txt
+obsNfile= XB.ELYSE.02.BHN.R.2019-07-26T121335.510000.txt
+
+
+#
+# number of taper windows for observed
+numberofObsWindows= 2
+
+
+# obs moving window options. 'fixed': the windows are fixed one to another; 
+#                      'independent': the windows move independently
+#        attention, 'independent' will take much more time since it will move your windows independently
+
+
+obsMovingWindowOption =  independent 
+
+
+obsWindow1= 160.0 200.0 240.0 300.0
+obsWindow2 = 500.0 600.0 700.0 800.0
+
+
+
+# then you can put the range of window slide for each window (in seconds)
+#
+movingWindowRange1 = -100.0 100.0
+movingWindowRange2 = -200.0 200.0
+#
+#
+end # this meta file should end with "end"
