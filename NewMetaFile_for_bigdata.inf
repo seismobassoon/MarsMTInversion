@@ -9,12 +9,11 @@
 #
 # synthetics <moment tensor>_sta_<station_number>.txt, col 1 = time, col 2 = N, col 3 = E, col 4 = Z 
 # computation mode (normal:normal; test:filter the GF and stop: fort.11-14)
-#   versionSGT is completely different
-versionSGT
+#   versionSGT or monitoring
+monitoring
 #
 # with this versionSGT, the order of parameters in this inf file is no more important.
 # however, always the first declaration of parameters is valid (when you declare them twice or more).
-
 # attention for tapering:
 #      regardless of your input tapers, the programme will apply a priori tapers on the beginning and 
 #      the end of syn and obs before butterworth filter (0.05 per cent of time window for each).
@@ -24,7 +23,7 @@ SGTinfo=./database_small.inf
 
 parentDir=./databaseDWAKr_Small2/RSGT/
 
-eventName = sol173
+eventName = sol235
 
 
 # station information
@@ -35,12 +34,11 @@ stlalo= 34.54 -116.39
 
 # gcarc to search
 
-searchAreaDistance =  20.d0 30.d0 10.d0
+searchAreaDistance =  20.d0 30.d0 1.d0
 
 # azimuth to search
 
-searchAreaAzimuth = -10.d0 10.d0 10.d0
-#searchAreaAzimuth = 10.d0 10.d0 90.d0
+searchAreaAzimuth = -10.d0 10.d0 2.d0
 
 # radius to search
 
@@ -50,7 +48,7 @@ searchAreaRadius = 3360.d0 3380.d0 20.d0
 
 !tlenDSM= 3000.0d0 # window width in seconds (this should be equal or inferior to the total length of synthetics tlen in DSM)
 
-movingWindowStep= 100.0d0 # moving window step in seconds (normally smaller than the dominant period?)
+movingWindowStep= 10.0d0 # moving window step in seconds (normally smaller than the dominant period?)
 
 dt = 0.05d0 # delta t in seconds -> this should be identical in syn and obs
 
@@ -62,7 +60,7 @@ fmax= 0.03 # max frequency (in Hz)
 
 
 # SGT version has window cutting option
-effectiveSynWindow = 0.0 3276.8
+effectiveSynWindow = 0.0 1200.d0
 
 #  observed data information
 
@@ -87,9 +85,11 @@ obsEfile= XB.ELYSE.02.BHE.R.2019-07-26T121335.510000.txt
 obsNfile= XB.ELYSE.02.BHN.R.2019-07-26T121335.510000.txt
 
 
+
 #
 # number of taper windows for observed
-numberofObsWindows= 2
+
+numberofObsWindows=1 
 
 
 # obs moving window options. 'fixed': the windows are fixed one to another; 
@@ -97,18 +97,21 @@ numberofObsWindows= 2
 #        attention, 'independent' will take much more time since it will move your windows independently
 
 
-obsMovingWindowOption =  independent 
+obsMovingWindowOption =  fixed
 
 
-obsWindow1= 160.0 200.0 240.0 300.0
-obsWindow2 = 500.0 600.0 700.0 800.0
+obsWindow1= 0.d0 50.d0 1350.d0 1400.d0
+
 
 
 
 # then you can put the range of window slide for each window (in seconds)
 #
-movingWindowRange1 = -100.0 100.0
-movingWindowRange2 = -200.0 200.0
+#movingWindowRange1 = -100.0 100.0
+#movingWindowRange2 = -200.0 200.0
+
+movingWindowRangeMonitoring=0.d0 400.d0
+
 #
 #
 end # this meta file should end with "end"

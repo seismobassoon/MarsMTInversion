@@ -205,16 +205,16 @@ subroutine pinput
 
 
 
-        allocate(obsRaw(1:npData,1:3))
-        allocate(obsFilt(1:npData,1:3))
-        allocate(obsFiltTapered(1:npData,1:3))
+        allocate(obsRaw(0:npData,1:3))
+        allocate(obsFilt(0:npData,1:3))
+        allocate(obsFiltTapered(0:npData,1:3))
 
         paramName="obsZfile"
         call searchForParams(tmpfile,paramName,obsfile,0)
         obsfile=trim(workingDir)//"/"//trim(obsfile)
         print *, "Reading obsZfile: ", obsfile
         open(unit=10,file=obsfile,status='unknown')
-        do it=1,npData
+        do it=0,npData
             read(10,*) obsRaw(it,1)
         enddo
 
@@ -223,7 +223,7 @@ subroutine pinput
         obsfile=trim(workingDir)//"/"//trim(obsfile)
         print *, "Reading obsNfile: ", obsfile
         open(unit=10,file=obsfile,status='unknown')
-        do it=1,npData
+        do it=0,npData
             read(10,*) obsRaw(it,2)
         enddo
 
@@ -232,7 +232,7 @@ subroutine pinput
         obsfile=trim(workingDir)//"/"//trim(obsfile)
         print *, "Reading obsEfile: ", obsfile
         open(unit=10,file=obsfile,status='unknown')
-        do it=1,npData
+        do it=0,npData
             read(10,*) obsRaw(it,3)
         enddo
         
@@ -808,13 +808,13 @@ subroutine makingIndependentWindow
             !print *, fEachShift(jloop,:)
         enddo
     elseif(calculMode.eq.3) then ! here the syn is normally shorter than the obs
-        if(iMovingWindowStart(1)+iWindowStart<1) then
-            print *, "no sufficient data points in obs data for the window"
+        if(iMovingWindowStart(1)+iWindowStart<iWindowStart) then
+            print *, "no sufficient data points in obs data for the window on the left side"
             stop
         endif
 
         if(iMovingWindowStart(1)+ntStep*(totalNumberInWindowDimension(1)-1)+iWindowEnd>npData) then
-            print *, "no sufficient data points in obs data for the window"
+            print *, "no sufficient data points in obs data for the window on the right side"
             stop
         endif
     endif

@@ -53,7 +53,7 @@ program MarsInversion
   
   !print *, np,ntwin
     allocate(taperDSM(iWindowStart:iWindowEnd))
-    allocate(taperOBS(1:npData))
+    allocate(taperOBS(0:npData))
 
 
   !print *, iMovingWindowStart(1), iMovingWindowStart(2)
@@ -120,7 +120,7 @@ program MarsInversion
     
     ! A priori taper for stabilising bwfilt
     taperOBS=1.d0
-    do it=1,npData/20
+    do it=0,npData/20
         xfwin=dsin(0.5d0*pi*dble(it-1)/dble(npData/20-1))
         taperOBS(it)=xfwin*xfwin
     enddo
@@ -132,8 +132,8 @@ program MarsInversion
     ! For the observed data we filter the whole signal of a length of npData
 
     do icomp=1,3
-        obsRaw(1:npData,icomp)=obsRaw(1:npData,icomp)*taperOBS(1:npData)
-       call bwfilt(obsRaw(1:npData,icomp),obsFilt(1:npData,icomp),dt,npData,1,npButterworth,fmin,fmax)
+        obsRaw(0:npData,icomp)=obsRaw(0:npData,icomp)*taperOBS(0:npData)
+       call bwfilt(obsRaw(0:npData,icomp),obsFilt(0:npData,icomp),dt,npData+1,1,npButterworth,fmin,fmax)
     enddo
     
 
@@ -143,7 +143,7 @@ program MarsInversion
     open(21,file="obsZtreated.txt",status='unknown')
     open(22,file="obsNtreated.txt",status='unknown')
     open(23,file="obsEtreated.txt",status='unknown')
-    do it=1,npData
+    do it=0,npData
        write(21,*) dble(it)*dt,obsRaw(it,1),obsFilt(it,1)
        write(22,*) dble(it)*dt,obsRaw(it,2),obsFilt(it,2)
        write(23,*) dble(it)*dt,obsRaw(it,3),obsFilt(it,3)
@@ -174,7 +174,7 @@ program MarsInversion
     ! For the observed data we filter the whole signal of a length of npData
 
     do icomp=1,3
-        obsFiltTapered(1:npData,icomp)=obsFilt(1:npData,icomp)*taperOBS(1:npData)
+        obsFiltTapered(0:npData,icomp)=obsFilt(0:npData,icomp)*taperOBS(0:npData)
     enddo
     
 
@@ -188,14 +188,14 @@ program MarsInversion
     allocate(eastTemp(iWindowStart:iWindowEnd))
     allocate(GreenArray(iWindowStart:iWindowEnd,1:3,1:nmt))
     if(calculMode.eq.3) allocate(GreenArrayK(iWindowStart:iWindowEnd,1:3,1:nmt))
-    allocate(GreenArrayShifted(1:npData,1:3,1:nmt)) ! Attention this is ok (1:npData) because we shift SYN to OBS
-    allocate(GreenArrayShiftedTapered(1:npData,1:3,1:nmt))
+    allocate(GreenArrayShifted(0:npData,1:3,1:nmt)) ! Attention this is ok (0:npData) because we shift SYN to OBS
+    allocate(GreenArrayShiftedTapered(0:npData,1:3,1:nmt))
     !! NF should think how to do this
-    allocate(obsArray(1:npData,1:3),obsRawArray(1:npData,1:3))
+    allocate(obsArray(0:npData,1:3),obsRawArray(0:npData,1:3))
     allocate(filtbefore(iWindowStart:iWindowEnd),filtafter(iWindowStart:iWindowEnd))
 
-    if(calculMode.eq.2) allocate(modArray(1:npData,1:3))
-    if(calculMode.eq.2) allocate(modRawArray(1:npData,1:3))
+    if(calculMode.eq.2) allocate(modArray(0:npData,1:3))
+    if(calculMode.eq.2) allocate(modRawArray(0:npData,1:3))
     if(calculMode.eq.3) allocate(modArray_total(iWindowStart:iWindowEnd+ntStep*(totalNumberInWindowDimension(1)-1),1:3))
     allocate(rsgtomega(1:num_rsgtPSV,imin:imax,1:theta_n))
     allocate(rsgtTime(iWindowStart:iWindowEnd,1:num_rsgtPSV))
@@ -311,8 +311,8 @@ if(calculMode.eq.2) then
                         
                     do mtcomp=1,nmt
                         do icomp=1,3
-                            GreenArrayShiftedTapered(1:npData,icomp,mtcomp) &
-                                =GreenArrayShifted(1:npData,icomp,mtcomp)*taperOBS(1:npData)
+                            GreenArrayShiftedTapered(0:npData,icomp,mtcomp) &
+                                =GreenArrayShifted(0:npData,icomp,mtcomp)*taperOBS(0:npData)
                         enddo
                     enddo
 
@@ -323,8 +323,8 @@ if(calculMode.eq.2) then
                     do mtcomp=1,nmt
                        do jmtcomp=1,mtcomp
                           ata(mtcomp,jmtcomp) &
-                            = sum(GreenArrayShiftedTapered(1:npData,1:3,mtcomp) &
-                                *GreenArrayShiftedTapered(1:npData,1:3,jmtcomp))
+                            = sum(GreenArrayShiftedTapered(0:npData,1:3,mtcomp) &
+                                *GreenArrayShiftedTapered(0:npData,1:3,jmtcomp))
                        enddo
                     enddo
                     
@@ -340,8 +340,8 @@ if(calculMode.eq.2) then
                     atd=0.d0
                     do mtcomp=1,nmt
                        atd(mtcomp) &
-                        =sum(GreenArrayShiftedTapered(1:npData,1:3,mtcomp) &
-                            *obsFiltTapered(1:npData,1:3))
+                        =sum(GreenArrayShiftedTapered(0:npData,1:3,mtcomp) &
+                            *obsFiltTapered(0:npData,1:3))
                     enddo
 
 
@@ -362,10 +362,10 @@ if(calculMode.eq.2) then
                     !modRawArray=0.d0
                     modArray=0.d0
                     do mtcomp=1,nmt
-                        modRawArray(1:npData,1:3)=modRawArray(1:npData,1:3) &
-                            +GreenArrayShifted(1:npData,1:3,mtcomp)*mtInverted(mtcomp,iMovingWindowStep,iConfiguration)
-                        modArray(1:npData,1:3)=modArray(1:npData,1:3) &
-                            +GreenArrayShiftedTapered(1:npData,1:3,mtcomp)*mtInverted(mtcomp,iMovingWindowStep,iConfiguration)
+                        modRawArray(0:npData,1:3)=modRawArray(0:npData,1:3) &
+                            +GreenArrayShifted(0:npData,1:3,mtcomp)*mtInverted(mtcomp,iMovingWindowStep,iConfiguration)
+                        modArray(0:npData,1:3)=modArray(0:npData,1:3) &
+                            +GreenArrayShiftedTapered(0:npData,1:3,mtcomp)*mtInverted(mtcomp,iMovingWindowStep,iConfiguration)
                     enddo
 
                     write(list,'(I7,".",I7)') iConfiguration,iMovingWindowStep
@@ -412,7 +412,7 @@ if(calculMode.eq.2) then
                     normaliseModN=0.d0
                     normaliseModRawE=0.d0
                         
-                    do it=1,npData
+                    do it=0,npData
 
                         write(21,*) dt*dble(it), modRawArray(it,1), modRawArray(it,2), modRawArray(it,3)
                         write(22,*) dt*dble(it), modArray(it,1), modArray(it,2), modArray(it,3)
