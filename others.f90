@@ -815,8 +815,8 @@ subroutine makingIndependentWindow
 
         if(iMovingWindowStart(1)+ntStep*(totalNumberInWindowDimension(1)-1)+iWindowEnd>npData) then
             print *, "no sufficient data points in obs data for the window on the right side"
-            print *, iMovingWindowStart(1)+ntStep*(totalNumberInWindowDimension(1)-1)+iWindowEnd
-            print *, npData
+            !print *, iMovingWindowStart(1)+ntStep*(totalNumberInWindowDimension(1)-1)+iWindowEnd
+            !print *, npData
             stop
         endif
     endif

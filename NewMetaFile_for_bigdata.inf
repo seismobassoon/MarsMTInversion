@@ -60,11 +60,11 @@ fmax= 0.03 # max frequency (in Hz)
 
 
 # SGT version has window cutting option
-effectiveSynWindow = 0.0 1200.d0
+effectiveSynWindow = 0.0 1000.d0
 
 #  observed data information
 
-tlenData= 800.0d0 # total length of the seismic data in seconds, this should be bigger than the synthetic window length described above
+tlenData= 1400.0d0 # total length of the seismic data in seconds, this should be bigger than the synthetic window length described above
 
 
 
