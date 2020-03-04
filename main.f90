@@ -576,7 +576,7 @@ elseif(calculMode.eq.3) then
 
                     do iConfPhi=1,nphi
 
-                        print *, "source location I is ", latgeo(iConfPhi,iConfTheta), longeo(iConfPhi,iConfTheta)
+                        print *, "source location I is ", r_(iradiusD(iConfR)),latgeo(iConfPhi,iConfTheta), longeo(iConfPhi,iConfTheta)
                                 iConfiguration=(iConfR-1)*(nphi*ntheta)+(iConfTheta-1)*nphi+iConfPhi
                         
                         conf_depth(iConfiguration)=r_(iradiusD(iConfR))
@@ -627,7 +627,7 @@ elseif(calculMode.eq.3) then
                         do kConfPhi=1,iConfPhi
 
 
-                            print *, "source location K is ", latgeo(iConfPhi,iConfTheta), longeo(iConfPhi,iConfTheta)
+                            print *, "source location K is ",r_(iradiusD(kConfR)), latgeo(iConfPhi,iConfTheta), longeo(iConfPhi,iConfTheta)
                             iConfiguration=(iConfR-1)*(nphi*ntheta)+(iConfTheta-1)*nphi+iConfPhi
                                     
                             rsgtTime=rsgtTimeK
