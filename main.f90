@@ -935,7 +935,7 @@ mtInverted=0.d0
         call tensorFFT_double(num_rsgtPSV,imin,imax,np1,rsgtomegatmp,rsgtTime,omegai, &
             tlenFull,iWindowStart,iWindowEnd) ! rsgtTime is for iConfR and iConfTheta
         do iConfPhi=1,nphi
-            print *, "source location is ", r_(iradiusD(iConfR)),latgeo(iConfPhi,iConfTheta), longeo(iConfPhi,iConfTheta)
+            !print *, "source location is ", r_(iradiusD(iConfR)),latgeo(iConfPhi,iConfTheta), longeo(iConfPhi,iConfTheta)
                             
             iConfiguration=(iConfR-1)*(nphi*ntheta)+(iConfTheta-1)*nphi+iConfPhi
                      
