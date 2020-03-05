@@ -62,10 +62,11 @@ subroutine pinput
     
 
 
-    if((dummy(1:10).eq.'versionSGT').or.(dummy(1:10).eq.'monitoring')) then
+    if((dummy(1:10).eq.'versionSGT').or.(dummy(1:10).eq.'monitoring').or.(dummy(1:12).eq.'lightMonitor') then
         close(1)
         if(dummy(1:10).eq.'versionSGT') calculMode=2
         if(dummy(1:10).eq.'monitoring') calculMode=3
+        if(dummy(1:12).eq.'lightMonitor') calculMode=4
         nmt=6
 
         paramName="SGTinfo"
