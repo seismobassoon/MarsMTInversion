@@ -1040,7 +1040,7 @@ mtInverted=0.d0
                 do jmtcomp=1,nmt
                     iBig=(jloop-1)*nmt+jmtcomp
 
-                    mtInverted(jmtcomp,jlool,iConfiguration)=mtInverted_total(iBig)
+                    mtInverted(jmtcomp,jloop,iConfiguration)=mtInverted_total(iBig)
                     do it=iWindowStart,iWindowEnd
                         modArray(it+(jloop-1)*ntStep,jmtcomp)=modArray(it+(jloop-1)*ntStep,jmtcomp) &
                             +GreenArray(it,icomp,jmtcomp)*mtInverted_total(iBig)
