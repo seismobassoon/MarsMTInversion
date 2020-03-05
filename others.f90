@@ -731,7 +731,7 @@ subroutine makingIndependentWindow
             print *, iloop,"-th moving range in obs is characterised by:", &
                 fMovingWindowStart(iloop), fMovingWindowEnd(iloop)
         enddo
-    elseif(calculMode.eq.3) then
+    elseif((calculMode.eq.3).or.(calculMode.eq.4))  then
         paramName="movingWindowRangeMonitoring"
         call searchForParams(tmpfile,paramName,dummy,1)
         read(dummy,*)fMovingWindowStart(1), fMovingWindowEnd(1)
@@ -755,6 +755,7 @@ subroutine makingIndependentWindow
     elseif((calculMode.eq.3).or.(calculMode.eq.4)) then
         totalNumberInWindowDimension(1)=(iMovingWindowEnd(1)-iMovingWindowStart(1))/ntStep+1
         nTimeCombination = totalNumberInWindowDimension(1)
+        print *, "The number of time window shift steps for monitoring:", nTimeCombination
     endif
     allocate(fEachShift(1:nTimeCombination,1:ntwinObs))
     allocate(iEachWindowStart(1:nTimeCombination,1:ntwinObs))
@@ -811,7 +812,7 @@ subroutine makingIndependentWindow
             !print *, jloop,indexInWindow(:),iEachWindowStart(jloop,:),iEachWindowEnd(jloop,:)
             !print *, fEachShift(jloop,:)
         enddo
-    elseif(calculMode.eq.3) then ! here the syn is normally shorter than the obs
+    elseif((calculMode.eq.3).or.(calculMode.eq.4)) then ! here the syn is normally shorter than the obs
         if(iMovingWindowStart(1)+iWindowStart<iWindowStart) then
             print *, "no sufficient data points in obs data for the window on the left side"
             stop
