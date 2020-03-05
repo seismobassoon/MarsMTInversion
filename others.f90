@@ -749,7 +749,7 @@ subroutine makingIndependentWindow
         
             !print *, iloop, totalNumberInWindowDimension(iloop)
         enddo
-    elseif(calculMode.eq.3) then
+    elseif((calculMode.eq.3).or.(calculMode.eq.4)) then
         totalNumberInWindowDimension(1)=(iMovingWindowEnd(1)-iMovingWindowStart(1))/ntStep+1
         nTimeCombination = totalNumberInWindowDimension(1)
     endif
