@@ -935,7 +935,7 @@ mtInverted=0.d0
         call tensorFFT_double(num_rsgtPSV,imin,imax,np1,rsgtomegatmp,rsgtTime,omegai, &
             tlenFull,iWindowStart,iWindowEnd) ! rsgtTime is for iConfR and iConfTheta
         do iConfPhi=1,nphi
-            print *, "source location I is ", r_(iradiusD(iConfR)),latgeo(iConfPhi,iConfTheta), longeo(iConfPhi,iConfTheta)
+            print *, "source location is ", r_(iradiusD(iConfR)),latgeo(iConfPhi,iConfTheta), longeo(iConfPhi,iConfTheta)
                             
             iConfiguration=(iConfR-1)*(nphi*ntheta)+(iConfTheta-1)*nphi+iConfPhi
                      
@@ -987,16 +987,16 @@ mtInverted=0.d0
             do jloop=1,nTimeCombination
                 do jmtcomp=1,nmt
                     iBig=(jloop-1)*nmt+jmtcomp
-                    do it=iWindowStart,iWindowEnd
-                        do icomp=1,3
+                    do icomp=1,3
+                        do it=iWindowStart,iWindowEnd
                             atd(iBig)=atd(iBig)+GreenArray(it,icomp,jmtcomp)* &
                                 obsFiltTapered(it+(jloop-1)*ntStep,icomp)
                         enddo
                     enddo
                     do kmtcomp=1,jmtcomp
                         kBig=kmtcomp
-                        do it=iWindowStart+(jloop-1)*ntStep,iWindowEnd
-                            do icomp=1,3
+                        do icomp=1,3
+                            do it=iWindowStart+(jloop-1)*ntStep,iWindowEnd
                                 ata(iBig,kBig)= ata(iBig,kBig)+ &
                                     GreenArray(it-(jloop-1)*ntStep,icomp,jmtcomp)* &
                                     GreenArray(it,icomp,kmtcomp)
@@ -1027,8 +1027,8 @@ mtInverted=0.d0
 
 
             ! ata is symmetric
-            do iBig=1,nTimeCombination*nConfiguration*nmt
-                do kBig=iBig,nTimeCombination*nConfiguration*nmt
+            do iBig=1,nTimeCombination*nmt
+                do kBig=iBig,nTimeCombination*nmt
                     ata(iBig,kBig)=ata(kBig,iBig)
                 enddo
             enddo
@@ -1049,11 +1049,11 @@ mtInverted=0.d0
                 enddo
             enddo
             write(list,'(I7)') iConfiguration
-            do jjj=1,8
+            do jjj=1,7
                 if(list(jjj:jjj).eq.' ') list(jjj:jjj)='0'
             enddo
 
-            tmpfile=trim(resultDir)//'/'//trim(list)//"mod.dat"
+            tmpfile=trim(resultDir)//'/'//trim(list)//".mod.dat"
             open(unit=22,file=tmpfile,status='unknown')
                             
             iMovingWindowStep=1
@@ -1160,93 +1160,18 @@ close(5)
 close(7)
  
 
-
-
-
- !write(list,'(I7,".",I7)') iConfiguration,iMovingWindowStep
- !do jjj=1,15
- !    if(list(jjj:jjj).eq.' ') list(jjj:jjj)='0'
- !enddo
-
- variance_total=0.d0
  tmpfile=trim(resultDir)//'/mod_waveform_total.dat'
  open(unit=21,file=tmpfile,status='unknown')
  tmpfile=trim(resultDir)//'/obs_waveform_total.dat'
  open(unit=22,file=tmpfile,status='unknown')
- do it=iWindowStart,iWindowEnd+ntStep*(totalNumberInWindowDimension(1)-1)
-     write(21,*) dt*dble(it),modArray_total(it,1),modArray_total(it,2),modArray_total(it,3)
+ do it=0,npData
+     write(21,*) dt*dble(it),modArray(it,1),modArray(it,2),modArray(it,3)
      write(22,*) dt*dble(it),obsFiltTapered(it,1),obsFiltTapered(it,2),obsFiltTapered(it,3)
-     do icomp=1,3
-         variance_total(icomp)=variance_total(icomp)+dt*(modArray_total(it,icomp)-obsFiltTapered(it,icomp))**2
-     enddo
+     
  enddo ! it
  close(21)
+ close(22)
 
-
- mtInverted=0.d0
-
- open(unit=1,file=trim(inversionName)//".inv_result",status='unknown')
-! open(unit=2,file=trim(inversionName)//".raw_var",status='unknown')
-! open(unit=3,file=trim(inversionName)//".tap_var",status='unknown')
- open(unit=4,file=trim(inversionName)//".conf_info",status='unknown')
-! open(unit=5,file=trim(inversionName)//".tap_xcorr",status='unknown')
-! open(unit=6,file=trim(inversionName)//".raw_xcorr",status='unknown')
- open(unit=7,file=trim(inversionName)//".shift_info",status='unknown')
- do jloop=1,totalNumberInWindowDimension(1)
-     write(7,*) jloop,dt*dble(iMovingWindowStart(1))*dble(ntStep)*dble(jloop)
- enddo
-
- do iConfR=1,nr
-     do iConfTheta=1,ntheta
-         do iConfPhi=1,nphi
-             do jloop=1,totalNumberInWindowDimension(1)
-                 iConfiguration=(jloop-1)*nConfiguration+(iConfR-1)*nphi*ntheta &
-                     +(iConfTheta-1)*nphi+(iConfPhi-1)
-                 do jmtcomp=1,nmt
-                     iBig=(jloop-1)*nConfiguration*nmt+(iConfR-1)*nmt*nphi*ntheta &
-                         +(iConfTheta-1)*nmt*nphi+(iConfPhi-1)*nmt+jmtcomp
-                     mtInverted(jmtcomp,jloop,iConfiguration)=mtInverted_total(iBig)
-                 enddo ! jmtcomp
-             enddo ! jloop
-         enddo ! iConfPhi
-     enddo ! iConfTheta
- enddo ! iConfR
-
- 
-
-    
-    
-
- do iConfiguration=1,nConfiguration
-     write(4,*) iConfiguration, conf_depth(iConfiguration), conf_lat(iConfiguration), &
-         conf_lon(iConfiguration), conf_gcarc(iConfiguration), conf_azimuth(iConfiguration)
-     do jloop=1,totalNumberInWindowDimension(1)
-         ! This is for each time moving window set (independent or fixed)
-         iMovingWindowStep=jloop
-
-         write(1,*) iConfiguration, iMovingWindowStep, &
-             mtInverted(1:nmt,iMovingWindowStep,iConfiguration)
-        ! write(2,*) iConfiguration, iMovingWindowStep, &
-        !     modRawZ(iMovingWindowStep,iConfiguration),modRawN(iMovingWindowStep,iConfiguration), &
-        !        modRawE(iMovingWindowStep,iConfiguration)
-        !    write(3,*) iConfiguration,iMovingWindowStep,  &
-        !        modZ(iMovingWindowStep,iConfiguration),modN(iMovingWindowStep,iConfiguration), &
-        !        modE(iMovingWindowStep,iConfiguration)
-        !    write(5,*) iConfiguration,iMovingWindowStep,  &
-        !        xcorrZ(iMovingWindowStep,iConfiguration),xcorrN(iMovingWindowStep,iConfiguration), &
-        !        xcorrE(iMovingWindowStep,iConfiguration)
-        !    write(6,*) iConfiguration,iMovingWindowStep,  &
-        !        xcorrRawZ(iMovingWindowStep,iConfiguration),xcorrRawN(iMovingWindowStep,iConfiguration), &
-        !        xcorrRawE(iMovingWindowStep,iConfiguration)
-     enddo
- enddo
- close(1)
- !   close(2)
- !   close(3)
- close(4)
- !   close(5)
- !   close(6)
- close(7)
 
 endif
   
