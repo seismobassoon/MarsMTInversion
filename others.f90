@@ -32,6 +32,9 @@ subroutine pinput
   
     argc=iargc()
   
+    dummy = 'mkdir -p '//trim(resultDir)
+    call system(dummy)
+
     if(argc.ne.4) then
         print *, "you need <metafile> <working directory> <result directory> <inversion name>"
         print *, "cheers"
