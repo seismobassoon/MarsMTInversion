@@ -263,7 +263,16 @@ subroutine pinput
             print *, "monitoring mode is not supporting independent window shifting"
             stop
         endif
-
+        
+        if((calculMode.eq.4).and.(NmovingWindowDimension.ne.1)) then
+            print *, "light monitoring mode is not supporting independent window shifting"
+            stop
+        endif
+        
+        if((calculMode.eq.5).and.(NmovingWindowDimension.ne.1)) then
+            print *, "heavy monitoring mode is not supporting independent window shifting"
+            stop
+        endif
 
         
         allocate(twinObs(1:4,1:ntwinObs))
@@ -733,7 +742,7 @@ subroutine makingIndependentWindow
             print *, iloop,"-th moving range in obs is characterised by:", &
                 fMovingWindowStart(iloop), fMovingWindowEnd(iloop)
         enddo
-    elseif((calculMode.eq.3).or.(calculMode.eq.4))  then
+    elseif((calculMode.eq.3).or.(calculMode.eq.4).(calculMode.eq.5))  then
         paramName="movingWindowRangeMonitoring"
         call searchForParams(tmpfile,paramName,dummy,1)
         read(dummy,*)fMovingWindowStart(1), fMovingWindowEnd(1)
@@ -754,7 +763,7 @@ subroutine makingIndependentWindow
         
             !print *, iloop, totalNumberInWindowDimension(iloop)
         enddo
-    elseif((calculMode.eq.3).or.(calculMode.eq.4)) then
+    elseif((calculMode.eq.3).or.(calculMode.eq.4).or.(calculMode.eq.5)) then
         totalNumberInWindowDimension(1)=(iMovingWindowEnd(1)-iMovingWindowStart(1))/ntStep+1
         nTimeCombination = totalNumberInWindowDimension(1)
         print *, "The number of time window shift steps for monitoring:", nTimeCombination
@@ -814,7 +823,7 @@ subroutine makingIndependentWindow
             !print *, jloop,indexInWindow(:),iEachWindowStart(jloop,:),iEachWindowEnd(jloop,:)
             !print *, fEachShift(jloop,:)
         enddo
-    elseif((calculMode.eq.3).or.(calculMode.eq.4)) then ! here the syn is normally shorter than the obs
+    elseif((calculMode.eq.3).or.(calculMode.eq.4).or.(calculMode.eq.5)) then ! here the syn is normally shorter than the obs
         if(iMovingWindowStart(1)+iWindowStart<iWindowStart) then
             print *, "no sufficient data points in obs data for the window on the left side"
             stop
