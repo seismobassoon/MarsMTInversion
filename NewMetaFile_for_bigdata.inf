@@ -10,7 +10,8 @@
 # synthetics <moment tensor>_sta_<station_number>.txt, col 1 = time, col 2 = N, col 3 = E, col 4 = Z 
 # computation mode (normal:normal; test:filter the GF and stop: fort.11-14)
 #   versionSGT or lightMonitor (monitoring option cannot work ... tooooooo heavy!)
-lightMonitor
+
+calculMode=heavyMonitor
 #
 # with this versionSGT, the order of parameters in this inf file is no more important.
 # however, always the first declaration of parameters is valid (when you declare them twice or more).

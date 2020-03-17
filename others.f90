@@ -57,19 +57,21 @@ subroutine pinput
     close(1)
     close(5)
 
-    open(unit=1,file=tmpfile,status='unknown')
+    !open(unit=1,file=tmpfile,status='unknown')
     calculMode=0
     nmt=6
 
-    read(1,110) dummy ! This dummy string determines i) test mode, ii) Alice normal, or iii) versionSGT mode
-    
+    !read(1,110) dummy ! This dummy string determines i) test mode, ii) Alice normal, or iii) versionSGT mode
+    paramName="calculMode"
+    call searchForParams(tmpfile,paramName,dummy,0)
+    print *, "calculMode is ", dummy
 
-
-    if((dummy(1:10).eq.'versionSGT').or.(dummy(1:10).eq.'monitoring').or.(dummy(1:12).eq.'lightMonitor')) then
-        close(1)
+    if((dummy(1:10).eq.'versionSGT').or.(dummy(1:10).eq.'monitoring'). & or.(dummy(1:12).eq.'lightMonitor').or.(dummy(1:12).eq.'heavyMonitor')) then
+        !close(1)
         if(dummy(1:10).eq.'versionSGT') calculMode=2
         if(dummy(1:10).eq.'monitoring') calculMode=3
         if(dummy(1:12).eq.'lightMonitor') calculMode=4
+        if(dummy(1:12).eq.'heavyMonitor') calculMode=5
         nmt=6
 
         paramName="SGTinfo"
