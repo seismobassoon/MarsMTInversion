@@ -1,0 +1,12 @@
+FC      = mpifort
+FFLAGS  = -g -Wall -Wextra -Warray-temporaries -Wconversion -fimplicit-none -fbacktrace -ffree-line-length-0
+OBJS0    =  module.f90 sgt.f90 others.f90 mainMPI.f90 
+program0= MPIMars
+
+all : $(program0)
+
+$(program0): $(OBJS0)
+	$(FC) $(FFLAGS) $(OBJS0) -o $@
+    
+clean:
+	rm -f MPIMars *.o *.mod

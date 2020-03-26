@@ -5,6 +5,43 @@
 !   Created by fuji on 04/12/2019.
 !   Copyright 2019 nfuji. All rights reserved.
 !
+
+module mainparameters
+
+    implicit none
+    
+    integer :: mtcomp,jmtcomp,kmtcomp
+    integer ::icomp,iWindow,it,jjj
+    integer :: iConfiguration,kConfiguration,iMovingWindowStep
+    integer :: iloop,jloop,kloop
+    integer :: iBig,kBig,iBigEquivalent,kBigEquivalent
+    real(kind(0d0)), allocatable :: taperDSM(:),taperOBS(:)
+    real(kind(0d0)), allocatable :: northTemp(:),eastTemp(:)
+    real(kind(0d0)), allocatable :: GreenArray(:,:,:),GreenArrayShifted(:,:,:),GreenArrayShiftedTapered(:,:,:)
+    real(kind(0d0)), allocatable :: GreenArrayK(:,:,:)
+    real(kind(0d0)), allocatable :: obsArray(:,:),obsRawArray(:,:)
+    real(kind(0d0)), allocatable :: modArray(:,:),modRawArray(:,:),modArray_total(:,:)
+    real(kind(0d0)), allocatable :: filtbefore(:),filtafter(:)
+    real(kind(0d0)) :: xfwin
+    real(kind(0d0)), allocatable :: ata(:,:),atd(:)!,atainv(:,:)
+    real(kind(0d0)), allocatable  :: mtInverted(:,:,:),mtInverted_total(:)
+    real(kind(0d0)), allocatable :: misfitTaper(:,:,:)
+    real(kind(0d0)), allocatable :: misfitRaw(:,:,:)
+    character(200) :: list,tmpfile ! synfile,tmpfile,
+    !real(kind(0d0)) :: dummyFloat
+    real(kind(0d0)), allocatable :: varZ(:,:),varN(:,:),varE(:,:)
+    real(kind(0d0)), allocatable :: modZ(:,:),modN(:,:),modE(:,:)
+    real(kind(0d0)), allocatable :: varRawZ(:,:),varRawN(:,:),varRawE(:,:)
+    real(kind(0d0)), allocatable :: modRawZ(:,:),modRawN(:,:),modRawE(:,:)
+    real(kind(0d0)), allocatable :: xcorrZ(:,:),xcorrN(:,:),xcorrE(:,:)
+    real(kind(0d0)), allocatable :: xcorrRawZ(:,:), xcorrRawN(:,:), xcorrRawE(:,:)
+    real(kind(0d0)) :: normaliseModZ,normaliseModRawN,normaliseModE,normaliseModRawZ,normaliseModN,normaliseModRawE
+    complex(kind(0d0)), allocatable :: rsgtomegatmp(:,:)
+    real(kind(0d0)) :: variance_total(3)
+
+end module mainparameters
+
+
 module parameters
     implicit none
   

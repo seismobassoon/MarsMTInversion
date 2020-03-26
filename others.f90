@@ -66,7 +66,8 @@ subroutine pinput
     call searchForParams(tmpfile,paramName,dummy,0)
     print *, "calculMode is ", dummy
 
-    if((dummy(1:10).eq.'versionSGT').or.(dummy(1:10).eq.'monitoring'). & or.(dummy(1:12).eq.'lightMonitor').or.(dummy(1:12).eq.'heavyMonitor')) then
+    if((dummy(1:10).eq.'versionSGT').or.(dummy(1:10).eq.'monitoring') &
+        .or.(dummy(1:12).eq.'lightMonitor').or.(dummy(1:12).eq.'heavyMonitor')) then
         !close(1)
         if(dummy(1:10).eq.'versionSGT') calculMode=2
         if(dummy(1:10).eq.'monitoring') calculMode=3
@@ -742,7 +743,7 @@ subroutine makingIndependentWindow
             print *, iloop,"-th moving range in obs is characterised by:", &
                 fMovingWindowStart(iloop), fMovingWindowEnd(iloop)
         enddo
-    elseif((calculMode.eq.3).or.(calculMode.eq.4).(calculMode.eq.5))  then
+    elseif((calculMode.eq.3).or.(calculMode.eq.4).or.(calculMode.eq.5))  then
         paramName="movingWindowRangeMonitoring"
         call searchForParams(tmpfile,paramName,dummy,1)
         read(dummy,*)fMovingWindowStart(1), fMovingWindowEnd(1)
