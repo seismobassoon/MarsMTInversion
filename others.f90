@@ -839,7 +839,7 @@ subroutine makingIndependentWindow
     endif
 
 !stop
-end subroutine
+end subroutine makingIndependentWindow
 
 
 subroutine pinputDSM(DSMconfFile,outputDir,psvmodel, &
