@@ -113,6 +113,10 @@ obsWindow1= 0.d0 50.d0 1350.d0 1400.d0
 
 movingWindowRangeMonitoring=0.d0 400.d0
 
+
+# for heavyMonitor mode, we need to define the distance whose Green's functions' cross talks should be considered
+# toleranceDistance in km
+toleranceDistance = 50
 #
 #
 end # this meta file should end with "end"
