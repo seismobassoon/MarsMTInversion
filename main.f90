@@ -541,7 +541,7 @@ elseif(calculMode.eq.3) then
         call rdsgtomega(r_(iradiusD(iConfR)),num_rsgtSH,num_rsgtPSV,10)
         call rdsgtomega(r_(iradiusD(iConfR)),num_rsgtPSV,num_rsgtPSV,20)
 
-
+        rsgtomegaI=rsgtomega
         
         do kConfR=1,iConfR
 

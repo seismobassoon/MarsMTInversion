@@ -239,7 +239,9 @@ subroutine allocatingLocalArrays
         !u=0.d0
     allocate(rsgtomegatmp(1:num_rsgtPSV,imin:imax))
 
-
+    allocate(rsgtomegaK(1:num_rsgtPSV,imin:imax,1:theta_n))
+    allocate(rsgtomegaI(1:num_rsgtPSV,imin:imax,1:theta_n))
+    allocate(rsgtTimeK(iWindowStart:iWindowEnd,1:num_rsgtPSV))
 
 end subroutine allocatingLocalArrays
 

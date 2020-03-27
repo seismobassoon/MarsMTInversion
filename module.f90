@@ -112,7 +112,7 @@ module tmpSGTs
     ! in frequency domain
     complex(kind(0d0)), allocatable :: rsgtF(:,:)
     complex(kind(0d0)), allocatable :: h3(:,:),h4(:,:)
-    complex(kind(0d0)), allocatable :: rsgtomega(:,:,:),rsgtomegaK(:,:,:)
+    complex(kind(0d0)), allocatable :: rsgtomega(:,:,:),rsgtomegaK(:,:,:),rsgtomegaI(:,:,:)
     complex(kind(0d0)), allocatable :: u_freq(:)
     ! in time domain
     real(kind(0d0)), allocatable :: t(:),rsgtTime(:,:),rsgtTimeK(:,:),u0(:,:),v(:),v0(:,:),hu(:),hu0(:,:)
