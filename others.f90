@@ -75,6 +75,13 @@ subroutine pinput
         if(dummy(1:12).eq.'heavyMonitor') calculMode=5
         nmt=6
 
+        if(calculMode.eq.5) then
+            print *, "are you sure that you are using MPI version?"
+            paramName='toleranceDistance'
+            call searchForParams(tmpfile,paramName,dummy,1)
+            read(dummy,*) toleranceDistance
+        endif
+
         paramName="SGTinfo"
         call searchForParams(tmpfile,paramName,SGTinfo,0)
         print *, "SGTinfo is ", SGTinfo

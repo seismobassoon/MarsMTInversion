@@ -67,7 +67,8 @@ module parameters
     integer :: nTimeCombination
     
     integer, allocatable :: iEachWindowStart(:,:), iEachWindowEnd(:,:)
-
+    
+    real(kind(0d0)) :: toleranceDistance
 
 
     character(200), allocatable :: filenames(:)

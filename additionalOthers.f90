@@ -174,6 +174,8 @@ subroutine sendAllParameters
         print *, "MPI version accepts only heavyMonitor option."
         stop
     endif
+    
+    call MPI_BCAST(toleranceDistance,1,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
        
 
 end subroutine sendAllParameters
