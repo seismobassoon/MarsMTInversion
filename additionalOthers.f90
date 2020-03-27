@@ -214,3 +214,50 @@ subroutine allocatingLocalArrays
     allocate(conf_azimuth(1:nConfiguration))
 
 end subroutine allocatingLocalArrays
+
+
+subroutine preprocessing
+
+    use parameters
+    use tmpSGTs
+    use angles
+    use mainparameters
+    ! making taper for synthetics
+    taperDSM=0.d0
+    do iWindow=1,ntwin
+        do it=itwin(1,iWindow),itwin(4,iWindow)
+            if((it.gt.itwin(1,iWindow)).and.(it.lt.itwin(2,iWindow))) then
+                xfwin=dsin(0.5d0*pi*dble(it-itwin(1,iWindow))/dble(itwin(2,iWindow)-itwin(1,iWindow)))
+                taperDSM(it)=xfwin*xfwin
+            elseif((it.ge.itwin(2,iWindow)).and.(it.le.itwin(3,iWindow))) then
+                taperDSM(it)=1.d0
+            elseif((it.gt.itwin(3,iWindow)).and.(it.lt.itwin(4,iWindow))) then
+                xfwin=dsin(0.5d0*pi*dble(it-itwin(4,iWindow))/dble(itwin(3,iWindow)-itwin(4,iWindow)))
+                taperDSM(it)=xfwin*xfwin
+            endif
+        enddo
+    enddo
+
+
+    ! For the observed data we taper the whole signal of a length of npData
+    
+    ! A priori taper for stabilising bwfilt
+    taperOBS=1.d0
+    do it=0,npData/20
+        xfwin=dsin(0.5d0*pi*dble(it-1)/dble(npData/20-1))
+        taperOBS(it)=xfwin*xfwin
+    enddo
+    do it=npData-npData/20,npData
+        xfwin=dsin(0.5d0*pi*dble(it-npData)/dble(-npData/20))
+        taperOBS(it)=xfwin*xfwin
+    enddo
+    
+    ! For the observed data we filter the whole signal of a length of npData
+
+    do icomp=1,3
+        obsRaw(0:npData,icomp)=obsRaw(0:npData,icomp)*taperOBS(0:npData)
+       call bwfilt(obsRaw(0:npData,icomp),obsFilt(0:npData,icomp),dt,npData+1,1,npButterworth,fmin,fmax)
+    enddo
+    
+end subroutine preprocessing
+
