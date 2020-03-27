@@ -122,7 +122,9 @@ program MarsInversion
 
     ! Raw data and filtered data are written as fort.11-13 for references
     
+    call obsFiltWriting
 
+    ! NF will soon remove the following ASCII fils (see above)
     open(21,file="obsZtreated.txt",status='unknown')
     open(22,file="obsNtreated.txt",status='unknown')
     open(23,file="obsEtreated.txt",status='unknown')

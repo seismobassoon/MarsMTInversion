@@ -31,9 +31,11 @@ program MarsInversion
     call sendAllParameters  ! sending all the necessary parameters just after pinput
 
     call allocatingLocalArrays
-
-
-
+    call preprocessing 
+    if(my_rank.eq.0) then
+        call obsFiltWriting
+    endif
+    
 
     call MPI_FINALIZE(ierr)
     stop

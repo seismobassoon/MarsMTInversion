@@ -261,3 +261,30 @@ subroutine preprocessing
     
 end subroutine preprocessing
 
+
+subroutine obsFiltWriting
+    use parameters
+    use tmpSGTs
+    use angles
+    use mainparameters
+    ! Raw data and filtered data are written as fort.11-13 for references
+       
+    open(21,file="obsTrated.dat",status='unknown',form='unformatted',access='direct',recl=kind(0e0)*4))
+    open(22,file="obsTratedFiltered.dat",status='unknown',form='unformatted',access='direct',recl=kind(0e0)*4))
+    do it=0,npData
+        tmpfloat(1)=sngl(dt*dble(it))
+        tmpfloat(2)=sngl(obsRaw(it,1))
+        tmpfloat(3)=sngl(obsRaw(it,2))
+        tmpfloat(4)=sngl(obsRaw(it,3))
+        write(21,rec=it+1) tmpfloat(1:4)
+        tmpfloat(1)=sngl(dt*dble(it))
+        tmpfloat(2)=sngl(obsFilt(it,1))
+        tmpfloat(3)=sngl(obsFilt(it,2))
+        tmpfloat(4)=sngl(obsFilt(it,3))
+        write(22,rec=it+1) tmpfloat(1:4)
+    enddo
+    close(21)
+    close(22)
+end subroutine obsFiltWriting
+
+
