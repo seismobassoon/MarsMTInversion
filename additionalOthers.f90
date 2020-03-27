@@ -142,105 +142,75 @@ subroutine sendAllParameters
 
     call MPI_BCAST(r_,r_n,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
     call MPI_BCAST(thetaD,theta_n,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
+    call MPI_BCAST(iradiusD,nr,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
+    call MPI_BCAST(ithetaD,ntheta,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
         
-
-
-        ! check r(:) and r_(:) because we don't interpolate for depth
-        iradiusD=0
-        do iloop=1,nr
-            icheck=0
-            do jloop=1,r_n
-                if(dabs(r_(jloop)-radius(iloop))< 1.d-5*radius(iloop)) then
-                    icheck=1
-                    iradiusD(iloop)=jloop
-                endif
-            enddo
-            if(icheck.eq.0) then
-                print *, radius(iloop), "is not in the catalogue, sorry"
-                stop
-            endif
-        enddo
-        
-        ! check gcarc(:) and thetaD(:) because we don't interpolate for depth
-        ithetaD=0
-        do iloop=1,ntheta
-            icheck=0
-            do jloop=1,theta_n
-                if(dabs(thetaD(jloop)-gcarc(iloop))<1.d-5*gcarc(iloop)) then
-                    icheck=1
-                    ithetaD(iloop)=jloop
-                endif
-            enddo
-            if(icheck.eq.0) then
-                print *, gcarc(iloop), "is not in the catalogue, sorry"
-                stop
-            endif
-        enddo
-     
+    if(my_rank.ne.0) then
         allocate(latgeo(1:nphi,1:ntheta),longeo(1:nphi,1:ntheta))
         allocate(crq(1:nphi,1:ntheta),crq2(1:nphi,1:ntheta))
         allocate(srq(1:nphi,1:ntheta),srq2(1:nphi,1:ntheta))
         allocate(cqr(1:nphi,1:ntheta),sqr(1:nphi,1:ntheta))
-        latgeo=0.d0
-        longeo=0.d0
+    endif
     
-        do iloop=1,ntheta
-            do jloop=1,nphi
-                call geoCoordinates(stla*degree2radian,stlo*degree2radian, &
-                    latgeo(jloop,iloop),longeo(jloop,iloop),azimuth(jloop)*degree2radian, &
-                    fdummy,gcarc(iloop)*degree2radian) !!! geoCooridnates uses radian
-            enddo
-        enddo
-
-        latgeo=latgeo*radian2degree
-        longeo=longeo*radian2degree
-
-        print *, "InSight: ", stla, stlo
-
-        do iloop=1,ntheta
-            do jloop=1,nphi
-                !print *, gcarc(iloop),azimuth(jloop), latgeo(jloop,iloop),longeo(jloop,iloop)
-                !azimuth(jloop)=-azimuth(jloop)
-                call azimth(0,latgeo(jloop,iloop),longeo(jloop,iloop),stla,stlo,fdummy2,phirq,fdummy)
-               
-                !print *, " inverse: ",fdummy2,phirq,fdummy
-                
-                !print *, phirq,fdummy
-                phirq=pi-phirq*degree2radian
-                fdummy=fdummy*degree2radian
-           
-                if(phirq.lt.0.d0) phirq=phirq+2.d0*pi
-                if(phirq.gt.(2.d0*pi)) phirq=phirq-2.d0*pi
-                
-                crq(jloop,iloop)=dcos(phirq)
-                srq(jloop,iloop)=dsin(phirq)
-                crq2(jloop,iloop)=dcos(2.d0*phirq)
-                srq2(jloop,iloop)=dsin(2.d0*phirq)
-                cqr(jloop,iloop)=dcos(fdummy)
-                sqr(jloop,iloop)=dsin(fdummy)
-            enddo
-        enddo
-
-      
-      
-
-
-       
-
-
-
-        ! allocate SGTs, synthetics in frequency
+    call MPI_BCAST(latgeo,npi*ntheta,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
+    call MPI_BCAST(longeo,npi*ntheta,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
+    call MPI_BCAST(crq,npi*ntheta,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
+    call MPI_BCAST(crq2,npi*ntheta,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
+    call MPI_BCAST(srq,npi*ntheta,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
+    call MPI_BCAST(srq2,npi*ntheta,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
+    call MPI_BCAST(cqr,npi*ntheta,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
+    call MPI_BCAST(sqr,npi*ntheta,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
+    
+    if(my_rank.ne.0) then
         allocate(omega(imin:imax))
         do iloop = imin, imax
             omega(iloop) = 2.d0*pi*dble(iloop)/tlenFull
         enddo
-     
-        !nConfiguration=r_n*theta_n*phi_n
+    endif
+    call MPI_BCAST(nConfiguration,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
+        
 
-        nConfiguration=nr*ntheta*nphi
-        print *, "source locations to be tested (in r, theta, phi, total): "
-        print *, "      ", nr,ntheta,nphi,nConfiguration
+    if(calculMode.ne.5) then
+        print *, "MPI version accepts only heavyMonitor option."
+        stop
+    endif
+       
 
-    
-    
 end subroutine sendAllParameters
+
+subroutine allocatingLocalArrays
+    use parameters
+    use tmpSGTs
+    use angles
+    use mainparameters
+    
+    allocate(taperDSM(iWindowStart:iWindowEnd))
+    allocate(taperOBS(0:npData))
+    allocate(ata(1:nmt*nTimeCombination,1:nmt*nTimeCombination)) ! these are the local ata
+    allocate(atd(1:nmt*nTimeCombination))
+    
+    allocate(mtInverted(1:nmt,1:nTimeCombination,1:nConfiguration))
+    allocate(mtInverted_total(1:nmt*nTimeCombination*nConfiguration)) ! This is the only one vector that we communicate every iteration
+
+    !! NF should reconsider how to use those vectors
+    allocate(misfitTaper(1:nmt,1:nTimeCombination,1:nConfiguration))
+    allocate(misfitRaw(1:nmt,1:nTimeCombination,1:nConfiguration))
+
+
+    allocate(varZ(1:1,1:nConfiguration))
+    allocate(varN(1:1,1:nConfiguration))
+    allocate(varE(1:1,1:nConfiguration))
+    allocate(modZ(1:1,1:nConfiguration))
+    allocate(modN(1:1,1:nConfiguration))
+    allocate(modE(1:1,1:nConfiguration))
+    allocate(xcorrZ(1:1,1:nConfiguration))
+    allocate(xcorrN(1:1,1:nConfiguration))
+    allocate(xcorrE(1:1,1:nConfiguration))
+
+    allocate(conf_depth(1:nConfiguration))
+    allocate(conf_lat(1:nConfiguration))
+    allocate(conf_lon(1:nConfiguration))
+    allocate(conf_gcarc(1:nConfiguration))
+    allocate(conf_azimuth(1:nConfiguration))
+
+end subroutine allocatingLocalArrays

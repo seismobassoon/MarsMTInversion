@@ -359,10 +359,10 @@ if(calculMode.eq.2) then
                     enddo
 
                     tmpfile=trim(resultDir)//'/'//trim(list)//"modRaw.dat"
-                    open(unit=21,file=tmpfile,status='unknown')
-
+                    open(unit=21,file=tmpfile,status='unknown',form='unformatted',access='direct',recl=kind(0e0)*4)
+                    
                     tmpfile=trim(resultDir)//'/'//trim(list)//"mod.dat"
-                    open(unit=22,file=tmpfile,status='unknown')
+                    open(unit=22,file=tmpfile,status='unknown',form='unformatted',access='direct',recl=kind(0e0)*4)
                     
                     !tmpfile=trim(resultDir)//'/'//trim(list)//"obsRaw.dat"
                     !open(unit=23,file=tmpfile,status='unknown')
@@ -398,9 +398,15 @@ if(calculMode.eq.2) then
                     normaliseModRawE=0.d0
                         
                     do it=0,npData
-
-                        write(21,*) dt*dble(it), modRawArray(it,1), modRawArray(it,2), modRawArray(it,3)
-                        write(22,*) dt*dble(it), modArray(it,1), modArray(it,2), modArray(it,3)
+                        tmpfloat(1)=sngl(dt*dble(it))
+                        tmpfloat(2)=sngl(modRawArray(it,1))
+                        tmpfloat(3)=sngl(modRawArray(it,2))
+                        tmpfloat(4)=sngl(modRawArray(it,3))
+                        write(21,rec=it+1) tmpfloat(1:4)
+                        tmpfloat(2)=sngl(modArray(it,1))
+                        tmpfloat(3)=sngl(modArray(it,2))
+                        tmpfloat(4)=sngl(modArray(it,3))
+                        write(22,rec=it+1) tmpfloat(1:4)
                         !write(23,*) dt*dble(it), obsRawArray(it,1), obsRawArray(it,2), obsRawArray(it,3)
                         !write(24,*) dt*dble(it), obsArray(it,1), obsArray(it,2), obsArray(it,3)
 

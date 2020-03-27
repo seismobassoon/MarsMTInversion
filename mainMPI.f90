@@ -28,18 +28,9 @@ program MarsInversion
         call pinput
     endif
 
-    call sendAllParameters
+    call sendAllParameters  ! sending all the necessary parameters just after pinput
 
-    if(calculMode.ne.5) then
-        print *, "MPI version accepts only heavyMonitor option."
-        stop
-    endif
-    
-    tmpint=1+my_rank
-    call MPI_BCAST(tmpint,1, MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
-    print *, "my_rank and tmpint", my_rank, tmpint
-
-
+    call allocatingLocalArrays
 
 
 
