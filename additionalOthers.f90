@@ -213,6 +213,32 @@ subroutine allocatingLocalArrays
     allocate(conf_gcarc(1:nConfiguration))
     allocate(conf_azimuth(1:nConfiguration))
 
+    ! GreenArray will be the filtered Green's function of 3 x 6 components
+
+    allocate(tmparray(iWindowStart:iWindowEnd,1:3,1:nmt))
+    !if(calculMode.eq.3) allocate(tmparrayI(iWindowStart:iWindowEnd,1:3,1:nmt))
+    allocate(northTemp(iWindowStart:iWindowEnd))
+    allocate(eastTemp(iWindowStart:iWindowEnd))
+    allocate(GreenArray(iWindowStart:iWindowEnd,1:3,1:nmt))
+    if(calculMode.eq.3) allocate(GreenArrayK(iWindowStart:iWindowEnd,1:3,1:nmt))
+    allocate(GreenArrayShifted(0:npData,1:3,1:nmt)) ! Attention this is ok (0:npData) because we shift SYN to OBS
+    allocate(GreenArrayShiftedTapered(0:npData,1:3,1:nmt))
+    !! NF should think how to do this
+    allocate(obsArray(0:npData,1:3),obsRawArray(0:npData,1:3))
+    allocate(filtbefore(iWindowStart:iWindowEnd),filtafter(iWindowStart:iWindowEnd))
+
+    if(calculMode.eq.2) allocate(modArray(0:npData,1:3))
+    if(calculMode.eq.2) allocate(modRawArray(0:npData,1:3))
+    if(calculMode.eq.3) allocate(modArray_total(iWindowStart:iWindowEnd+ntStep*(totalNumberInWindowDimension(1)-1),1:3))
+    if(calculMode.eq.4) allocate(modArray(0:npData,1:3))
+    allocate(rsgtomega(1:num_rsgtPSV,imin:imax,1:theta_n))
+    allocate(rsgtTime(iWindowStart:iWindowEnd,1:num_rsgtPSV))
+        !rsgtomega=dcmplx(0.d0)
+        !u=0.d0
+    allocate(rsgtomegatmp(1:num_rsgtPSV,imin:imax))
+
+
+
 end subroutine allocatingLocalArrays
 
 
@@ -258,7 +284,36 @@ subroutine preprocessing
         obsRaw(0:npData,icomp)=obsRaw(0:npData,icomp)*taperOBS(0:npData)
        call bwfilt(obsRaw(0:npData,icomp),obsFilt(0:npData,icomp),dt,npData+1,1,npButterworth,fmin,fmax)
     enddo
-    
+! making taper for observed data
+   taperOBS=0.d0
+   do iWindow=1,ntwinObs
+       do it=itwinObs(1,iWindow),itwinObs(4,iWindow)
+           if((it.gt.itwinObs(1,iWindow)).and.(it.lt.itwinObs(2,iWindow))) then
+               xfwin=dsin(0.5d0*pi*dble(it-itwinObs(1,iWindow))/dble(itwinObs(2,iWindow)-itwinObs(1,iWindow)))
+               taperOBS(it)=xfwin*xfwin
+           elseif((it.ge.itwinObs(2,iWindow)).and.(it.le.itwinObs(3,iWindow))) then
+               taperOBS(it)=1.d0
+           elseif((it.gt.itwinObs(3,iWindow)).and.(it.lt.itwinObs(4,iWindow))) then
+               xfwin=dsin(0.5d0*pi*dble(it-itwinObs(4,iWindow))/dble(itwinObs(3,iWindow)-itwinObs(4,iWindow)))
+               taperOBS(it)=xfwin*xfwin
+           endif
+       enddo
+   enddo
+
+    ! we taper the filtered OBS
+
+    ! For the observed data we filter the whole signal of a length of npData
+
+    do icomp=1,3
+        obsFiltTapered(0:npData,icomp)=obsFilt(0:npData,icomp)*taperOBS(0:npData)
+    enddo
+   
+
+    obsArray=obsFiltTapered
+    obsRawArray=obsFilt
+
+    mtInverted=0.d0
+
 end subroutine preprocessing
 
 

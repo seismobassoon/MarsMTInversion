@@ -35,6 +35,8 @@ program MarsInversion
     if(my_rank.eq.0) then
         call obsFiltWriting
     endif
+
+    
     
 
     call MPI_FINALIZE(ierr)
