@@ -55,7 +55,7 @@ program MarsInversion
             call rdsgtomega(r_(iradiusD(kConfR)),num_rsgtPSV,num_rsgtPSV,20)
             rsgtomegaK=rsgtomega ! all the rsgt in freq. for kConfR depth are stored
 
-
+            
 
 
         do iConfTheta=1,ntheta
