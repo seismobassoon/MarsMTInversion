@@ -1009,6 +1009,9 @@ mtInverted=0.d0
                     ata(iBig,kBig)=ata(kBig,iBig)
                 enddo
             enddo
+
+
+
             mtInverted_total=0.d0
             ! MT inversion by CG
             call invbyCG(nTimeCombination*nmt,ata,atd,eps,mtInverted_total)

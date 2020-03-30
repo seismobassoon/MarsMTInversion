@@ -39,7 +39,7 @@ module mainparameters
     complex(kind(0d0)), allocatable :: rsgtomegatmp(:,:)
     real(kind(0d0)) :: variance_total(3)
     real(kind(0e0)) :: tmpfloat(4) ! single precision vectors for input
- 
+    real(kind(0d0)) :: distanceKm
 end module mainparameters
 
 
