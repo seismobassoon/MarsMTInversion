@@ -40,6 +40,8 @@ module mainparameters
     real(kind(0d0)) :: variance_total(3)
     real(kind(0e0)) :: tmpfloat(4) ! single precision vectors for input
     real(kind(0d0)) :: distanceKm
+    integer :: lIteration
+    integer, parameter :: NumberIteration=10 ! iteration number for Jacobi method
 end module mainparameters
 
 

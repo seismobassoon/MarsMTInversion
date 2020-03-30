@@ -39,6 +39,7 @@ program MarsInversion
     mtInverted=0.d0
     mtInverted_total=0.d0
     
+do lIteration=0,NumberIteration
 
     do iConfR=1,nr
 
@@ -47,7 +48,7 @@ program MarsInversion
         call rdsgtomega(r_(iradiusD(iConfR)),num_rsgtPSV,num_rsgtPSV,20)
         rsgtomegaI=rsgtomega
 
-        do kConfR=1,iConfR
+        do kConfR=1,nr !iConfR
 
             if(abs(r_(iradiusD(iConfR))-r_(iradiusD(kConfR)))>toleranceDistance) cycle
             rsgtomega=dcmplx(0.d0)
@@ -65,7 +66,7 @@ program MarsInversion
                     tlenFull,iWindowStart,iWindowEnd) ! rsgtTime is for iConfR and iConfTheta
 
 
-                do kConfTheta=1,iConfTheta
+                do kConfTheta=1,ntheta !iConfTheta
 
                     ! we don't take into account the cross-talks between points
                     distanceKm=sqrt(r_(iradiusD(iConfR))**2+r_(iradiusD(kConfR))**2+ &
@@ -81,10 +82,12 @@ program MarsInversion
 
                     do iConfPhi=1,nphi
 
-
+                        
                         print *, "source location I is ", r_(iradiusD(iConfR)),latgeo(iConfPhi,iConfTheta), longeo(iConfPhi,iConfTheta)
                             
                         iConfiguration=(iConfR-1)*(nphi*ntheta)+(iConfTheta-1)*nphi+iConfPhi
+
+                        if(mod(iConfiguration,nproc).ne.my_rank) cycle
                     
                         conf_depth(iConfiguration)=r_(iradiusD(iConfR))
                         conf_lat(iConfiguration)=latgeo(iConfPhi,iConfTheta)
@@ -131,7 +134,7 @@ program MarsInversion
                         
 
 
-                        do kConfPhi=1,iConfPhi
+                        do kConfPhi=1,nphi !iConfPhi
 
                             ! we don't take into account the cross-talks between points
                             distanceKm=sqrt(r_(iradiusD(iConfR))**2+r_(iradiusD(kConfR))**2+ &
@@ -142,9 +145,14 @@ program MarsInversion
                             if(distanceKm>toleranceDistance) cycle
 
                            
+
+
                             print *, "source location K is ",r_(iradiusD(kConfR)), latgeo(kConfPhi,kConfTheta), longeo(kConfPhi,kConfTheta)
                             kConfiguration=(kConfR-1)*(nphi*ntheta)+(kConfTheta-1)*nphi+kConfPhi
-                                
+                            
+                            if((lIteration.eq.0).and.(iConfiguration.ne.kConfiguration)) cycle
+                            
+                            
                             rsgtTime=rsgtTimeK
                             call rsgt2h3time_adhoc(kConfPhi,kConfTheta) ! tmparray is for kConfR, kConfTheta, kConfPhi
                         
@@ -181,85 +189,131 @@ program MarsInversion
                             enddo
 
                             
+                            if(iConfiguration.eq.kConfiguration) then
+                                
+                                ! Here is the diagonal part of Jacobi method
 
-
-
-                            ! normally all the GreenArray and GreenArrayK are fulfilled
-                            do jloop=1,nTimeCombination
-                                do jmtcomp=1,nmt
-                                    iBig=(jloop-1)*nmt+jmtcomp
-                                    do icomp=1,3
-                                        do it=iWindowStart,iWindowEnd
-                                            atd(iBig)=atd(iBig)+GreenArray(it,icomp,jmtcomp)* &
-                                                obsFiltTapered(it+(jloop-1)*ntStep,icomp)
-                                        enddo
-                                    enddo
-                                    do kmtcomp=1,jmtcomp
-                                        kBig=kmtcomp
+                                ! normally all the GreenArray and GreenArrayK are fulfilled
+                                do jloop=1,nTimeCombination
+                                    do jmtcomp=1,nmt
+                                        iBig=(jloop-1)*nmt+jmtcomp
                                         do icomp=1,3
-                                            do it=iWindowStart+(jloop-1)*ntStep,iWindowEnd
-                                                ata(iBig,kBig)= ata(iBig,kBig)+ &
-                                                    GreenArray(it-(jloop-1)*ntStep,icomp,jmtcomp)* &
-                                                    GreenArrayK(it,icomp,kmtcomp)
-                                            enddo ! icomp
-                                        enddo ! time series
+                                            do it=iWindowStart,iWindowEnd
+                                                atd(iBig)=atd(iBig)+GreenArray(it,icomp,jmtcomp)* &
+                                                    obsFiltTapered(it+(jloop-1)*ntStep,icomp)
+                                            enddo
+                                        enddo
+                                        do kmtcomp=1,jmtcomp
+                                            kBig=kmtcomp
+                                            do icomp=1,3
+                                                do it=iWindowStart+(jloop-1)*ntStep,iWindowEnd
+                                                    ata(iBig,kBig)= ata(iBig,kBig)+ &
+                                                        GreenArray(it-(jloop-1)*ntStep,icomp,jmtcomp)* &
+                                                        GreenArrayK(it,icomp,kmtcomp)
+                                                enddo ! icomp
+                                            enddo ! time series
+                                        enddo ! jmtcomp
                                     enddo ! jmtcomp
-                                enddo ! jmtcomp
-                            enddo ! jloop: moving window
+                                enddo ! jloop: moving window
 
-
-
-
-                            ! NF 30/03/2020
-
+                         
 
 
                                 
-                            ! NF should put the other contributions (when I-th green is for the other timeshift)
+                                ! NF should put the other contributions (when I-th green is for the other timeshift)
 
-                            do jloop=2,nTimeCombination
-                                do kloop=2,jloop
-                                    do jmtcomp=1,nmt
-                                        do kmtcomp=1,jmtcomp
-                                            iBig=(jloop-1)*nmt+jmtcomp
-                                            kBig=(kloop-1)*nmt+kmtcomp
-                                            iBigEquivalent=(jloop-kloop)*nmt+jmtcomp
-                                            kBigEquivalent=kmtcomp
+                                do jloop=2,nTimeCombination
+                                    do kloop=2,jloop
+                                        do jmtcomp=1,nmt
+                                            do kmtcomp=1,jmtcomp
+                                                iBig=(jloop-1)*nmt+jmtcomp
+                                                kBig=(kloop-1)*nmt+kmtcomp
+                                                iBigEquivalent=(jloop-kloop)*nmt+jmtcomp
+                                                kBigEquivalent=kmtcomp
                                                          
-                                            ata(iBig,kBig)=ata(iBigEquivalent,kBigEquivalent)
-                                            ! NF have to verify all above NF
+                                                ata(iBig,kBig)=ata(iBigEquivalent,kBigEquivalent)
+                                                ! NF have to verify all above NF
+                                            enddo
                                         enddo
                                     enddo
+                                enddo !jloop for at compilation
+                                ! ata is symmetric : fulfil the other half!
+
+
+                                ! ata is symmetric for iConfiguration = kConfiguration
+                                do iBig=1,nTimeCombination*nmt
+                                    do kBig=iBig,nTimeCombination*nmt
+                                        ata(iBig,kBig)=ata(kBig,iBig)
+                                    enddo
                                 enddo
-                            enddo !jloop for at compilation
-                            ! ata is symmetric : fulfil the other half!
+
+                            else
+                                    
+                                ! here is the A_{ij} m_j for Jacobi since ata_{ij} is not symmetric ... we have to pay attentiion
+                                ! it's not completed here
+                                ! NF
+                                ! normally all the GreenArray and GreenArrayK are fulfilled
+                                do jloop=1,nTimeCombination
+                                    do jmtcomp=1,nmt
+                                        iBig=(jloop-1)*nmt+jmtcomp
+                                        do icomp=1,3
+                                            do it=iWindowStart,iWindowEnd
+                                                atd(iBig)=atd(iBig)+GreenArray(it,icomp,jmtcomp)* &
+                                                    obsFiltTapered(it+(jloop-1)*ntStep,icomp)
+                                            enddo
+                                        enddo
+                                        do kmtcomp=1,jmtcomp
+                                            kBig=kmtcomp
+                                            do icomp=1,3
+                                                do it=iWindowStart+(jloop-1)*ntStep,iWindowEnd
+                                                    ata(iBig,kBig)= ata(iBig,kBig)+ &
+                                                        GreenArray(it-(jloop-1)*ntStep,icomp,jmtcomp)* &
+                                                        GreenArrayK(it,icomp,kmtcomp)
+                                                enddo ! icomp
+                                            enddo ! time series
+                                        enddo ! jmtcomp
+                                    enddo ! jmtcomp
+                                enddo ! jloop: moving window
+
+                            
 
 
-                            ! ata is symmetric
-                            do iBig=1,nTimeCombination*nmt
-                                do kBig=iBig,nTimeCombination*nmt
-                                    ata(iBig,kBig)=ata(kBig,iBig)
+                                   
+                                ! NF should put the other contributions (when I-th green is for the other timeshift)
+
+                                do jloop=2,nTimeCombination
+                                    do kloop=2,jloop
+                                        do jmtcomp=1,nmt
+                                            do kmtcomp=1,jmtcomp
+                                                iBig=(jloop-1)*nmt+jmtcomp
+                                                kBig=(kloop-1)*nmt+kmtcomp
+                                                iBigEquivalent=(jloop-kloop)*nmt+jmtcomp
+                                                kBigEquivalent=kmtcomp
+                                                        
+                                                ata(iBig,kBig)=ata(iBigEquivalent,kBigEquivalent)
+                                                ! NF have to verify all above NF
+                                            enddo
+                                        enddo
+                                    enddo
+                                enddo !jloop for at compilation
+                                   ! ata is symmetric : fulfil the other half!
+
+
+                                   ! ata is symmetric for iConfiguration = kConfiguration
+                                do iBig=1,nTimeCombination*nmt
+                                    do kBig=iBig,nTimeCombination*nmt
+                                           ata(iBig,kBig)=ata(kBig,iBig)
+                                    enddo
                                 enddo
-                            enddo
+                                
 
-                    
+                                
+                            endif
 
 
 
 
-        do iConfTheta=1,ntheta
-
-            !print *,"distance is", thetaD(ithetaD(iConfTheta)),theta_n, ntheta,ithetaD(iConfTheta)
-            rsgtomegatmp(1:num_rsgtPSV,imin:imax)=rsgtomega(1:num_rsgtPSV,imin:imax,ithetaD(iConfTheta))
-                
-            call tensorFFT_double(num_rsgtPSV,imin,imax,np1,rsgtomegatmp,rsgtTime,omegai, &
-                tlenFull,iWindowStart,iWindowEnd) ! rsgtTime is for iConfR and iConfTheta
-            do iConfPhi=1,nphi
-                !print *, "source location is ", r_(iradiusD(iConfR)),latgeo(iConfPhi,iConfTheta), longeo(iConfPhi,iConfTheta)
-                               
-                iConfiguration=(iConfR-1)*(nphi*ntheta)+(iConfTheta-1)*nphi+iConfPhi
-                if(mod(iConfiguration,nproc).ne.my_rank) cycle
-                
+enddo ! lIteration
                 
 
 
