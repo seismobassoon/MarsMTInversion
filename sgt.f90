@@ -177,8 +177,6 @@ subroutine tensorFFT_double(n,imin,imax,np1,ccvec,rvec,omegai,tlen,iWindowStart,
      eachcvec=dcmplx(0.d0)
      eachcvec(0:2*np1-1)=cvec(0:2*np1-1,j)
 
-    
-     print *, j, "cdft"
 
      call cdft(4*np1,dcos(pi/dble(2*np1)),dsin(pi/dble(2*np1)), eachcvec(0:2*np1-1))
      do i = iWindowStart, iWindowEnd
