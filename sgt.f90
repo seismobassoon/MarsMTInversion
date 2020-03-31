@@ -150,9 +150,11 @@ subroutine tensorFFT_double(n,imin,imax,np1,ccvec,rvec,omegai,tlen,iWindowStart,
   real(kind(0d0)), parameter :: pi = 3.141592653589793d0
   real(kind(0d0)) :: omegai, tlen,samplingHz
   real(kind(0d0)) :: omegai_log
+
+  print *, "this is ok?"
   cvec = dcmplx(0.d0)
   cvec(imin:imax,1:n)=transpose(ccvec(1:n,imin:imax))
-
+  print *, "after transpose"
   rvec=0.d0
 
     !print *, "this is FFT", np1, imin,imax, omegai,np1-(np1-imax),np1-(np1-imin),dble(imax)/dble(2*np1),dble(2*np1)/dble(imax)
