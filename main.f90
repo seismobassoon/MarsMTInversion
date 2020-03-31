@@ -226,7 +226,7 @@ if(calculMode.eq.2) then
             
             call tensorFFT_double(num_rsgtPSV,imin,imax,np1,rsgtomegatmp,rsgtTime,omegai, &
                 tlenFull,iWindowStart,iWindowEnd)
-            print *, "seems ok here"
+            
            ! do iloop=1,num_rsgtPSV
             !    call vectorFFT_double(imin,imax,np1,rsgtomegatmp(iloop,imin:imax),rsgtTime(iWindowStart:iWindowEnd,iloop),omegai,tlenFull,iWindowStart,iWindowEnd)
             !enddo

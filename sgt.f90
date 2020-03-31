@@ -185,6 +185,7 @@ subroutine tensorFFT_double(n,imin,imax,np1,ccvec,rvec,omegai,tlen,iWindowStart,
         !rvec(i,j)= dble(exp(omegai*dble(i)/samplingHz))/tlen*1.d3
       
      enddo
+     print *, "so this?"
   enddo
   
   
