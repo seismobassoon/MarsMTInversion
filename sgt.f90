@@ -156,9 +156,9 @@ subroutine tensorFFT_double(n,imin,imax,np1,ccvec,rvec,omegai,tlen,iWindowStart,
   rvec=0.d0
 
     !print *, "this is FFT", np1, imin,imax, omegai,np1-(np1-imax),np1-(np1-imin),dble(imax)/dble(2*np1),dble(2*np1)/dble(imax)
-    samplingHz = dble(2*np1)/tlen
+  samplingHz = dble(2*np1)/tlen
   
-    omegai_log=-dlog(omegai)/tlen
+  omegai_log=-dlog(omegai)/tlen
   do j = 1,n
      do i = np1-imax, np1-imin
         n1 = np1 +i
