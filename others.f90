@@ -627,7 +627,7 @@ subroutine geoCoordinates(glat1,glon1,glat2,glon2,faz,baz,s)
     !implicit real*8 (a-h,o-z)
     implicit none
     real(kind(0d0)) :: glat1,glon1,glat2,glon2,faz,baz,s
-    real(kind(0d0)) :: a,pi,f,eps,r,tu,sf,cf,cu,su,sa,c2a,x,c,d,y,sy,cy,cz,e,d
+    real(kind(0d0)) :: a,pi,f,eps,r,tu,sf,cf,cu,su,sa,c2a,x,c,d,y,sy,cy,cz,e
     !common/const/pi,rad
     !common/elipsoid/a,f
     a=1
