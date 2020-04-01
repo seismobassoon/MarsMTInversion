@@ -624,13 +624,16 @@ subroutine geoCoordinates(glat1,glon1,glat2,glon2,faz,baz,s)
     ! *** modified for system 360 by john g gergen ngs rockville md 750608
     !
     ! Here everything is in radian!
-    implicit real*8 (a-h,o-z)
+    !implicit real*8 (a-h,o-z)
+    implicit none
+    real(kind(0d0)) :: glat1,glon1,glat2,glon2,faz,baz,s
+    real(kind(0d0)) :: a,pi,f,eps,r,tu,sf,cf,cu,su,sa,c2a,x,c,d,y,sy,cy,cz,e,d
     !common/const/pi,rad
     !common/elipsoid/a,f
     a=1
     pi=4.d0*datan(1.d0)
     f=0
-    data eps/0.5d-13/
+    eps = 0.5d-13
     r=1.-f
     tu=r*dsin(glat1)/dcos(glat1)
     sf=dsin(faz)
