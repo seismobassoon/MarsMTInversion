@@ -189,6 +189,7 @@ subroutine allocatingLocalArrays
     allocate(taperDSM(iWindowStart:iWindowEnd))
     allocate(taperOBS(0:npData))
     allocate(ata(1:nmt*nTimeCombination,1:nmt*nTimeCombination)) ! these are the local ata
+    allocate(ata_nondiagonal(1:nmt*nTimeCombination,1:nmt*nTimeCombination))
     allocate(atd(1:nmt*nTimeCombination))
     
     allocate(mtInverted(1:nmt,1:nTimeCombination,1:nConfiguration))

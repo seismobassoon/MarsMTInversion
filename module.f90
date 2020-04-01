@@ -23,7 +23,7 @@ module mainparameters
     real(kind(0d0)), allocatable :: modArray(:,:),modRawArray(:,:),modArray_total(:,:)
     real(kind(0d0)), allocatable :: filtbefore(:),filtafter(:)
     real(kind(0d0)) :: xfwin
-    real(kind(0d0)), allocatable :: ata(:,:),atd(:)!,atainv(:,:)
+    real(kind(0d0)), allocatable :: ata(:,:),atd(:),ata_nondiagonal(:,:)!,atainv(:,:)
     real(kind(0d0)), allocatable  :: mtInverted(:,:,:),mtInverted_total(:),mtInverted_local
     real(kind(0d0)), allocatable :: misfitTaper(:,:,:)
     real(kind(0d0)), allocatable :: misfitRaw(:,:,:)
