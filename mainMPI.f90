@@ -177,7 +177,7 @@ program MarsInversion
                         call rdsgtomega(r_(iradiusD(kConfR)),num_rsgtPSV,num_rsgtPSV,20)
                         rsgtomegaK=rsgtomega ! all the rsgt in freq. for kConfR depth are stored
                     
-                        do kConfTheta=1,ntheta !iConfTheta
+                        do kConfTheta=1,ntheta !kConfTheta
 
                             ! we don't take into account the cross-talks between points
                             distanceKm=sqrt(r_(iradiusD(iConfR))**2+r_(iradiusD(kConfR))**2+ &
@@ -193,136 +193,82 @@ program MarsInversion
 
 
 
-                                do kConfPhi=1,nphi !iConfPhi
-                                    kConfiguration=(kConfR-1)*(nphi*ntheta)+(kConfTheta-1)*nphi+kConfPhi
+                            do kConfPhi=1,nphi !kConfPhi
+                                kConfiguration=(kConfR-1)*(nphi*ntheta)+(kConfTheta-1)*nphi+kConfPhi
 
-                                    ata_nondiagonal=0.d0
+                                ata_nondiagonal=0.d0
 
-                                    if(iConfiguration.eq.kConfiguration) cycle  ! We are just dealing with non-diagonal parts
+                                if(iConfiguration.eq.kConfiguration) cycle  ! We are just dealing with non-diagonal parts
                                 ! we don't take into account the cross-talks between points
-                                    distanceKm=sqrt(r_(iradiusD(iConfR))**2+r_(iradiusD(kConfR))**2+ &
-                                        2.d0*r_(iradiusD(iConfR))*r_(iradiusD(kConfR))* &
-                                        (dsin(gcarc(iConfTheta)*degree2radian)*dsin(gcarc(kConfTheta)*degree2radian) * &
-                                        dcos(degree2radian*(azimuth(iConfPhi)-azimuth(kConfPhi))) + &
-                                        dcos(gcarc(iConfTheta)*degree2radian)*dcos(gcarc(kConfTheta)*degree2radian)))
-                                    if(distanceKm>toleranceDistance) cycle
-                                    print *, "source location K is ",r_(iradiusD(kConfR)), latgeo(kConfPhi,kConfTheta), &
-                                        longeo(kConfPhi,kConfTheta)
-                                    rsgtTime=rsgtTimeK
-                                    call rsgt2h3time_adhoc(kConfPhi,kConfTheta) ! tmparray is for kConfR, kConfTheta, kConfPhi
+                                distanceKm=sqrt(r_(iradiusD(iConfR))**2+r_(iradiusD(kConfR))**2+ &
+                                    2.d0*r_(iradiusD(iConfR))*r_(iradiusD(kConfR))* &
+                                    (dsin(gcarc(iConfTheta)*degree2radian)*dsin(gcarc(kConfTheta)*degree2radian) * &
+                                    dcos(degree2radian*(azimuth(iConfPhi)-azimuth(kConfPhi))) + &
+                                    dcos(gcarc(iConfTheta)*degree2radian)*dcos(gcarc(kConfTheta)*degree2radian)))
+                                if(distanceKm>toleranceDistance) cycle
+                                print *, "source location K is ",r_(iradiusD(kConfR)), latgeo(kConfPhi,kConfTheta), &
+                                    longeo(kConfPhi,kConfTheta)
+                                rsgtTime=rsgtTimeK
+                                call rsgt2h3time_adhoc(kConfPhi,kConfTheta) ! tmparray is for kConfR, kConfTheta, kConfPhi
                                           
-                                    ! Here we have to rotate from ZRT to ZNE
+                                ! Here we have to rotate from ZRT to ZNE
 
-                                    do mtcomp=1,nmt
-                                        northTemp(iWindowStart:iWindowEnd) = &
-                                            -cqr(iConfPhi,iConfTheta)*tmparray(iWindowStart:iWindowEnd,2,mtcomp) &
-                                            +sqr(iConfPhi,iConfTheta)*tmparray(iWindowStart:iWindowEnd,3,mtcomp)
-                                        eastTemp(iWindowStart:iWindowEnd) = &
-                                            -sqr(iConfPhi,iConfTheta)*tmparray(iWindowStart:iWindowEnd,2,mtcomp) &
-                                            -cqr(iConfPhi,iConfTheta)*tmparray(iWindowStart:iWindowEnd,3,mtcomp)
-                                        tmparray(iWindowStart:iWindowEnd,2,mtcomp)=northTemp(iWindowStart:iWindowEnd)
-                                        tmparray(iWindowStart:iWindowEnd,3,mtcomp)=eastTemp(iWindowStart:iWindowEnd)
-                                    enddo
+                                do mtcomp=1,nmt
+                                    northTemp(iWindowStart:iWindowEnd) = &
+                                        -cqr(iConfPhi,iConfTheta)*tmparray(iWindowStart:iWindowEnd,2,mtcomp) &
+                                        +sqr(iConfPhi,iConfTheta)*tmparray(iWindowStart:iWindowEnd,3,mtcomp)
+                                    eastTemp(iWindowStart:iWindowEnd) = &
+                                        -sqr(iConfPhi,iConfTheta)*tmparray(iWindowStart:iWindowEnd,2,mtcomp) &
+                                        -cqr(iConfPhi,iConfTheta)*tmparray(iWindowStart:iWindowEnd,3,mtcomp)
+                                    tmparray(iWindowStart:iWindowEnd,2,mtcomp)=northTemp(iWindowStart:iWindowEnd)
+                                    tmparray(iWindowStart:iWindowEnd,3,mtcomp)=eastTemp(iWindowStart:iWindowEnd)
+                                enddo
                       
-                                    ! Here we first filter Green's function as a whole and taper them
-                                                      
-                                    do mtcomp=1,nmt
-                                        do icomp=1,3
-                                            filtbefore(iWindowStart:iWindowEnd)=tmparray(iWindowStart:iWindowEnd,icomp,mtcomp)
-                                            filtbefore(iWindowStart:iWindowEnd)=filtbefore(iWindowStart:iWindowEnd)*taperDSM(iWindowStart:iWindowEnd)
+                                ! Here we first filter Green's function as a whole and taper them
+                                                    
+                                do mtcomp=1,nmt
+                                    do icomp=1,3
+                                        filtbefore(iWindowStart:iWindowEnd)=tmparray(iWindowStart:iWindowEnd,icomp,mtcomp)
+                                        filtbefore(iWindowStart:iWindowEnd)=filtbefore(iWindowStart:iWindowEnd)*taperDSM(iWindowStart:iWindowEnd)
                                                           
-                                            call bwfilt(filtbefore(iWindowStart:iWindowEnd),filtafter(iWindowStart:iWindowEnd), &
-                                                dt,iWindowEnd-iWindowStart+1,1,npButterworth,fmin,fmax)
-                                            tmparray(iWindowStart:iWindowEnd,icomp,mtcomp)=filtafter(iWindowStart:iWindowEnd)
-                                            GreenArrayK(iWindowStart:iWindowEnd,icomp,mtcomp)=filtafter(iWindowStart:iWindowEnd)
-                                        enddo
+                                        call bwfilt(filtbefore(iWindowStart:iWindowEnd),filtafter(iWindowStart:iWindowEnd), &
+                                            dt,iWindowEnd-iWindowStart+1,1,npButterworth,fmin,fmax)
+                                        tmparray(iWindowStart:iWindowEnd,icomp,mtcomp)=filtafter(iWindowStart:iWindowEnd)
+                                        GreenArrayK(iWindowStart:iWindowEnd,icomp,mtcomp)=filtafter(iWindowStart:iWindowEnd)
                                     enddo
+                                enddo
                     
-                                    ! here is the A_{ij} m_j for Jacobi since ata_{ij} is not symmetric ... we have to pay attentiion
-                                 
-                                    ! normally all the GreenArray and GreenArrayK are fulfilled
-                                    do jloop=1,nTimeCombination
-                                        do jmtcomp=1,nmt
-                                            iBig=(jloop-1)*nmt+jmtcomp
+                                ! here is the A_{ij} m_j for Jacobi since ata_{ij} is not symmetric ... we have to pay attentiion
+                                
+                                ! normally all the GreenArray and GreenArrayK are fulfilled
+                                do jloop=1,nTimeCombination
+                                    do jmtcomp=1,nmt
+                                        iBig=(jloop-1)*nmt+jmtcomp
                                             
-                                            do kmtcomp=1,jmtcomp
-                                                kBig=kmtcomp
-                                                do icomp=1,3
-                                                    do it=iWindowStart+(jloop-1)*ntStep,iWindowEnd
-                                                        ata_nondiagonal(iBig,kBig)= ata_nondiagonal(iBig,kBig)+ &
-                                                            GreenArray(it-(jloop-1)*ntStep,icomp,jmtcomp)* &
-                                                            GreenArrayK(it,icomp,kmtcomp)
-                                                    enddo ! icomp
-                                                enddo ! time series
-                                            enddo ! kmtcomp
+                                        do kmtcomp=1,jmtcomp
+                                            kBig=kmtcomp
+                                            do icomp=1,3
+                                                do it=iWindowStart+(jloop-1)*ntStep,iWindowEnd
+                                                    ata_nondiagonal(iBig,kBig)= ata_nondiagonal(iBig,kBig)+ &
+                                                        GreenArray(it-(jloop-1)*ntStep,icomp,jmtcomp)* &
+                                                        GreenArrayK(it,icomp,kmtcomp)
+                                                enddo ! icomp
+                                            enddo ! time series
+                                        enddo ! kmtcomp
 
-                                            do kmtcomp=1,jmtcomp
-                                                kBig=kmtcomp
-                                                do icomp=1,3
-                                                    do it=iWindowStart+(jloop-1)*ntStep,iWindowEnd
-                                                        ata_nondiagonal(kBig,iBig)= ata_nondiagonal(kBig,iBig)+ &
-                                                            GreenArrayK(it-(jloop-1)*ntStep,icomp,kmtcomp)* &
-                                                            GreenArray(it,icomp,jmtcomp)
-                                                    enddo ! icomp
-                                                enddo ! time series
-                                            enddo ! kmtcomp
-                                        enddo ! jmtcomp
-                                    enddo ! jloop: moving window
+                                        do kmtcomp=1,jmtcomp
+                                            kBig=kmtcomp
+                                            do icomp=1,3
+                                                do it=iWindowStart+(jloop-1)*ntStep,iWindowEnd
+                                                    ata_nondiagonal(kBig,iBig)= ata_nondiagonal(kBig,iBig)+ &
+                                                        GreenArrayK(it-(jloop-1)*ntStep,icomp,kmtcomp)* &
+                                                        GreenArray(it,icomp,jmtcomp)
+                                                enddo ! icomp
+                                            enddo ! time series
+                                        enddo ! kmtcomp
+                                    enddo ! jmtcomp
+                                enddo ! jloop: moving window
                                     
-                                    ! NF should put the other contributions (when I-th green is for the other timeshift)
-
-                                    do jloop=2,nTimeCombination
-                                        do kloop=2,jloop
-                                            do jmtcomp=1,nmt
-                                                do kmtcomp=1,jmtcomp
-                                                    iBig=(jloop-1)*nmt+jmtcomp
-                                                    kBig=(kloop-1)*nmt+kmtcomp
-                                                    iBigEquivalent=(jloop-kloop)*nmt+jmtcomp
-                                                    kBigEquivalent=kmtcomp
-                                                                
-                                                    ata_nondiagonal(iBig,kBig)=ata_nondiagonal(iBigEquivalent,kBigEquivalent)
-                                                    ata_nondiagonal(kBig,iBig)=ata_nondiagonal(kBigEquivalent,iBigEquivalent)
-                                                   ! NF have to verify all above NF
-                                                enddo
-                                            enddo
-                                        enddo
-                                    enddo !jloop for at compilation
-
-                                    ! gradient direction modification using Jacobian method
-                                    atd(1:nmt*nTimeCombination) &
-                                        =atd(1:nmt*nTimeCombination)+ &
-                                        matmul(ata_nondiagonal,mtInverted_total(telle indice de kConfiguration)
-
-                                enddo  !iConfPhi
-                                    
-
-                                    
-
-
-
-                    ! MT inversion by CG
-                    call invbyCG(nTimeCombination*nConfiguration*nmt,ata,atd,eps,mtInverted_local)
-                    
-
-
-
-
-
-
-          
-
-                            
-                            if(iConfiguration.eq.kConfiguration) then
-                                
-                                
-
-                            else
-                                    
-                                
-                            
-
-
-                                   
                                 ! NF should put the other contributions (when I-th green is for the other timeshift)
 
                                 do jloop=2,nTimeCombination
@@ -333,23 +279,41 @@ program MarsInversion
                                                 kBig=(kloop-1)*nmt+kmtcomp
                                                 iBigEquivalent=(jloop-kloop)*nmt+jmtcomp
                                                 kBigEquivalent=kmtcomp
-                                                        
-                                                ata(iBig,kBig)=ata(iBigEquivalent,kBigEquivalent)
+                                                                
+                                                ata_nondiagonal(iBig,kBig)=ata_nondiagonal(iBigEquivalent,kBigEquivalent)
+                                                ata_nondiagonal(kBig,iBig)=ata_nondiagonal(kBigEquivalent,iBigEquivalent)
                                                 ! NF have to verify all above NF
                                             enddo
                                         enddo
                                     enddo
                                 enddo !jloop for at compilation
-                                  
-                                
 
-                                
-                            endif
+                                ! gradient direction modification using Jacobian method
+                                atd(1:nmt*nTimeCombination) &
+                                    =atd(1:nmt*nTimeCombination)+ &
+                                    matmul(ata_nondiagonal, &
+                                    mtInverted_total(nmt*nTimeCombination*(kConfiguration-1)+1:nmt*nTimeCombination*kConfiguration))
+
+                            enddo  !kConfPhi
+                        enddo !kConfTheta
+                    enddo !kConfR
+    
+                    mtInverted_local=0.d0
+                    ! MT inversion by CG
+                    call invbyCG(nTimeCombination*nConfiguration*nmt,ata,atd,eps,mtInverted_local)
+                    ! Here is rather Gauss-Seidel locally but globally it is rather Jacobi
+                    mtInverted_total(nmt*nTimeCombination*(iConfiguration-1)+1:nmt*nTimeCombination*iConfiguration)&
+                        =mtInverted_local(1:nmt*nTimeCombination)
+                    
 
 
 
 
-enddo ! lIteration
+          
+
+                           
+
+    enddo ! lIteration
                 
 
 
