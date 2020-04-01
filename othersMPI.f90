@@ -192,6 +192,7 @@ subroutine allocatingLocalArrays
     allocate(atd(1:nmt*nTimeCombination))
     
     allocate(mtInverted(1:nmt,1:nTimeCombination,1:nConfiguration))
+    allocate(mtInverted_local(1:nmt*nTimeCombination))
     allocate(mtInverted_total(1:nmt*nTimeCombination*nConfiguration)) ! This is the only one vector that we communicate every iteration
 
     !! NF should reconsider how to use those vectors

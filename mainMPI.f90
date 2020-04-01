@@ -166,7 +166,16 @@ program MarsInversion
 
 
 
-                
+                    ! Here we are dealing with non-diagonal parts of Hessian matrix to conduct Jacobi method
+                    ! The first iteration does not need to pass this step
+                    
+                    
+
+
+
+                    ! MT inversion by CG
+                    call invbyCG(nTimeCombination*nConfiguration*nmt,ata,atd,eps,mtInverted_local)
+                    
 
 
 

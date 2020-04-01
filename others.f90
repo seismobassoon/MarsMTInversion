@@ -794,7 +794,7 @@ subroutine makingIndependentWindow
                     fEachShift(jloop,iloop)=fMovingWindowStart(iloop)+dt*dble(ntStep)*dble(indexInWindow(iloop)-1)
 
                     iEachWindowStart(jloop,iloop)=iMovingWindowStart(iloop)+ntStep*(indexInWindow(iloop)-1)
-                    iEachWindowEnd(jloop,iloop)=iEachWindowStart(jloop,iloop)+itwinObs(4,iloop)-itwinObs(1,iloop)+1
+                    iEachWindowEnd(jloop,iloop)=iEachWindowStart(jloop,iloop)+itwinObs(4,iloop)-itwinObs(1,iloop)
             
                     ! check whether syn and obs are available for these indices
                     if(iEachWindowEnd(jloop,iloop)<iWindowStart) then

@@ -62,7 +62,7 @@ fmax= 0.03 # max frequency (in Hz)
 
 
 # SGT version has window cutting option
-effectiveSynWindow = 0.0 3276.8
+effectiveSynWindow = 0.0 3000.d0
 
 #  observed data information
 
