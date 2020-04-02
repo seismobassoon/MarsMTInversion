@@ -152,14 +152,14 @@ subroutine sendAllParameters
         allocate(cqr(1:nphi,1:ntheta),sqr(1:nphi,1:ntheta))
     endif
     
-    call MPI_BCAST(latgeo,npi*ntheta,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
-    call MPI_BCAST(longeo,npi*ntheta,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
+    call MPI_BCAST(latgeo,nphi*ntheta,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
+    call MPI_BCAST(longeo,nphi*ntheta,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
     call MPI_BCAST(crq,npi*ntheta,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
-    call MPI_BCAST(crq2,npi*ntheta,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
-    call MPI_BCAST(srq,npi*ntheta,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
-    call MPI_BCAST(srq2,npi*ntheta,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
-    call MPI_BCAST(cqr,npi*ntheta,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
-    call MPI_BCAST(sqr,npi*ntheta,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
+    call MPI_BCAST(crq2,nphi*ntheta,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
+    call MPI_BCAST(srq,nphi*ntheta,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
+    call MPI_BCAST(srq2,nphi*ntheta,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
+    call MPI_BCAST(cqr,nphi*ntheta,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
+    call MPI_BCAST(sqr,nphi*ntheta,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
     
     if(my_rank.ne.0) then
         allocate(omega(imin:imax))
