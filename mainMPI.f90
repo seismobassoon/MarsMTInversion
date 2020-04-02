@@ -326,7 +326,7 @@ program MarsInversion
                     print *, my_rank, lIteration
                     mtInverted_local=0.d0
                     ! MT inversion by CG
-                    call invbyCG(nTimeCombination*nConfiguration*nmt,ata,atd,eps,mtInverted_local)
+                    call invbyCG(nTimeCombination*nmt,ata,atd,eps,mtInverted_local)
                     
                     print *, my_rank, lIteration, "inversion done"
                     ! Our strategy here is rather Gauss-Seidel globally and locally (inside iConfiguration)
