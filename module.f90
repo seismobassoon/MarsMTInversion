@@ -39,7 +39,7 @@ module mainparameters
     real(kind(0d0)), allocatable :: xcorrRawZ(:,:), xcorrRawN(:,:), xcorrRawE(:,:)
     real(kind(0d0)) :: normaliseModZ,normaliseModRawN,normaliseModE,normaliseModRawZ,normaliseModN,normaliseModRawE
     complex(kind(0d0)), allocatable :: rsgtomegatmp(:,:)
-    real(kind(0d0)) :: variance_total(3)
+    real(kind(0d0)) :: variance_total(3),xcorr_total(3),ampsq_total(3,0:1)
     real(kind(0e0)) :: tmpfloat(4) ! single precision vectors for input
     real(kind(0d0)) :: distanceKm
     integer :: lIteration

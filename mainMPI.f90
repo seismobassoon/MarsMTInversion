@@ -357,15 +357,41 @@ program MarsInversion
             enddo
             tmpfile=trim(resultDir)//'/'//trim(list)//"."//trim(modelname)//".mod"
             open(unit=22,file=tmpfile,status='unknown',form='unformatted',access='direct',recl=kind(0e0)*4)
-                do it=iWindowStart,iWindowEnd+ntStep*(nTimeCombination-1)
+            if(lIteration.eq.0) then
+                tmpfile=trim(resultDir)//'/data.obs'
+                open(unit=23,file=tmpfile,status='unknown',form='unformatted',access='direct',recl=kind(0e0)*4)
+            endif
+            ampsq_total=0.d0
+            variance_total=0.d0
+            xcorr_total=0.d0
+            do it=iWindowStart,iWindowEnd+ntStep*(nTimeCombination-1)
+                tmpfloat(1)=sngl(dt*dble(it))
+                tmpfloat(2)=sngl(modArray_total(it,1))
+                tmpfloat(3)=sngl(modArray_total(it,2))
+                tmpfloat(4)=sngl(modArray_total(it,3))
+                write(22,rec=it+1-iWindowStart) tmpfloat(1:4)
+                if(lIteration.eq.0) then
                     tmpfloat(1)=sngl(dt*dble(it))
-                    tmpfloat(2)=sngl(modArray_total(it,1))
-                    tmpfloat(3)=sngl(modArray_total(it,2))
-                    tmpfloat(4)=sngl(modArray_total(it,3))
-                    write(22,rec=it+1-iWindowStart) tmpfloat(1:4)
+                    tmpfloat(2)=sngl(obsFiltTapered(it,1))
+                    tmpfloat(3)=sngl(obsFiltTapered(it,2))
+                    tmpfloat(4)=sngl(obsFiltTapered(it,3))
+                    write(23,rec=it+1-iWindowStart) tmpfloat(1:4)
+                endif
+                do icomp=1,3
+                    variance_total(icomp)=variance_total(icomp)+dt*(modArray_total(it,icomp)-obsFiltTapered(it,icomp))**2
+                    ampsq_total(icomp,0)=ampsq_total(icomp,0)+obsFiltTapered(it,icomp)**2
+                    ampsq_total(icomp,1)=ampsq_total(icomp,1)+modArray_total(it,icomp)**2
+                    xcorr_total(icomp)=xcorr_total(icomp)+obsFiltTapered(it,icomp)*modArray_total(it,icomp)
                 enddo
+            enddo
+
+            do icomp=1,3
+                xcorr_total(icomp)=xcorr_total(icomp)/sqrt(ampsq_total(icomp,0))/sqrt(ampsq_total(icomp,1))
+            enddo
             close(22)
+            if(lIteration.eq.0) close(23)
             
+            ! so we write the variance and xcorr here
 
             ! write inversion result
 
