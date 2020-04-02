@@ -323,12 +323,12 @@ program MarsInversion
     
 
 
-                    !print *, my_rank, lIteration
+                
                     mtInverted_local=0.d0
                     ! MT inversion by CG
                     call invbyCG(nTimeCombination*nmt,ata,atd,eps,mtInverted_local)
                     
-                    !print *, my_rank, lIteration, "inversion done"
+                    
                     ! Our strategy here is rather Gauss-Seidel globally and locally (inside iConfiguration)
                     !     rather Jacobi method
                     call MPI_GATHER(mtInverted_local(1:nmt*nTimeCombination),nmt*nTimeCombination, &
@@ -388,10 +388,11 @@ program MarsInversion
                     xcorr_total(icomp)=xcorr_total(icomp)+obsFiltTapered(it,icomp)*modArray_total(it,icomp)
                 enddo
             enddo
-
-            do icomp=1,3
-                xcorr_total(icomp)=xcorr_total(icomp)/sqrt(ampsq_total(icomp,0))/sqrt(ampsq_total(icomp,1))
-            enddo
+            if(lIteration.ne.0) then
+                do icomp=1,3
+                    xcorr_total(icomp)=xcorr_total(icomp)/sqrt(ampsq_total(icomp,0))/sqrt(ampsq_total(icomp,1))
+                enddo
+            endif
             close(22)
             if(lIteration.eq.0) close(23)
             if(lIteration.eq.0) then
