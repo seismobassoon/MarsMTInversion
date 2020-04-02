@@ -36,10 +36,19 @@ program MarsInversion
         call obsFiltWriting
     endif
 
-    mtInverted=0.d0
+    
     mtInverted_total=0.d0
+    mtInverted_total_previous_iteration=0.d0 ! this is important to calculate synthetics for the previous solution
     
     do lIteration=0,NumberIteration
+        
+        if(lIteration.ne.0) then
+            call MPI_BCAST(mtInverted_total(1:nmt*nTimeCombination*nConfiguration),nmt*nTimeCombination*nConfiguration, &
+                MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
+            mtInverted_total_previous_iteration=mtInverted_total  ! Since we prefer the Gauss-Siedel to Jacobi,
+                                                                  !  we store this previous solution for variance calculation but
+                                                                  !  otherwise mtInverted_total is updated for every iConfiguration
+        endif
 
         do iConfR=1,nr
 
@@ -66,6 +75,13 @@ program MarsInversion
 
                     if(mod(iConfiguration,nproc).ne.my_rank) cycle
             
+                    ! update the mtInverted_total for each iConfiguration
+                    if(lIteration.ne.0) then
+                        call MPI_BCAST(mtInverted_total(1:nmt*nTimeCombination*nConfiguration),nmt*nTimeCombination*nConfiguration, &
+                            MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
+                    endif
+
+
                     conf_depth(iConfiguration)=r_(iradiusD(iConfR))
                     conf_lat(iConfiguration)=latgeo(iConfPhi,iConfTheta)
                     conf_lon(iConfiguration)=longeo(iConfPhi,iConfTheta)
@@ -301,18 +317,41 @@ program MarsInversion
                     mtInverted_local=0.d0
                     ! MT inversion by CG
                     call invbyCG(nTimeCombination*nConfiguration*nmt,ata,atd,eps,mtInverted_local)
-                    ! Here is rather Gauss-Seidel locally but globally it is rather Jacobi
-                    mtInverted_total(nmt*nTimeCombination*(iConfiguration-1)+1:nmt*nTimeCombination*iConfiguration)&
-                        =mtInverted_local(1:nmt*nTimeCombination)
                     
 
+                    ! Our strategy here is rather Gauss-Seidel globally and locally (inside iConfiguration)
+                    !     rather Jacobi method
+                    call MPI_GATHER(mtInverted_local(1:nmt*nTimeCombination),nmt*nTimeCombination, &
+                        MPI_DOUBLE_PRECISION,&
+                        mtInverted_total(nmt*nTimeCombination*(iConfiguration-1)+1:nmt*nTimeCombination*iConfiguration), &
+                        nmt*nTimeCombination,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
+                    !mtInverted_total(nmt*nTimeCombination*(iConfiguration-1)+1:nmt*nTimeCombination*iConfiguration)&
+                    !    =mtInverted_local(1:nmt*nTimeCombination)
+                    
+                    
+                    
+                enddo ! iConfPhi
+            enddo ! iConfTheta
+        enddo ! iConfR
+        ! we should wait for all the iConf to finished
+        call MPI_BARRIER(MPI_COMM_WORLD,ierr)
 
 
-
-          
-
-                           
-
+        if(my_rank.eq.0) then
+            allocate(mtInverted_total_single(1:nmt*nTimeCombination*nConfiguration))
+            mtInverted_total_single=sngl(mtInverted_total)
+            write(list,'(I7)') lIteration
+            do jjj=1,7
+                if(list(jjj:jjj).eq.' ') list(jjj:jjj)='0'
+            enddo
+            tmpfile=trim(resultDir)//'/'//trim(list)//"."//trim(modelname)//".whole_inv"
+            open(unit=21,file=tmpfile,status='unknown',form='unformatted',access='direct', &
+                recl=kind(0e0)*nmt*nTimeCombination*nConfiguration)
+            write(21,rec=1) mtInverted_total_single
+            close(21)
+            deallocate(mtInverted_total_single)
+        endif
+        
     enddo ! lIteration
                 
 

@@ -77,7 +77,8 @@ subroutine preprocessing
     obsArray=obsFiltTapered
     obsRawArray=obsFilt
 
-    mtInverted=0.d0
+    !mtInverted=0.d0
+
 
 end subroutine preprocessing
 

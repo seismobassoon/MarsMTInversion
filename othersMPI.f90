@@ -192,10 +192,10 @@ subroutine allocatingLocalArrays
     allocate(ata_nondiagonal(1:nmt*nTimeCombination,1:nmt*nTimeCombination))
     allocate(atd(1:nmt*nTimeCombination))
     
-    allocate(mtInverted(1:nmt,1:nTimeCombination,1:nConfiguration))
+    !allocate(mtInverted(1:nmt,1:nTimeCombination,1:nConfiguration))
     allocate(mtInverted_local(1:nmt*nTimeCombination))
     allocate(mtInverted_total(1:nmt*nTimeCombination*nConfiguration)) ! This is the only one vector that we communicate every iteration
-
+    allocate(mtInverted_total_previous_iteration(1:nmt*nTimeCombination*nConfiguration))
     !! NF should reconsider how to use those vectors
     allocate(misfitTaper(1:nmt,1:nTimeCombination,1:nConfiguration))
     allocate(misfitRaw(1:nmt,1:nTimeCombination,1:nConfiguration))
