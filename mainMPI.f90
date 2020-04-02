@@ -71,11 +71,13 @@ program MarsInversion
                 do iConfPhi=1,nphi
 
                 
-                    print *, "source location I is ", r_(iradiusD(iConfR)),latgeo(iConfPhi,iConfTheta), longeo(iConfPhi,iConfTheta)
+                   
                     
                     iConfiguration=(iConfR-1)*(nphi*ntheta)+(iConfTheta-1)*nphi+iConfPhi
 
                     if(mod(iConfiguration,nproc).ne.my_rank) cycle
+                    print *, "my_rank:", my_rank, "source location I is "
+                    print *, r_(iradiusD(iConfR)),latgeo(iConfPhi,iConfTheta), longeo(iConfPhi,iConfTheta)
             
                     ! update the mtInverted_total for each iConfiguration
                     if(lIteration.ne.0) then

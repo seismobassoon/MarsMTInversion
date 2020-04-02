@@ -777,7 +777,7 @@ subroutine makingIndependentWindow
     elseif((calculMode.eq.3).or.(calculMode.eq.4).or.(calculMode.eq.5)) then
         totalNumberInWindowDimension(1)=(iMovingWindowEnd(1)-iMovingWindowStart(1))/ntStep+1
         nTimeCombination = totalNumberInWindowDimension(1)
-        print *, "The number of time window shift steps for monitoring:", nTimeCombination
+        !print *, "The number of time window shift steps for monitoring:", nTimeCombination
     endif
     allocate(fEachShift(1:nTimeCombination,1:ntwinObs))
     allocate(iEachWindowStart(1:nTimeCombination,1:ntwinObs))
