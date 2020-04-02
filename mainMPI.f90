@@ -323,12 +323,12 @@ program MarsInversion
     
 
 
-                    print *, my_rank, lIteration
+                    !print *, my_rank, lIteration
                     mtInverted_local=0.d0
                     ! MT inversion by CG
                     call invbyCG(nTimeCombination*nmt,ata,atd,eps,mtInverted_local)
                     
-                    print *, my_rank, lIteration, "inversion done"
+                    !print *, my_rank, lIteration, "inversion done"
                     ! Our strategy here is rather Gauss-Seidel globally and locally (inside iConfiguration)
                     !     rather Jacobi method
                     call MPI_GATHER(mtInverted_local(1:nmt*nTimeCombination),nmt*nTimeCombination, &
@@ -347,9 +347,8 @@ program MarsInversion
         call MPI_BARRIER(MPI_COMM_WORLD,ierr)
 
         ! summing up the modified waveforms
-        call MPI_REDUCE(modArray_local(iWindowStart:iWindowEnd+ntStep*(nTimeCombination-1),1:3), &
-            modArray_total(iWindowStart:iWindowEnd+ntStep*(nTimeCombination-1),1:3), &
-            (iWindowEnd-iWindowStart+1)+ntStep*(nTimeCombination-1), MPI_DOUBLE_PRECISION, &
+        call MPI_REDUCE(modArray_local,modArray_total, &
+            ((iWindowEnd-iWindowStart+1)+ntStep*(nTimeCombination-1))*3, MPI_DOUBLE_PRECISION, &
             MPI_SUM, 0, MPI_COMM_WORLD, ierr)
         call MPI_BARRIER(MPI_COMM_WORLD,ierr)
 
