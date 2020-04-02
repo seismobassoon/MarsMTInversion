@@ -50,6 +50,8 @@ program MarsInversion
                                                                   !  otherwise mtInverted_total is updated for every iConfiguration
         endif
 
+        modArray_total=0.d0
+        modArray_local=0.d0
         do iConfR=1,nr
 
             rsgtomega=dcmplx(0.d0)
@@ -138,6 +140,9 @@ program MarsInversion
                                 do it=iWindowStart,iWindowEnd
                                     atd(iBig)=atd(iBig)+GreenArray(it,icomp,jmtcomp)* &
                                         obsFiltTapered(it+(jloop-1)*ntStep,icomp)
+                                    modArray_local(it+(jloop-1)*ntStep,icomp)= &
+                                        modArray_local(it+(jloop-1)*ntStep,icomp)+ &
+                                        GreenArray(it,icomp,jmtcomp)*mtInverted_total_previous_iteration(iBig)
                                 enddo
                             enddo
                             do kmtcomp=1,jmtcomp
@@ -201,10 +206,10 @@ program MarsInversion
                                 dcos(degree2radian*(gcarc(iConfTheta)-gcarc(kConfTheta))) )
                             if(distanceKm>toleranceDistance) cycle
                                       
-                                rsgtomegatmp(1:num_rsgtPSV,imin:imax)=rsgtomegaK(1:num_rsgtPSV,imin:imax,ithetaD(iConfTheta))
+                            rsgtomegatmp(1:num_rsgtPSV,imin:imax)=rsgtomegaK(1:num_rsgtPSV,imin:imax,ithetaD(iConfTheta))
                                   
-                                call tensorFFT_double(num_rsgtPSV,imin,imax,np1,rsgtomegatmp,rsgtTimeK,omegai, &
-                                    tlenFull,iWindowStart,iWindowEnd) ! rsgtTimeK is for kConfR and kConfTheta
+                            call tensorFFT_double(num_rsgtPSV,imin,imax,np1,rsgtomegatmp,rsgtTimeK,omegai, &
+                                tlenFull,iWindowStart,iWindowEnd) ! rsgtTimeK is for kConfR and kConfTheta
 
 
 
@@ -336,8 +341,20 @@ program MarsInversion
         ! we should wait for all the iConf to finished
         call MPI_BARRIER(MPI_COMM_WORLD,ierr)
 
+        ! summing up the modified waveforms
+        call MPI_REDUCE(modArray_local(iWindowStart:iWindowEnd+ntStep*(nTimeCombination-1),1:3), &
+            modArray_total(iWindowStart:iWindowEnd+ntStep*(nTimeCombination-1),1:3), &
+            (iWindowEnd-iWindowStart+1)+ntStep*(nTimeCombination-1), MPI_DOUBLE_PRECISION, &
+            MPI_SUM, 0, MPI_COMM_WORLD, ierr)
+        call MPI_BARRIER(MPI_COMM_WORLD,ierr)
 
+        
         if(my_rank.eq.0) then
+            !! write data and calculate xcorr and variance
+
+
+            ! write inversion result
+
             allocate(mtInverted_total_single(1:nmt*nTimeCombination*nConfiguration))
             mtInverted_total_single=sngl(mtInverted_total)
             write(list,'(I7)') lIteration

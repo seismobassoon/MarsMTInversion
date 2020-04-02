@@ -244,5 +244,6 @@ subroutine allocatingLocalArrays
     allocate(rsgtomegaK(1:num_rsgtPSV,imin:imax,1:theta_n))
     allocate(rsgtomegaI(1:num_rsgtPSV,imin:imax,1:theta_n))
     allocate(rsgtTimeK(iWindowStart:iWindowEnd,1:num_rsgtPSV))
-
+    allocate(modArray_local(iWindowStart:iWindowEnd+ntStep*(nTimeCombination-1),1:3))
+    allocate(modArray_total(iWindowStart:iWindowEnd+ntStep*(nTimeCombination-1),1:3))
 end subroutine allocatingLocalArrays

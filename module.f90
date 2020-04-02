@@ -20,7 +20,7 @@ module mainparameters
     real(kind(0d0)), allocatable :: GreenArray(:,:,:),GreenArrayShifted(:,:,:),GreenArrayShiftedTapered(:,:,:)
     real(kind(0d0)), allocatable :: GreenArrayK(:,:,:)
     real(kind(0d0)), allocatable :: obsArray(:,:),obsRawArray(:,:)
-    real(kind(0d0)), allocatable :: modArray(:,:),modRawArray(:,:),modArray_total(:,:)
+    real(kind(0d0)), allocatable :: modArray(:,:),modRawArray(:,:),modArray_total(:,:),modArray_local(:,:)
     real(kind(0d0)), allocatable :: filtbefore(:),filtafter(:)
     real(kind(0d0)) :: xfwin
     real(kind(0d0)), allocatable :: ata(:,:),atd(:),ata_nondiagonal(:,:)!,atainv(:,:)
