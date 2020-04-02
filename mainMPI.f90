@@ -351,7 +351,21 @@ program MarsInversion
         
         if(my_rank.eq.0) then
             !! write data and calculate xcorr and variance
-
+            write(list,'(I7)') lIteration
+            do jjj=1,7
+                if(list(jjj:jjj).eq.' ') list(jjj:jjj)='0'
+            enddo
+            tmpfile=trim(resultDir)//'/'//trim(list)//"."//trim(modelname)//".mod"
+            open(unit=22,file=tmpfile,status='unknown',form='unformatted',access='direct',recl=kind(0e0)*4)
+                do it=iWindowStart,iWindowEnd+ntStep*(nTimeCombination-1)
+                    tmpfloat(1)=sngl(dt*dble(it))
+                    tmpfloat(2)=sngl(modArray_total(it,1))
+                    tmpfloat(3)=sngl(modArray_total(it,2))
+                    tmpfloat(4)=sngl(modArray_total(it,3))
+                    write(22,rec=it+1-iWindowStart) tmpfloat(1:4)
+                enddo
+            close(22)
+            
 
             ! write inversion result
 
