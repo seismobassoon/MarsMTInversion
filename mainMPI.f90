@@ -391,6 +391,9 @@ program MarsInversion
             close(22)
             if(lIteration.eq.0) close(23)
             
+            print *, lIteration,"-th iteration:"
+            print *, "variance:", variance_total(1:3)
+            print *, "xcorr:", xcorr_total(1:3)
             ! so we write the variance and xcorr here
 
             ! write inversion result
@@ -412,8 +415,6 @@ program MarsInversion
     enddo ! lIteration
                 
 
-
-    
 
     call MPI_FINALIZE(ierr)
     stop
