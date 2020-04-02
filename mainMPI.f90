@@ -391,8 +391,8 @@ program MarsInversion
             close(22)
             if(lIteration.eq.0) close(23)
             if(lIteration.eq.0) then
-                open(unit=10,file=trim(inversionName)//".var",status='unkonwn',form='formatted')
-                open(unit=11,file=trim(inversionName)//".xcorr",status='unkonwn',form='formatted')
+                open(unit=10,file=trim(inversionName)//".var",status='unknown',form='formatted')
+                open(unit=11,file=trim(inversionName)//".xcorr",status='unknown',form='formatted')
             else
                 open(unit=10,file=trim(inversionName)//".var",status = 'old',access='append', form = 'formatted')
                 open(unit=11,file=trim(inversionName)//".xcorr",status = 'old',access='append', form = 'formatted')
