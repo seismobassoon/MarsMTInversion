@@ -1,6 +1,13 @@
-FC      = mpifort
-FFLAGS  = -g -Wall -Wextra -Warray-temporaries -Wconversion -fimplicit-none -fbacktrace -ffree-line-length-0
+#FC      = mpifort
+#FFLAGS  = -g -Wall -Wextra -Warray-temporaries -Wconversion -fimplicit-none -fbacktrace -ffree-line-length-0
 OBJS0    =  module.f90 sgt.f90 others.f90 mainMPI.f90 othersMPI.f90 additionalOthers.f90
+
+FC=mpiifort
+FFLAGS = -O4 -heap-arrays -check nobounds -xAVX -ftz -assume buffered_io -assume byterecl  -implicitnone -warn truncated_source  -warn declarations -warn alignments -warn ignore_loc -warn usage -mcmodel=medium -shared-intel
+# or for the debugging
+#FFLAGS= -check all -heap-arrays -debug -g -O0 -fp-stack-check -traceback -ftrapuv -assume byterecl
+
+
 program0= MPIMars
 
 all : $(program0)
