@@ -390,10 +390,17 @@ program MarsInversion
             enddo
             close(22)
             if(lIteration.eq.0) close(23)
-            
-            print *, lIteration,"-th iteration:"
-            print *, "variance:", variance_total(1:3)
-            print *, "xcorr:", xcorr_total(1:3)
+            if(lIteration.eq.0) then
+                open(unit=10,file=trim(inversionName)//".var",status='unkonwn',form='formatted')
+                open(unit=11,file=trim(inversionName)//".xcorr",status='unkonwn',form='formatted')
+            else
+                open(unit=10,file=trim(inversionName)//".var",status = 'old',access='append', form = 'formatted')
+                open(unit=11,file=trim(inversionName)//".xcorr",status = 'old',access='append', form = 'formatted')
+            endif
+            write(10,*) lIteration,variance_total(1:3)
+            write(11,*) lIteration,xcorr_total(1:3)
+            close(10)
+            close(11)
             ! so we write the variance and xcorr here
 
             ! write inversion result
@@ -414,7 +421,23 @@ program MarsInversion
         
     enddo ! lIteration
                 
+    if(my_rank.eq.0) then
 
+        open(unit=4,file=trim(inversionName)//".conf_info",status='unknown')
+        !open(unit=5,file=trim(inversionName)//".tap_xcorr",status='unknown')
+        !open(unit=6,file=trim(inversionName)//".raw_xcorr",status='unknown')
+        open(unit=7,file=trim(inversionName)//".shift_info",status='unknown')
+        do jloop=1,nTimeCombination
+            write(7,*) jloop,dt*dble(iMovingWindowStart(1))*dble(ntStep)*dble(jloop)
+        enddo
+        do iConfiguration=1,nConfiguration
+            write(4,*) iConfiguration, conf_depth(iConfiguration), conf_lat(iConfiguration), &
+                conf_lon(iConfiguration), conf_gcarc(iConfiguration), conf_azimuth(iConfiguration)
+        enddo
+        close(4)
+        close(7)
+
+    endif
 
     call MPI_FINALIZE(ierr)
     stop
