@@ -154,7 +154,7 @@ subroutine sendAllParameters
     
     call MPI_BCAST(latgeo,nphi*ntheta,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
     call MPI_BCAST(longeo,nphi*ntheta,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
-    call MPI_BCAST(crq,npi*ntheta,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
+    call MPI_BCAST(crq,nphi*ntheta,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
     call MPI_BCAST(crq2,nphi*ntheta,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
     call MPI_BCAST(srq,nphi*ntheta,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
     call MPI_BCAST(srq2,nphi*ntheta,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
