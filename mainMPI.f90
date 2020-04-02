@@ -76,8 +76,8 @@ program MarsInversion
                     iConfiguration=(iConfR-1)*(nphi*ntheta)+(iConfTheta-1)*nphi+iConfPhi
 
                     if(mod(iConfiguration,nproc).ne.my_rank) cycle
-                    print *, "my_rank:", my_rank, "source location I is "
-                    print *, r_(iradiusD(iConfR)),latgeo(iConfPhi,iConfTheta), longeo(iConfPhi,iConfTheta)
+                    !print *, "my_rank:", my_rank, "; source location I is "
+                    !print *, r_(iradiusD(iConfR)),latgeo(iConfPhi,iConfTheta), longeo(iConfPhi,iConfTheta)
             
                     ! update the mtInverted_total for each iConfiguration
                     if(lIteration.ne.0) then
@@ -321,11 +321,14 @@ program MarsInversion
                         enddo !kConfTheta
                     enddo !kConfR
     
+
+
+                    print *, my_rank, lIteration
                     mtInverted_local=0.d0
                     ! MT inversion by CG
                     call invbyCG(nTimeCombination*nConfiguration*nmt,ata,atd,eps,mtInverted_local)
                     
-
+                    print *, my_rank, lIteration, "inversion done"
                     ! Our strategy here is rather Gauss-Seidel globally and locally (inside iConfiguration)
                     !     rather Jacobi method
                     call MPI_GATHER(mtInverted_local(1:nmt*nTimeCombination),nmt*nTimeCombination, &
