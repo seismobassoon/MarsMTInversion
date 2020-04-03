@@ -223,7 +223,7 @@ program MarsInversion
                                 kConfiguration=(kConfR-1)*(nphi*ntheta)+(kConfTheta-1)*nphi+kConfPhi
 
                                 ata_nondiagonal=0.d0
-
+                                print *, "iConfiguration|kConfiguration=",iConfiguration,kConfiguration
                                 if(iConfiguration.eq.kConfiguration) cycle  ! We are just dealing with non-diagonal parts
                                 ! we don't take into account the cross-talks between points
                                 distanceKm=sqrt(r_(iradiusD(iConfR))**2+r_(iradiusD(kConfR))**2+ &
