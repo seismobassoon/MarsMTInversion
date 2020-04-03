@@ -194,7 +194,7 @@ program MarsInversion
 
                     ! Here we are dealing with non-diagonal parts of Hessian matrix to conduct Jacobi method
                     ! The first iteration does not need to pass this step
-                    
+                    print *, my_rank, "before kConfiguration search"
                     do kConfR=1,nr !iConfR
                         if(lIteration.eq.0) cycle
                         if(abs(r_(iradiusD(iConfR))-r_(iradiusD(kConfR)))>toleranceDistance) cycle
