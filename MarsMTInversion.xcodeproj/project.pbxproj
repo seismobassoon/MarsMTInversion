@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXFileReference section */
+		EA0194E024373F4C0064745D /* visualisation.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; path = visualisation.py; sourceTree = "<group>"; };
 		EA4BB2E52397C9A300E4EBC1 /* main.f90 */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.fortran.f90; path = main.f90; sourceTree = "<group>"; };
 		EA4BB2E62397C9A300E4EBC1 /* sgt.f90 */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.fortran.f90; path = sgt.f90; sourceTree = "<group>"; };
 		EA4BB2E72397C9A300E4EBC1 /* module.f90 */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.fortran.f90; path = module.f90; sourceTree = "<group>"; };
@@ -17,7 +18,7 @@
 		EA7268AF2434FC6A00DB1227 /* testMPI.f90 */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.fortran.f90; path = testMPI.f90; sourceTree = "<group>"; };
 		EA75C9DC243609A50093B304 /* makefile_mpi */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = makefile_mpi; sourceTree = "<group>"; };
 		EA908D13242E35CA0027F172 /* NewMetaFile_for_bigdata.inf */ = {isa = PBXFileReference; lastKnownFileType = text; path = NewMetaFile_for_bigdata.inf; sourceTree = "<group>"; };
-		EA945E71242B6D7100E2F392 /* mainMPI.f90 */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.fortran.f90; path = mainMPI.f90; sourceTree = "<group>"; };
+		EA945E71242B6D7100E2F392 /* mainMPI.f90 */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.fortran.f90; path = mainMPI.f90; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.fortran.f90; };
 		EABA71432431F820001C4572 /* othersMPI.f90 */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.fortran.f90; path = othersMPI.f90; sourceTree = "<group>"; };
 		EAF901B2242D075C00CF8CE6 /* additionalOthers.f90 */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.fortran.f90; path = additionalOthers.f90; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -30,6 +31,7 @@
 				EAF901B2242D075C00CF8CE6 /* additionalOthers.f90 */,
 				EABA71432431F820001C4572 /* othersMPI.f90 */,
 				EA945E71242B6D7100E2F392 /* mainMPI.f90 */,
+				EA0194E024373F4C0064745D /* visualisation.py */,
 				EA7268AF2434FC6A00DB1227 /* testMPI.f90 */,
 				EA4BB2E72397C9A300E4EBC1 /* module.f90 */,
 				EA4BB2EB2397CA4900E4EBC1 /* NewMetaFile.inf */,
