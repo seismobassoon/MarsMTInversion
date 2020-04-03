@@ -52,6 +52,9 @@ program MarsInversion
 
         modArray_total=0.d0
         modArray_local=0.d0
+        if(my_rank.eq.0) then
+            print *, lIteration,"-th iteration started"
+        endif
         do iConfR=1,nr
 
             rsgtomega=dcmplx(0.d0)
@@ -355,6 +358,7 @@ program MarsInversion
         
         if(my_rank.eq.0) then
             !! write data and calculate xcorr and variance
+            
             write(list,'(I7)') lIteration
             do jjj=1,7
                 if(list(jjj:jjj).eq.' ') list(jjj:jjj)='0'
