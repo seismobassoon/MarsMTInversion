@@ -87,7 +87,7 @@ program MarsInversion
                     if(lIteration.ne.0) then
                         !call MPI_BCAST(mtInverted_total(1:nmt*nTimeCombination*nConfiguration),nmt*nTimeCombination*nConfiguration, &
                         !    MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
-                        write(list,'(I7,'.',I7)') lIteration,iConfiguration
+                        write(list,'(I7,".",I7)') lIteration,iConfiguration
                         do jjj=1,15
                             if(list(jjj:jjj).eq.' ') list(jjj:jjj)='0'
                         enddo
@@ -356,7 +356,7 @@ program MarsInversion
 
                     
                     mtInverted_total_single=sngl(mtInverted_local)
-                    write(list,'(I7,'.',I7)') lIteration,iConfiguration
+                    write(list,'(I7,".",I7)') lIteration,iConfiguration
                     do jjj=1,15
                         if(list(jjj:jjj).eq.' ') list(jjj:jjj)='0'
                     enddo
