@@ -325,7 +325,7 @@ program MarsInversion
                     enddo !kConfR
     
 
-
+                    print *, "before inversion", my_rank
                 
                     mtInverted_local=0.d0
                     ! MT inversion by CG
