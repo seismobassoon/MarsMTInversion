@@ -55,6 +55,7 @@ program MarsInversion
         if(my_rank.eq.0) then
             print *, lIteration,"-th iteration started"
         endif
+
         do iConfR=1,nr
 
             rsgtomega=dcmplx(0.d0)
@@ -87,7 +88,7 @@ program MarsInversion
                         call MPI_BCAST(mtInverted_total(1:nmt*nTimeCombination*nConfiguration),nmt*nTimeCombination*nConfiguration, &
                             MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
                     endif
-
+                    print *, "transfer of the data done"
 
                     conf_depth(iConfiguration)=r_(iradiusD(iConfR))
                     conf_lat(iConfiguration)=latgeo(iConfPhi,iConfTheta)
