@@ -37,8 +37,8 @@ program MarsInversion
     endif
 
     
-    mtInverted_total=0.d0
-    mtInverted_total_previous_iteration=0.d0 ! this is important to calculate synthetics for the previous solution
+    !mtInverted_total=0.d0
+    !mtInverted_total_previous_iteration=0.d0 ! this is important to calculate synthetics for the previous solution
     
     do lIteration=0,NumberIteration
         
@@ -85,8 +85,18 @@ program MarsInversion
             
                     ! update the mtInverted_total for each iConfiguration
                     if(lIteration.ne.0) then
-                        call MPI_BCAST(mtInverted_total(1:nmt*nTimeCombination*nConfiguration),nmt*nTimeCombination*nConfiguration, &
-                            MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
+                        !call MPI_BCAST(mtInverted_total(1:nmt*nTimeCombination*nConfiguration),nmt*nTimeCombination*nConfiguration, &
+                        !    MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
+                        write(list,'(I7,'.',I7)') lIteration,iConfiguration
+                        do jjj=1,15
+                            if(list(jjj:jjj).eq.' ') list(jjj:jjj)='0'
+                        enddo
+                        tmpfile=trim(resultDir)//'/'//trim(list)//"."//trim(modelname)//".inv"
+                        open(unit=21,file=tmpfile,status='old',form='unformatted',access='direct', &
+                        recl=kind(0e0)*nmt*nTimeCombination)
+                        read(21,rec=1) mtInverted_total_single
+                        close(21)
+                        mtInverted_local=dble(mtInverted_total_single)
                     endif
                     print *, "transfer of the data done"
 
@@ -335,15 +345,27 @@ program MarsInversion
                     print *, "after inversion", my_rank
                     ! Our strategy here is rather Gauss-Seidel globally and locally (inside iConfiguration)
                     !     rather Jacobi method
-                    call MPI_GATHER(mtInverted_local(1:nmt*nTimeCombination),nmt*nTimeCombination, &
-                        MPI_DOUBLE_PRECISION,&
-                        mtInverted_total(nmt*nTimeCombination*(iConfiguration-1)+1:nmt*nTimeCombination*iConfiguration), &
-                        nmt*nTimeCombination,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
+                    !call MPI_GATHER(mtInverted_local(1:nmt*nTimeCombination),nmt*nTimeCombination, &
+                    !    MPI_DOUBLE_PRECISION,&
+                    !    mtInverted_total(nmt*nTimeCombination*(iConfiguration-1)+1:nmt*nTimeCombination*iConfiguration), &
+                    !    nmt*nTimeCombination,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
                     !mtInverted_total(nmt*nTimeCombination*(iConfiguration-1)+1:nmt*nTimeCombination*iConfiguration)&
                     !    =mtInverted_local(1:nmt*nTimeCombination)
                     
+                    ! write inversion result
+
                     
-                    
+                    mtInverted_total_single=sngl(mtInverted_local)
+                    write(list,'(I7,'.',I7)') lIteration,iConfiguration
+                    do jjj=1,15
+                        if(list(jjj:jjj).eq.' ') list(jjj:jjj)='0'
+                    enddo
+                    tmpfile=trim(resultDir)//'/'//trim(list)//"."//trim(modelname)//".inv"
+                    open(unit=21,file=tmpfile,status='unknown',form='unformatted',access='direct', &
+                    recl=kind(0e0)*nmt*nTimeCombination)
+                    write(21,rec=1) mtInverted_total_single
+                    close(21)
+                            
                 enddo ! iConfPhi
             enddo ! iConfTheta
         enddo ! iConfR
@@ -413,20 +435,7 @@ program MarsInversion
             close(11)
             ! so we write the variance and xcorr here
 
-            ! write inversion result
-
-            allocate(mtInverted_total_single(1:nmt*nTimeCombination*nConfiguration))
-            mtInverted_total_single=sngl(mtInverted_total)
-            write(list,'(I7)') lIteration
-            do jjj=1,7
-                if(list(jjj:jjj).eq.' ') list(jjj:jjj)='0'
-            enddo
-            tmpfile=trim(resultDir)//'/'//trim(list)//"."//trim(modelname)//".whole_inv"
-            open(unit=21,file=tmpfile,status='unknown',form='unformatted',access='direct', &
-                recl=kind(0e0)*nmt*nTimeCombination*nConfiguration)
-            write(21,rec=1) mtInverted_total_single
-            close(21)
-            deallocate(mtInverted_total_single)
+           
         endif
         
     enddo ! lIteration
