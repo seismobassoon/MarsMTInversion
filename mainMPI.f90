@@ -331,7 +331,7 @@ program MarsInversion
                     ! MT inversion by CG
                     call invbyCG(nTimeCombination*nmt,ata,atd,eps,mtInverted_local)
                     
-                    
+                    print *, my_rank
                     ! Our strategy here is rather Gauss-Seidel globally and locally (inside iConfiguration)
                     !     rather Jacobi method
                     call MPI_GATHER(mtInverted_local(1:nmt*nTimeCombination),nmt*nTimeCombination, &
