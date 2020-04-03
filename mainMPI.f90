@@ -325,13 +325,13 @@ program MarsInversion
                     enddo !kConfR
     
 
-                    !print *, "before inversion", my_rank
+                    print *, "before inversion", my_rank
                 
                     mtInverted_local=0.d0
                     ! MT inversion by CG
                     call invbyCG(nTimeCombination*nmt,ata,atd,eps,mtInverted_local)
                     
-                    !print *, my_rank
+                    print *, "after inversion", my_rank
                     ! Our strategy here is rather Gauss-Seidel globally and locally (inside iConfiguration)
                     !     rather Jacobi method
                     call MPI_GATHER(mtInverted_local(1:nmt*nTimeCombination),nmt*nTimeCombination, &
