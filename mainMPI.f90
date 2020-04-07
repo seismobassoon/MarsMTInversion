@@ -152,7 +152,7 @@ program MarsInversion
                                         obsFiltTapered(it+(jloop-1)*ntStep,icomp)
                                     modArray_local(it+(jloop-1)*ntStep,icomp)= &
                                         modArray_local(it+(jloop-1)*ntStep,icomp)+ &
-                                        GreenArray(it,icomp,jmtcomp)*mtInverted_total_previous_iteration(iBig)
+                                        GreenArray(it,icomp,jmtcomp)*mtInverted_local_previous_iteration(iBig)
                                 enddo
                             enddo
                             do kmtcomp=1,jmtcomp
