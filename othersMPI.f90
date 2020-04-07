@@ -18,6 +18,7 @@ subroutine sendAllParameters
     nmt=6
     call MPI_BCAST(SGTinfo,200,MPI_CHARACTER,0,MPI_COMM_WORLD,ierr)
     call MPI_BCAST(parentDir,200,MPI_CHARACTER,0,MPI_COMM_WORLD,ierr)
+     call MPI_BCAST(resultDir,200,MPI_CHARACTER,0,MPI_COMM_WORLD,ierr)
     call MPI_BCAST(eventName,200,MPI_CHARACTER,0,MPI_COMM_WORLD,ierr)
     call MPI_BCAST(stationName,200,MPI_CHARACTER,0,MPI_COMM_WORLD,ierr)
     call MPI_BCAST(stla,1,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
