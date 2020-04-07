@@ -38,17 +38,10 @@ program MarsInversion
 
     
     !mtInverted_total=0.d0
-    !mtInverted_total_previous_iteration=0.d0 ! this is important to calculate synthetics for the previous solution
+    mtInverted_local_previous_iteration=0.d0 ! this is important to calculate synthetics for the previous solution
     
     do lIteration=0,NumberIteration
         
-        if(lIteration.ne.0) then
-            call MPI_BCAST(mtInverted_total(1:nmt*nTimeCombination*nConfiguration),nmt*nTimeCombination*nConfiguration, &
-                MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
-            mtInverted_total_previous_iteration=mtInverted_total  ! Since we prefer the Gauss-Siedel to Jacobi,
-                                                                  !  we store this previous solution for variance calculation but
-                                                                  !  otherwise mtInverted_total is updated for every iConfiguration
-        endif
 
         modArray_total=0.d0
         modArray_local=0.d0
@@ -74,7 +67,7 @@ program MarsInversion
 
                 do iConfPhi=1,nphi
 
-                
+                    
                    
                     
                     iConfiguration=(iConfR-1)*(nphi*ntheta)+(iConfTheta-1)*nphi+iConfPhi
@@ -84,10 +77,11 @@ program MarsInversion
                     print *, r_(iradiusD(iConfR)),latgeo(iConfPhi,iConfTheta), longeo(iConfPhi,iConfTheta)
             
                     ! update the mtInverted_total for each iConfiguration
+                    
                     if(lIteration.ne.0) then
                         !call MPI_BCAST(mtInverted_total(1:nmt*nTimeCombination*nConfiguration),nmt*nTimeCombination*nConfiguration, &
                         !    MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
-                        write(list,'(I7,".",I7)') lIteration,iConfiguration
+                        write(list,'(I7,".",I7)') lIteration-1,iConfiguration
                         do jjj=1,15
                             if(list(jjj:jjj).eq.' ') list(jjj:jjj)='0'
                         enddo
@@ -96,7 +90,7 @@ program MarsInversion
                         recl=kind(0e0)*nmt*nTimeCombination)
                         read(21,rec=1) mtInverted_total_single
                         close(21)
-                        mtInverted_local=dble(mtInverted_total_single)
+                        mtInverted_local_previous_iteration=dble(mtInverted_total_single)
                     endif
                     print *, "transfer of the data done"
 
@@ -246,8 +240,25 @@ program MarsInversion
                                 print *, "source location K is ",r_(iradiusD(kConfR)), latgeo(kConfPhi,kConfTheta), &
                                     longeo(kConfPhi,kConfTheta)
                                 rsgtTime=rsgtTimeK
+
+                                if(lIteration.ne.0) then
+                                    !call MPI_BCAST(mtInverted_total(1:nmt*nTimeCombination*nConfiguration),nmt*nTimeCombination*nConfiguration, &
+                                    !    MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
+                                    write(list,'(I7,".",I7)') lIteration-1,kConfiguration
+                                    do jjj=1,15
+                                        if(list(jjj:jjj).eq.' ') list(jjj:jjj)='0'
+                                    enddo
+                                    tmpfile=trim(resultDir)//'/'//trim(list)//"."//trim(modelname)//".inv"
+                                    open(unit=21,file=tmpfile,status='old',form='unformatted',access='direct', &
+                                    recl=kind(0e0)*nmt*nTimeCombination)
+                                    read(21,rec=1) mtInverted_total_single
+                                    close(21)
+                                    mtInverted_local_previous_iteration=dble(mtInverted_total_single)
+                                endif
+                                print *, "transfer of the data done"
+
                                 call rsgt2h3time_adhoc(kConfPhi,kConfTheta) ! tmparray is for kConfR, kConfTheta, kConfPhi
-                                          
+                                            
                                 ! Here we have to rotate from ZRT to ZNE
 
                                 do mtcomp=1,nmt
@@ -328,8 +339,7 @@ program MarsInversion
                                 ! gradient direction modification using Jacobian method
                                 atd(1:nmt*nTimeCombination) &
                                     =atd(1:nmt*nTimeCombination)+ &
-                                    matmul(ata_nondiagonal, &
-                                    mtInverted_total(nmt*nTimeCombination*(kConfiguration-1)+1:nmt*nTimeCombination*kConfiguration))
+                                    matmul(ata_nondiagonal, mtInverted_local_previous_iteration)
 
                             enddo  !kConfPhi
                         enddo !kConfTheta

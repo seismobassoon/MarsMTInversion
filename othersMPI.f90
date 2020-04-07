@@ -194,6 +194,7 @@ subroutine allocatingLocalArrays
     
     !allocate(mtInverted(1:nmt,1:nTimeCombination,1:nConfiguration))
     allocate(mtInverted_local(1:nmt*nTimeCombination))
+    allocate(mtInverted_local_previous_iteration(1:nmt*nTimeCombination))
     !allocate(mtInverted_total(1:nmt*nTimeCombination*nConfiguration)) ! This is the only one vector that we communicate every iteration
     allocate(mtInverted_total_single(1:nmt*nTimeCombination))
     !allocate(mtInverted_total_previous_iteration(1:nmt*nTimeCombination*nConfiguration))
