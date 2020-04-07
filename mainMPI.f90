@@ -371,6 +371,7 @@ program MarsInversion
                         if(list(jjj:jjj).eq.' ') list(jjj:jjj)='0'
                     enddo
                     tmpfile=trim(resultDir)//'/'//trim(list)//"."//trim(modelname)//".inv"
+                    print *, tmpfile
                     open(unit=21,file=tmpfile,status='unknown',form='unformatted',access='direct', &
                     recl=kind(0e0)*nmt*nTimeCombination)
                     write(21,rec=1) mtInverted_total_single
