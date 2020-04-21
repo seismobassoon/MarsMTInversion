@@ -50,6 +50,13 @@ program MarsInversion
     if(calculMode.eq.2) allocate(modN(1:nTimeCombination,1:nConfiguration))
     if(calculMode.eq.2) allocate(modE(1:nTimeCombination,1:nConfiguration))
 
+    if(calculMode.eq.10) allocate(varZ(1:nTimeCombination,1:nConfiguration))
+    if(calculMode.eq.10) allocate(varN(1:nTimeCombination,1:nConfiguration))
+    if(calculMode.eq.10) allocate(varE(1:nTimeCombination,1:nConfiguration))
+    if(calculMode.eq.10) allocate(modZ(1:nTimeCombination,1:nConfiguration))
+    if(calculMode.eq.10) allocate(modN(1:nTimeCombination,1:nConfiguration))
+    if(calculMode.eq.10) allocate(modE(1:nTimeCombination,1:nConfiguration))
+
     if(calculMode.eq.4) allocate(varZ(1:1,1:nConfiguration))
     if(calculMode.eq.4) allocate(varN(1:1,1:nConfiguration))
     if(calculMode.eq.4) allocate(varE(1:1,1:nConfiguration))
@@ -66,6 +73,13 @@ program MarsInversion
     if(calculMode.eq.2) allocate(modRawZ(1:nTimeCombination,1:nConfiguration))
     if(calculMode.eq.2) allocate(modRawN(1:nTimeCombination,1:nConfiguration))
     if(calculMode.eq.2) allocate(modRawE(1:nTimeCombination,1:nConfiguration))
+
+    if(calculMode.eq.10) allocate(varRawZ(1:nTimeCombination,1:nConfiguration))
+    if(calculMode.eq.10) allocate(varRawN(1:nTimeCombination,1:nConfiguration))
+    if(calculMode.eq.10) allocate(varRawE(1:nTimeCombination,1:nConfiguration))
+    if(calculMode.eq.10) allocate(modRawZ(1:nTimeCombination,1:nConfiguration))
+    if(calculMode.eq.10) allocate(modRawN(1:nTimeCombination,1:nConfiguration))
+    if(calculMode.eq.10) allocate(modRawE(1:nTimeCombination,1:nConfiguration))
 
     if(calculMode.eq.2) allocate(xcorrRawZ(1:nTimeCombination,1:nConfiguration))
     if(calculMode.eq.2) allocate(xcorrRawN(1:nTimeCombination,1:nConfiguration))
@@ -182,6 +196,8 @@ program MarsInversion
 
     if(calculMode.eq.2) allocate(modArray(0:npData,1:3))
     if(calculMode.eq.2) allocate(modRawArray(0:npData,1:3))
+    if(calculMode.eq.10) allocate(modArray(0:npData,1:3))
+    if(calculMode.eq.10) allocate(modRawArray(0:npData,1:3))
     if(calculMode.eq.3) allocate(modArray_total(iWindowStart:iWindowEnd+ntStep*(totalNumberInWindowDimension(1)-1),1:3))
     if(calculMode.eq.4) allocate(modArray(0:npData,1:3))
     allocate(rsgtomega(1:num_rsgtPSV,imin:imax,1:theta_n))
@@ -529,7 +545,104 @@ if(calculMode.eq.2) then
     close(5)
     close(6)
     close(7)
-     
+
+elseif(calculMode.eq.10) then
+
+do iConfR=1,nr
+    print *, "depth is ", r_(iradiusD(iConfR))
+    rsgtomega=dcmplx(0.d0)
+    
+    call rdsgtomega(r_(iradiusD(iConfR)),num_rsgtSH,num_rsgtPSV,10)
+    call rdsgtomega(r_(iradiusD(iConfR)),num_rsgtPSV,num_rsgtPSV,20)
+   
+
+    
+    do iConfTheta=1,ntheta
+        print *,"distance is", thetaD(ithetaD(iConfTheta)),theta_n, ntheta,ithetaD(iConfTheta)
+        rsgtomegatmp(1:num_rsgtPSV,imin:imax)=rsgtomega(1:num_rsgtPSV,imin:imax,ithetaD(iConfTheta))
+        !call tensorFFT_double(num_rsgtPSV,imin,imax,np1,rsgtomegatmp(1:num_rsgtPSV,imin:imax),rsgtTime(iWindowStart:iWindowEnd,1:num_rsgtPSV),omegai,tlenFull,iWindowStart,iWindowEnd)
+        
+        call tensorFFT_double(num_rsgtPSV,imin,imax,np1,rsgtomegatmp,rsgtTime,omegai, &
+            tlenFull,iWindowStart,iWindowEnd)
+        
+       ! do iloop=1,num_rsgtPSV
+        !    call vectorFFT_double(imin,imax,np1,rsgtomegatmp(iloop,imin:imax),rsgtTime(iWindowStart:iWindowEnd,iloop),omegai,tlenFull,iWindowStart,iWindowEnd)
+        !enddo
+
+        do iConfPhi=1,nphi
+            print *, "source location is ", latgeo(iConfPhi,iConfTheta), longeo(iConfPhi,iConfTheta)
+            iConfiguration=(iConfR-1)*(nphi*ntheta)+(iConfTheta-1)*nphi+iConfPhi
+            
+            conf_depth(iConfiguration)=r_(iradiusD(iConfR))
+            conf_lat(iConfiguration)=latgeo(iConfPhi,iConfTheta)
+            conf_lon(iConfiguration)=longeo(iConfPhi,iConfTheta)
+            conf_gcarc(iConfiguration)=thetaD(ithetaD(iConfTheta))
+            conf_azimuth(iConfiguration)=azimuth(iConfPhi)
+            call rsgt2h3time_adhoc(iConfPhi,iConfTheta)
+                    
+
+            !print *, "iConfR, iConfTheta,iConfPhi,iConfiguration=", iConfR, iConfTheta, iConfPhi, iConfiguration
+                
+            ! Here we have to rotate from ZRT to ZNE
+
+            do mtcomp=1,nmt
+                northTemp(iWindowStart:iWindowEnd) = &
+                    -cqr(iConfPhi,iConfTheta)*tmparray(iWindowStart:iWindowEnd,2,mtcomp) &
+                    +sqr(iConfPhi,iConfTheta)*tmparray(iWindowStart:iWindowEnd,3,mtcomp)
+                eastTemp(iWindowStart:iWindowEnd) = &
+                    -sqr(iConfPhi,iConfTheta)*tmparray(iWindowStart:iWindowEnd,2,mtcomp) &
+                    -cqr(iConfPhi,iConfTheta)*tmparray(iWindowStart:iWindowEnd,3,mtcomp)
+                tmparray(iWindowStart:iWindowEnd,2,mtcomp)=northTemp(iWindowStart:iWindowEnd)
+                tmparray(iWindowStart:iWindowEnd,3,mtcomp)=eastTemp(iWindowStart:iWindowEnd)
+            enddo
+
+        
+            
+            ! Here we first filter Green's function as a whole and taper them
+                
+            do mtcomp=1,nmt
+                do icomp=1,3
+                    filtbefore(iWindowStart:iWindowEnd)=tmparray(iWindowStart:iWindowEnd,icomp,mtcomp)
+                    filtbefore(iWindowStart:iWindowEnd)=filtbefore(iWindowStart:iWindowEnd)*taperDSM(iWindowStart:iWindowEnd)
+                    
+                    call bwfilt(filtbefore(iWindowStart:iWindowEnd),filtafter(iWindowStart:iWindowEnd), &
+                        dt,iWindowEnd-iWindowStart+1,1,npButterworth,fmin,fmax)
+                    tmparray(iWindowStart:iWindowEnd,icomp,mtcomp)=filtafter(iWindowStart:iWindowEnd)
+                    GreenArray(iWindowStart:iWindowEnd,icomp,mtcomp)=filtafter(iWindowStart:iWindowEnd)! *taperDSM(1:npDSM)
+
+
+                    !do it=iWindowStart,iWindowEnd
+                    !    write(15,*) GreenArray(it,1,mtcomp), GreenArray(it,2,mtcomp),GreenArray(it,3,mtcomp)
+                    !enddo
+                    write(list,'(I7,".",I7)') iConfiguration,mtcomp
+                    do jjj=1,15
+                       if(list(jjj:jjj).eq.' ') list(jjj:jjj)='0'
+                    enddo
+
+                    tmpfile=trim(resultDir)//'/'//trim(list)//".syn.dat"
+                    open(unit=21,file=tmpfile,status='unknown',form='unformatted',access='direct',recl=kind(0e0)*4)
+                    do it=iWindowStart,iWindowEnd
+                        tmpfloat(1)=sngl(dt*dble(it))
+                        tmpfloat(2)=sngl(modRawArray(it,1))
+                        tmpfloat(3)=sngl(modRawArray(it,2))
+                        tmpfloat(4)=sngl(modRawArray(it,3))
+                        write(21,rec=it+1) tmpfloat(1:4)
+                    enddo
+                    close(21)
+                enddo
+            enddo
+        enddo
+    enddo
+enddo
+
+open(unit=4,file=trim(inversionName)//".conf_info",status='unknown')
+  
+   do iConfiguration=1,nConfiguration
+       write(4,*) iConfiguration, conf_depth(iConfiguration), conf_lat(iConfiguration), &
+           conf_lon(iConfiguration), conf_gcarc(iConfiguration), conf_azimuth(iConfiguration)
+   enddo
+close(4)
+            
   
 elseif(calculMode.eq.3) then
 

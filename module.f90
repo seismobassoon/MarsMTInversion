@@ -43,7 +43,7 @@ real(kind(0d0)), allocatable :: mtInverted_total_previous_iteration(:),mtInverte
     real(kind(0e0)) :: tmpfloat(4) ! single precision vectors for input
     real(kind(0d0)) :: distanceKm
     integer :: lIteration
-    integer, parameter :: NumberIteration=10 ! iteration number for Jacobi method
+    integer, parameter :: NumberIteration=3 ! iteration number for Jacobi method
 end module mainparameters
 
 

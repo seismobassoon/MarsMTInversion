@@ -73,6 +73,7 @@ subroutine pinput
         if(dummy(1:10).eq.'monitoring') calculMode=3
         if(dummy(1:12).eq.'lightMonitor') calculMode=4
         if(dummy(1:12).eq.'heavyMonitor') calculMode=5
+        if(dummy(1:9).eq.'synthetic') calculMode=10
         nmt=6
 
         if(calculMode.eq.5) then
@@ -743,7 +744,7 @@ subroutine makingIndependentWindow
 
     tmpfile='tmpfileMarsInversion'
 
-    if(calculMode.eq.2) then
+    if((calculMode.eq.2).or.(calculMode.eq.10)) then
         do iloop=1,NmovingWindowDimension
             write(paramName,*) iloop
             paramName="movingWindowRange"//trim(adjustl(paramName))
@@ -765,7 +766,7 @@ subroutine makingIndependentWindow
 
     nTimeCombination = 1
 
-    if(calculMode.eq.2) then
+    if((calculMode.eq.2).or.(calculMode.eq.10)) then
         do iloop=1,NmovingWindowDimension
             iMovingWindowStart(iloop)=itwinObs(1,iloop)+iMovingWindowStart(iloop)
             iMovingWindowEnd(iloop)=itwinObs(1,iloop)+iMovingWindowEnd(iloop)
@@ -783,7 +784,7 @@ subroutine makingIndependentWindow
     allocate(iEachWindowStart(1:nTimeCombination,1:ntwinObs))
     allocate(iEachWindowEnd(1:nTimeCombination,1:ntwinObs))
 
-    if(calculMode.eq.2) then
+    if((calculMode.eq.2).or.(calculMode.eq.10)) then
         do jloop=1,nTimeCombination
             tmpinteger=jloop-1
 

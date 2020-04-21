@@ -199,7 +199,7 @@ program MarsInversion
 
                     ! Here we are dealing with non-diagonal parts of Hessian matrix to conduct Jacobi method
                     ! The first iteration does not need to pass this step
-                    print *, my_rank, "before kConfiguration search"
+                    print *, my_rank, lIteration, "before kConfiguration search"
                     do kConfR=1,nr !iConfR
                         if(lIteration.eq.0) cycle
                         if(abs(r_(iradiusD(iConfR))-r_(iradiusD(kConfR)))>toleranceDistance) cycle
@@ -228,7 +228,7 @@ program MarsInversion
                                 kConfiguration=(kConfR-1)*(nphi*ntheta)+(kConfTheta-1)*nphi+kConfPhi
 
                                 ata_nondiagonal=0.d0
-                                print *, "iConfiguration|kConfiguration=",iConfiguration,kConfiguration
+                                print *, "iConfiguration, kConfiguration=",iConfiguration,kConfiguration
                                 if(iConfiguration.eq.kConfiguration) cycle  ! We are just dealing with non-diagonal parts
                                 ! we don't take into account the cross-talks between points
                                 distanceKm=sqrt(r_(iradiusD(iConfR))**2+r_(iradiusD(kConfR))**2+ &
@@ -255,7 +255,7 @@ program MarsInversion
                                     close(21)
                                     mtInverted_local_previous_iteration=dble(mtInverted_total_single)
                                 endif
-                                print *, "transfer of the data done"
+                                print *, "transfer of the data done for ", kConfiguration
 
                                 call rsgt2h3time_adhoc(kConfPhi,kConfTheta) ! tmparray is for kConfR, kConfTheta, kConfPhi
                                             
@@ -316,7 +316,7 @@ program MarsInversion
                                         enddo ! kmtcomp
                                     enddo ! jmtcomp
                                 enddo ! jloop: moving window
-                                    
+                                
                                 ! NF should put the other contributions (when I-th green is for the other timeshift)
 
                                 do jloop=2,nTimeCombination
