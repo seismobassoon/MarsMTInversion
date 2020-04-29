@@ -67,7 +67,7 @@ subroutine pinput
     print *, "calculMode is ", dummy
 
     if((dummy(1:10).eq.'versionSGT').or.(dummy(1:10).eq.'monitoring') &
-        .or.(dummy(1:12).eq.'lightMonitor').or.(dummy(1:12).eq.'heavyMonitor')) then
+        .or.(dummy(1:12).eq.'lightMonitor').or.(dummy(1:12).eq.'heavyMonitor').or.(dummy(1:9).eq.'synthetic')) then
         !close(1)
         if(dummy(1:10).eq.'versionSGT') calculMode=2
         if(dummy(1:10).eq.'monitoring') calculMode=3
