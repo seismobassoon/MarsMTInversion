@@ -623,9 +623,9 @@ do iConfR=1,nr
                     open(unit=21,file=tmpfile,status='unknown',form='unformatted',access='direct',recl=kind(0e0)*4)
                     do it=iWindowStart,iWindowEnd
                         tmpfloat(1)=sngl(dt*dble(it))
-                        tmpfloat(2)=sngl(GreenArray(it,mtcomp,1))
-                        tmpfloat(3)=sngl(GreenArray(it,mtcomp,2))
-                        tmpfloat(4)=sngl(GreenArray(it,mtcomp,3))
+                        tmpfloat(2)=sngl(GreenArray(it,1,mtcomp))
+                        tmpfloat(3)=sngl(GreenArray(it,2,mtcomp))
+                        tmpfloat(4)=sngl(GreenArray(it,3,mtcomp))
                         write(21,rec=it+1) tmpfloat(1:4)
                     enddo
                     close(21)
