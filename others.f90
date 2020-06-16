@@ -744,8 +744,8 @@ subroutine searchForParamsOption(filename,ParamName,textParam,paramisText,iFind)
     do while(iFind.eq.0)
         read(20,'(a)',IOSTAT=io) text_line
         if(io>0) then
-            print *, "oh, no"
-            print *, trim(ParamName), " is not found. But maybe it's alright (option parameters)."
+            !print *, "oh, no"
+            !print *, trim(ParamName), " is not found. But maybe it's alright (option parameters)."
             !stop
         endif
         textLength=len_trim(text_line)
