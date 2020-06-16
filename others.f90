@@ -17,7 +17,7 @@ subroutine pinput
     character(200) :: dummy
     real(kind(0d0)) :: fdummy,fdummy2,phirq
     !integer, external :: getpid
-    integer :: iloop,it,icheck,jloop
+    integer :: iloop,it,icheck,jloop,iFind
     !character(200) :: commandline
     character(200) :: paramName
 
@@ -82,6 +82,12 @@ subroutine pinput
             call searchForParams(tmpfile,paramName,dummy,1)
             read(dummy,*) toleranceDistance
         endif
+        
+        ZRTorZNE="ZRT" ! ZRT is used unless ZNE is explicitly defined
+        paramName="ZRTorZNE"
+        call searchForParamsOption(tmpfile,paramName,ZRTorZNE,0,iFind)
+        print *, "ZRTorZNE is ", ZRTorZNE
+        
 
         paramName="SGTinfo"
         call searchForParams(tmpfile,paramName,SGTinfo,0)
@@ -720,6 +726,47 @@ subroutine searchForParams(filename,ParamName,textParam,paramisText)
         stop
     endif
 
+end subroutine
+
+subroutine searchForParamsOption(filename,ParamName,textParam,paramisText,iFind)
+    implicit none
+    character(200) :: filename,textParam,text_line
+    integer :: paramLength,textLength,paramisText,io
+    character(200) :: ParamName
+    integer :: iFind, jtemp, iCut
+    filename=trim(filename)
+    ParamName=trim(ParamName)
+    paramLength=len_trim(ParamName)
+    !print *, paramLength, ParamName
+    iFind=0
+    iCut=0
+    open(20,file=filename,status='unknown')
+    do while(iFind.eq.0)
+        read(20,'(a)',IOSTAT=io) text_line
+        if(io>0) then
+            print *, "oh, no"
+            print *, trim(ParamName), " is not found."
+            stop
+        endif
+        textLength=len_trim(text_line)
+        !print *, text_line(1:textLength)
+        if(text_line(1:paramLength).eq.ParamName(1:paramLength)) then
+            do jtemp = 1,textLength
+                if(text_line(jtemp:jtemp).eq.'=') iCut = jtemp
+            enddo
+            !print *, iCut, textLength
+            iFind=1
+            !print *,text_line(iCut+1:textLength)
+            textParam=text_line(iCut+1:textLength)
+            if(paramisText.eq.0) then
+                textParam=trim(textParam)
+                textParam=adjustl(textParam)
+            endif
+            !print *, textParam
+        endif
+    enddo
+    close(20)
+   
 end subroutine
 
 

@@ -25,7 +25,7 @@ module mainparameters
     real(kind(0d0)) :: xfwin
     real(kind(0d0)), allocatable :: ata(:,:),atd(:),ata_nondiagonal(:,:)!,atainv(:,:)
     real(kind(0d0)), allocatable :: mtInverted(:,:,:),mtInverted_total(:),mtInverted_local(:)
-real(kind(0d0)), allocatable :: mtInverted_total_previous_iteration(:),mtInverted_local_previous_iteration(:)
+    real(kind(0d0)), allocatable :: mtInverted_total_previous_iteration(:),mtInverted_local_previous_iteration(:)
     real(kind(0e0)), allocatable :: mtInverted_total_single(:)
     real(kind(0d0)), allocatable :: misfitTaper(:,:,:)
     real(kind(0d0)), allocatable :: misfitRaw(:,:,:)
@@ -44,6 +44,7 @@ real(kind(0d0)), allocatable :: mtInverted_total_previous_iteration(:),mtInverte
     real(kind(0d0)) :: distanceKm
     integer :: lIteration
     integer, parameter :: NumberIteration=3 ! iteration number for Jacobi method
+   
 end module mainparameters
 
 
@@ -76,7 +77,7 @@ module parameters
 
 
     character(200), allocatable :: filenames(:)
-    real(kind(0d0)), allocatable :: obsRaw(:,:), obsFilt(:,:),obsFiltTapered(:,:)
+    real(kind(0d0)), allocatable :: obsRaw(:,:), obsFilt(:,:),obsFiltTapered(:,:),obsFiltTaperedRotated(:,:)
     integer :: calculMode ! 0=normal; 1=filter and stop
     character(200) :: workingDir
     character(200) :: resultDir
@@ -85,6 +86,7 @@ module parameters
     real(kind(0d0)), allocatable :: conf_depth(:),conf_lat(:),conf_lon(:),conf_gcarc(:),conf_azimuth(:)
 
     character(200) :: SGTinfo
+    character(200) :: ZRTorZNE
     character(200) :: parentDir
     character(200) :: eventName
     character(200) :: stationName
