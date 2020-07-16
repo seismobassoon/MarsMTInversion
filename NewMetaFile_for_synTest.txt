@@ -10,9 +10,9 @@
 # synthetics <moment tensor>_sta_<station_number>.txt, col 1 = time, col 2 = N, col 3 = E, col 4 = Z 
 # computation mode (normal:normal; test:filter the GF and stop: fort.11-14)
 #   versionSGT is completely different
-calculMode = synthetic
+calculMode = versionSGT
 #  for synthetic mode, you can add momentTensor in rr, tt, pp, rt, rp, tp order (optionnal) like below
-momentTensor = 1.0 0.5 -0.5 2.0 3.0 -4.0
+#momentTensor = 1.0 0.5 -0.5 2.0 3.0 -4.0
 #
 # with this versionSGT, the order of parameters in this inf file is no more important.
 # however, always the first declaration of parameters is valid (when you declare them twice or more).
@@ -66,11 +66,11 @@ fmax= 0.03 # max frequency (in Hz)
 # put fmin=0.d0 and fmax=0.5/dt for no filtering
 
 # SGT version has window cutting option
-effectiveSynWindow = 0.0 3000.d0
+effectiveSynWindow = 0.0 2000.d0
 
 #  observed data information
 
-tlenData= 800.0d0 # total length of the seismic data in seconds, this should be bigger than the synthetic window length described above
+tlenData=2000.0d0 # total length of the seismic data in seconds, this should be bigger than the synthetic window length described above
 
 
 
@@ -86,9 +86,10 @@ synWindow1= 0.0 200.0 800.0 1000.0
 
 # observed data files 
 #
-obsZfile= XB.ELYSE.02.BHZ.R.2019-07-26T121335.510000.txt
-obsEfile= XB.ELYSE.02.BHE.R.2019-07-26T121335.510000.txt
-obsNfile= XB.ELYSE.02.BHN.R.2019-07-26T121335.510000.txt
+obsZfile= 0000004.synZ.dat
+obsNfile= 0000004.synN.dat
+obsEfile= 0000004.synE.dat
+
 
 
 #
@@ -104,7 +105,7 @@ numberofObsWindows= 2
 obsMovingWindowOption =  independent 
 
 
-obsWindow1= 160.0 200.0 240.0 300.0
+obsWindow1= 0.0 200.0 240.0 300.0
 obsWindow2 = 500.0 600.0 700.0 800.0
 
 

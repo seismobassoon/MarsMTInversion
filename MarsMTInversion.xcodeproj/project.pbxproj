@@ -16,6 +16,7 @@
 		EA4BB2EB2397CA4900E4EBC1 /* NewMetaFile.inf */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = NewMetaFile.inf; sourceTree = "<group>"; };
 		EA4BB2EC2397CA5200E4EBC1 /* sol173metafile.inf */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = sol173metafile.inf; sourceTree = "<group>"; };
 		EA4F249724C04EE700574CE8 /* NewMetaFile_for_synGeneration.inf */ = {isa = PBXFileReference; lastKnownFileType = text; path = NewMetaFile_for_synGeneration.inf; sourceTree = "<group>"; };
+		EA4F249A24C062F700574CE8 /* NewMetaFile_for_synTest.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = NewMetaFile_for_synTest.txt; sourceTree = "<group>"; };
 		EA7268AF2434FC6A00DB1227 /* testMPI.f90 */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.fortran.f90; path = testMPI.f90; sourceTree = "<group>"; };
 		EA75C9DC243609A50093B304 /* makefile_mpi */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = makefile_mpi; sourceTree = "<group>"; };
 		EA908D13242E35CA0027F172 /* NewMetaFile_for_bigdata.inf */ = {isa = PBXFileReference; lastKnownFileType = text; path = NewMetaFile_for_bigdata.inf; sourceTree = "<group>"; };
@@ -43,6 +44,7 @@
 				EA75C9DC243609A50093B304 /* makefile_mpi */,
 				EA908D13242E35CA0027F172 /* NewMetaFile_for_bigdata.inf */,
 				EA4F249724C04EE700574CE8 /* NewMetaFile_for_synGeneration.inf */,
+				EA4F249A24C062F700574CE8 /* NewMetaFile_for_synTest.txt */,
 			);
 			sourceTree = "<group>";
 		};
