@@ -665,7 +665,7 @@ do iConfR=1,nr
             tmpfile=trim(workingDir)//'/'//trim(list)//".synZ.dat"
             open(unit=31,file=tmpfile,status='unknown',form='formatted')
             do it=iWindowStart,iWindowEnd
-                write(31,*) matmul(GreenArray(it,1,1:6),Mij_synthetic(1:6))
+                write(31,*) dot_product(GreenArray(it,1,1:6),Mij_synthetic(1:6))
             enddo
             close(31)
 
@@ -673,7 +673,7 @@ do iConfR=1,nr
             if(ZRTorZNE.eq."ZRT") tmpfile=trim(workingDir)//'/'//trim(list)//".synR.dat"
             open(unit=31,file=tmpfile,status='unknown',form='formatted')
             do it=iWindowStart,iWindowEnd
-                write(31,*) matmul(GreenArray(it,2,1:6),Mij_synthetic(1:6))
+                write(31,*) dot_product(GreenArray(it,2,1:6),Mij_synthetic(1:6))
             enddo
             close(31)
 
@@ -681,7 +681,7 @@ do iConfR=1,nr
             if(ZRTorZNE.eq."ZRT") tmpfile=trim(workingDir)//'/'//trim(list)//".synT.dat"
             open(unit=31,file=tmpfile,status='unknown',form='formatted')
             do it=iWindowStart,iWindowEnd
-                write(31,*) matmul(GreenArray(it,3,1:6),Mij_synthetic(1:6))
+                write(31,*) dot_product(GreenArray(it,3,1:6),Mij_synthetic(1:6))
             enddo
             close(31)
 
