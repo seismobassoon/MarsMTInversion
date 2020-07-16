@@ -662,6 +662,11 @@ do iConfR=1,nr
                 enddo
             enddo
             
+            write(list,'(I7)') iConfiguration
+            do jjj=1,7
+               if(list(jjj:jjj).eq.' ') list(jjj:jjj)='0'
+            enddo
+
             tmpfile=trim(workingDir)//'/'//trim(list)//".synZ.dat"
             open(unit=31,file=tmpfile,status='unknown',form='formatted')
             do it=iWindowStart,iWindowEnd
