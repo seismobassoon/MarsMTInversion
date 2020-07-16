@@ -246,83 +246,84 @@ subroutine pinput
         allocate(obsFilt(0:npData,1:3))
         allocate(obsFiltTapered(0:npData,1:3))
 
-        paramName="obsZfile"
-        call searchForParams(tmpfile,paramName,obsfile,0)
-        obsfile=trim(workingDir)//"/"//trim(obsfile)
-        print *, "Reading obsZfile: ", obsfile
-        open(unit=10,file=obsfile,status='unknown')
-        do it=0,npData
-            read(10,*) obsRaw(it,1)
-        enddo
+        if(calculMode.ne.10) then
+            paramName="obsZfile"
+            call searchForParams(tmpfile,paramName,obsfile,0)
+            obsfile=trim(workingDir)//"/"//trim(obsfile)
+            print *, "Reading obsZfile: ", obsfile
+            open(unit=10,file=obsfile,status='unknown')
+            do it=0,npData
+                read(10,*) obsRaw(it,1)
+            enddo
 
-        paramName="obsNfile"
-        call searchForParams(tmpfile,paramName,obsfile,0)
-        obsfile=trim(workingDir)//"/"//trim(obsfile)
-        print *, "Reading obsNfile: ", obsfile
-        open(unit=10,file=obsfile,status='unknown')
-        do it=0,npData
-            read(10,*) obsRaw(it,2)
-        enddo
+            paramName="obsNfile"
+            call searchForParams(tmpfile,paramName,obsfile,0)
+            obsfile=trim(workingDir)//"/"//trim(obsfile)
+            print *, "Reading obsNfile: ", obsfile
+            open(unit=10,file=obsfile,status='unknown')
+            do it=0,npData
+                read(10,*) obsRaw(it,2)
+            enddo
 
-        paramName="obsEfile"
-        call searchForParams(tmpfile,paramName,obsfile,0)
-        obsfile=trim(workingDir)//"/"//trim(obsfile)
-        print *, "Reading obsEfile: ", obsfile
-        open(unit=10,file=obsfile,status='unknown')
-        do it=0,npData
-            read(10,*) obsRaw(it,3)
-        enddo
+            paramName="obsEfile"
+            call searchForParams(tmpfile,paramName,obsfile,0)
+            obsfile=trim(workingDir)//"/"//trim(obsfile)
+            print *, "Reading obsEfile: ", obsfile
+            open(unit=10,file=obsfile,status='unknown')
+            do it=0,npData
+                read(10,*) obsRaw(it,3)
+            enddo
         
-        paramName="numberofObsWindows"
-        call searchForParams(tmpfile,paramName,dummy,1)
-        read(dummy,*) ntwinObs
-        
-
-        paramName="obsMovingWindowOption"
-        call searchForParams(tmpfile,paramName,dummy,0)
-        if(dummy(1:5).eq.'fixed') then
-            NmovingWindowDimension=1
-        elseif(dummy(1:).eq.'independent') then
-            NmovingWindowDimension=ntwinObs
-        endif
-
-        print *, "the number of Obs Windows is ", ntwinObs, " and the dimension is ",  &
-            NmovingWindowDimension, " since you chose the ", trim(dummy), " option."
-
-
-        if((calculMode.eq.3).and.(NmovingWindowDimension.ne.1)) then
-            print *, "monitoring mode is not supporting independent window shifting"
-            stop
-        endif
-        
-        if((calculMode.eq.4).and.(NmovingWindowDimension.ne.1)) then
-            print *, "light monitoring mode is not supporting independent window shifting"
-            stop
-        endif
-        
-        if((calculMode.eq.5).and.(NmovingWindowDimension.ne.1)) then
-            print *, "heavy monitoring mode is not supporting independent window shifting"
-            stop
-        endif
-
-        
-        allocate(twinObs(1:4,1:ntwinObs))
-        allocate(itwinObs(1:4,1:ntwinObs))
-
-
-        do iloop=1,ntwinObs
-            write(paramName,*) iloop
-            paramName="obsWindow"//trim(adjustl(paramName))
-            
+            paramName="numberofObsWindows"
             call searchForParams(tmpfile,paramName,dummy,1)
-            read(dummy,*) twinObs(1,iloop),twinObs(2,iloop),twinObs(3,iloop),twinObs(4,iloop)
-            print *, iloop,"-th window in obs is characterised by:", &
-                twinObs(1,iloop),twinObs(2,iloop),twinObs(3,iloop),twinObs(4,iloop)
-        enddo
-        itwinObs=int(twinObs/dt)
+            read(dummy,*) ntwinObs
+        
 
+            paramName="obsMovingWindowOption"
+            call searchForParams(tmpfile,paramName,dummy,0)
+            if(dummy(1:5).eq.'fixed') then
+                NmovingWindowDimension=1
+            elseif(dummy(1:).eq.'independent') then
+                NmovingWindowDimension=ntwinObs
+            endif
+
+            print *, "the number of Obs Windows is ", ntwinObs, " and the dimension is ",  &
+                NmovingWindowDimension, " since you chose the ", trim(dummy), " option."
+
+
+            if((calculMode.eq.3).and.(NmovingWindowDimension.ne.1)) then
+                print *, "monitoring mode is not supporting independent window shifting"
+                stop
+            endif
+        
+            if((calculMode.eq.4).and.(NmovingWindowDimension.ne.1)) then
+                print *, "light monitoring mode is not supporting independent window shifting"
+                stop
+            endif
+        
+            if((calculMode.eq.5).and.(NmovingWindowDimension.ne.1)) then
+                print *, "heavy monitoring mode is not supporting independent window shifting"
+                stop
+            endif
 
         
+            allocate(twinObs(1:4,1:ntwinObs))
+            allocate(itwinObs(1:4,1:ntwinObs))
+
+
+            do iloop=1,ntwinObs
+                write(paramName,*) iloop
+                paramName="obsWindow"//trim(adjustl(paramName))
+            
+                call searchForParams(tmpfile,paramName,dummy,1)
+                read(dummy,*) twinObs(1,iloop),twinObs(2,iloop),twinObs(3,iloop),twinObs(4,iloop)
+                print *, iloop,"-th window in obs is characterised by:", &
+                    twinObs(1,iloop),twinObs(2,iloop),twinObs(3,iloop),twinObs(4,iloop)
+            enddo
+            itwinObs=int(twinObs/dt)
+
+
+        endif
         !commandline = 'mkdir -p '//trim(parentDir)
         !call system(commandline)
         call pinputDSM(DSMconfFile,PoutputDir,psvmodel,&
