@@ -75,7 +75,7 @@ module parameters
     integer, allocatable :: iEachWindowStart(:,:), iEachWindowEnd(:,:)
     
     real(kind(0d0)) :: toleranceDistance
-
+    character(200) :: inversionMode
 
     character(200), allocatable :: filenames(:)
     real(kind(0d0)), allocatable :: obsRaw(:,:), obsFilt(:,:),obsFiltTapered(:,:),obsFiltTaperedRotated(:,:)

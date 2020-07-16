@@ -75,6 +75,10 @@ subroutine pinput
         if(dummy(1:12).eq.'heavyMonitor') calculMode=5
         if(dummy(1:9).eq.'synthetic') calculMode=10
         
+        paramName="inversionMode"
+        inversionMode="6components"
+        call searchForParamsOption(tmpfile,paramName,inversionMode,0,iFind)
+        print *, "inversionMode", inversionMode
 
         if(calculMode.eq.10) then
             Mij_synthetic=0.d0

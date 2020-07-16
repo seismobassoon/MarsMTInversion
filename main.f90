@@ -359,14 +359,20 @@ if(calculMode.eq.2) then
 
 
                     ! MT inversion by CG
-                    call invbyCG(nmt,ata,atd,eps,mtInverted(1:nmt,iMovingWindowStep,iConfiguration))
 
-                    ! MT inversion by CG for 5 components (without Mpp)
+                    if(inversionMode.eq."6components") then
+                        call invbyCG(nmt,ata,atd,eps,mtInverted(1:nmt,iMovingWindowStep,iConfiguration))
 
-                    !call invbyCG(5,ata(1:5,1:5),atd(1:5),eps,mtInverted(1:5,iMovingWindowStep,iConfiguration))
-                    !mtInverted(6,iMovingWindowStep,iConfiguration)= &
-                    !     -(mtInverted(1,iMovingWindowStep,iConfiguration) &
-                    !     + mtInverted(4,iMovingWindowStep,iConfiguration))
+                    
+                    elseif(inversionMode.eq."5components") then
+                        ! MT inversion by CG for 5 components (without Mpp)
+                        call invbyCG(5,ata(1:5,1:5),atd(1:5),eps, &
+                            mtInverted(1:5,iMovingWindowStep,iConfiguration))
+                        mtInverted(6,iMovingWindowStep,iConfiguration)= &
+                            -(mtInverted(1,iMovingWindowStep,iConfiguration) &
+                            + mtInverted(4,iMovingWindowStep,iConfiguration))
+
+                    endif
                     
                     !NF: note that for the shifting window version we don't really have any difference between modRaw and mod but
                     !    I keep it deliberately so that I can use for the further use.
