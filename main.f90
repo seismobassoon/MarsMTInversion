@@ -267,8 +267,8 @@ if(calculMode.eq.2) then
                     obsFiltTaperedRotated(0:npData,1:3)=obsFiltTapered(0:npData,1:3)
                     do mtcomp=1,nmt
                         northTemp(iWindowStart:iWindowEnd) = &
-                            +cqr(iConfPhi,iConfTheta)*tmparray(iWindowStart:iWindowEnd,2,mtcomp) &
-                            +sqr(iConfPhi,iConfTheta)*tmparray(iWindowStart:iWindowEnd,3,mtcomp)
+                            -cqr(iConfPhi,iConfTheta)*tmparray(iWindowStart:iWindowEnd,2,mtcomp) &
+                            -sqr(iConfPhi,iConfTheta)*tmparray(iWindowStart:iWindowEnd,3,mtcomp)
                         eastTemp(iWindowStart:iWindowEnd) = &
                             +sqr(iConfPhi,iConfTheta)*tmparray(iWindowStart:iWindowEnd,2,mtcomp) &
                             -cqr(iConfPhi,iConfTheta)*tmparray(iWindowStart:iWindowEnd,3,mtcomp)
@@ -277,10 +277,10 @@ if(calculMode.eq.2) then
                     enddo
                 elseif(ZRTorZNE.eq."ZRT") then
                     obsFiltTaperedRotated(0:npData,2) = &
-                        +cqr(iConfPhi,iConfTheta)*obsFiltTapered(0:npData,2) &
+                        -cqr(iConfPhi,iConfTheta)*obsFiltTapered(0:npData,2) &
                         +sqr(iConfPhi,iConfTheta)*obsFiltTapered(0:npData,3)
                     obsFiltTaperedRotated(0:npData,3) = &
-                        +sqr(iConfPhi,iConfTheta)*obsFiltTapered(0:npData,2) &
+                        -sqr(iConfPhi,iConfTheta)*obsFiltTapered(0:npData,2) &
                         -cqr(iConfPhi,iConfTheta)*obsFiltTapered(0:npData,3)
                 endif
             
@@ -611,8 +611,8 @@ do iConfR=1,nr
                 obsFiltTaperedRotated(0:npData,1:3)=obsFiltTapered(0:npData,1:3)
                 do mtcomp=1,nmt
                     northTemp(iWindowStart:iWindowEnd) = &
-                        +cqr(iConfPhi,iConfTheta)*tmparray(iWindowStart:iWindowEnd,2,mtcomp) &
-                        +sqr(iConfPhi,iConfTheta)*tmparray(iWindowStart:iWindowEnd,3,mtcomp)
+                        -cqr(iConfPhi,iConfTheta)*tmparray(iWindowStart:iWindowEnd,2,mtcomp) &
+                        -sqr(iConfPhi,iConfTheta)*tmparray(iWindowStart:iWindowEnd,3,mtcomp)
                     eastTemp(iWindowStart:iWindowEnd) = &
                         +sqr(iConfPhi,iConfTheta)*tmparray(iWindowStart:iWindowEnd,2,mtcomp) &
                         -cqr(iConfPhi,iConfTheta)*tmparray(iWindowStart:iWindowEnd,3,mtcomp)
@@ -621,10 +621,10 @@ do iConfR=1,nr
                 enddo
             elseif(ZRTorZNE.eq."ZRT") then
                 obsFiltTaperedRotated(0:npData,2) = &
-                    +cqr(iConfPhi,iConfTheta)*obsFiltTapered(0:npData,2) &
+                    -cqr(iConfPhi,iConfTheta)*obsFiltTapered(0:npData,2) &
                     +sqr(iConfPhi,iConfTheta)*obsFiltTapered(0:npData,3)
                 obsFiltTaperedRotated(0:npData,3) = &
-                    +sqr(iConfPhi,iConfTheta)*obsFiltTapered(0:npData,2) &
+                    -sqr(iConfPhi,iConfTheta)*obsFiltTapered(0:npData,2) &
                     -cqr(iConfPhi,iConfTheta)*obsFiltTapered(0:npData,3)
             endif
             
