@@ -78,11 +78,12 @@ subroutine pinput
 
         if(calculMode.eq.10) then
             Mij_synthetic=0.d0
+            Mij_synthetic(1)=1.d0 ! Mrr activated
             paramName="momentTensor"
             call searchForParamsOption(tmpfile,paramName,dummy,1,iFind)
             if(iFind.eq.1) read(dummy,*) Mij_synthetic(1:6)
+            if(iFind.ne.1) print *, "Since you did not precise Mij, we chose 1 0 0 0 0 0"
             print *, "momentTensor", Mij_synthetic
-            stop
         endif
 
         nmt=6
