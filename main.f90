@@ -361,6 +361,7 @@ if(calculMode.eq.2) then
                     ! MT inversion by CG
 
                     if(inversionMode.eq."6components") then
+
                         call invbyCG(nmt,ata,atd,eps,mtInverted(1:nmt,iMovingWindowStep,iConfiguration))
 
                     
