@@ -619,13 +619,6 @@ do iConfR=1,nr
                     tmparray(iWindowStart:iWindowEnd,2,mtcomp)=northTemp(iWindowStart:iWindowEnd)
                     tmparray(iWindowStart:iWindowEnd,3,mtcomp)=eastTemp(iWindowStart:iWindowEnd)
                 enddo
-            elseif(ZRTorZNE.eq."ZRT") then
-                obsFiltTaperedRotated(0:npData,2) = &
-                    -cqr(iConfPhi,iConfTheta)*obsFiltTapered(0:npData,2) &
-                    +sqr(iConfPhi,iConfTheta)*obsFiltTapered(0:npData,3)
-                obsFiltTaperedRotated(0:npData,3) = &
-                    -sqr(iConfPhi,iConfTheta)*obsFiltTapered(0:npData,2) &
-                    -cqr(iConfPhi,iConfTheta)*obsFiltTapered(0:npData,3)
             endif
             
             ! Here we first filter Green's function as a whole and taper them
