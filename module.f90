@@ -70,6 +70,7 @@ module parameters
     integer, allocatable :: iMovingWindowStart(:),iMovingWindowEnd(:)
     integer, allocatable :: totalNumberInWindowDimension(:)
     integer :: nTimeCombination
+    real(kind(0d0)) :: Mij_synthetic(1:6)
     
     integer, allocatable :: iEachWindowStart(:,:), iEachWindowEnd(:,:)
     

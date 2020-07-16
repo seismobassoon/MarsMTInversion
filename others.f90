@@ -76,7 +76,17 @@ subroutine pinput
         if(dummy(1:9).eq.'synthetic') calculMode=10
         
 
+        if(calculMode.eq.10) then
+            Mij_synthetic=0.d0
+            paramName="momentTensor"
+            call searchForParamsOption(tmpfile,paramName,Mij_synthetic,0,iFind)
+            print *, "momentTensor", Mij_synthetic
+            stop
+        endif
+
         nmt=6
+
+        
 
         if(calculMode.eq.5) then
             print *, "are you sure that you are using MPI version?"
@@ -89,6 +99,8 @@ subroutine pinput
         paramName="ZRTorZNE"
         call searchForParamsOption(tmpfile,paramName,ZRTorZNE,0,iFind)
         print *, "ZRTorZNE is ", ZRTorZNE
+
+        
         
 
         paramName="SGTinfo"

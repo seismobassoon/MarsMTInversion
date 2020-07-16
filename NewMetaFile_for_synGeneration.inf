@@ -10,7 +10,9 @@
 # synthetics <moment tensor>_sta_<station_number>.txt, col 1 = time, col 2 = N, col 3 = E, col 4 = Z 
 # computation mode (normal:normal; test:filter the GF and stop: fort.11-14)
 #   versionSGT is completely different
-calculMode = versionSGT
+calculMode = synthetic
+#  for synthetic mode, you can add momentTensor in rr, tt, pp, rt, rp, tp order (optionnal) like below
+momentTensor = 1.0 0.5 -0.5 2.0 3.0 -4.0
 #
 # with this versionSGT, the order of parameters in this inf file is no more important.
 # however, always the first declaration of parameters is valid (when you declare them twice or more).
