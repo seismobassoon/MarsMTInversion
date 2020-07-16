@@ -79,7 +79,8 @@ subroutine pinput
         if(calculMode.eq.10) then
             Mij_synthetic=0.d0
             paramName="momentTensor"
-            call searchForParamsOption(tmpfile,paramName,Mij_synthetic,0,iFind)
+            call searchForParamsOption(tmpfile,paramName,dummy,1,iFind)
+            read(dummy,*) Mij_synthetic(1:6)
             print *, "momentTensor", Mij_synthetic
             stop
         endif
