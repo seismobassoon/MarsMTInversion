@@ -662,23 +662,23 @@ do iConfR=1,nr
                 enddo
             enddo
             
-            tmpfile=trim(workingDir)//'/'//trim(list)//".synZ.dat"
+            tmpfile=trim(resultDir)//'/'//trim(list)//".synZ.dat"
             open(unit=31,file=tmpfile,status='unknown',form='formatted')
             do it=iWindowStart,iWindowEnd
                 write(31,*) dot_product(GreenArray(it,1,1:6),Mij_synthetic(1:6))
             enddo
             close(31)
 
-            if(ZRTorZNE.eq."ZNE") tmpfile=trim(workingDir)//'/'//trim(list)//".synN.dat"
-            if(ZRTorZNE.eq."ZRT") tmpfile=trim(workingDir)//'/'//trim(list)//".synR.dat"
+            if(ZRTorZNE.eq."ZNE") tmpfile=trim(resultDir)//'/'//trim(list)//".synN.dat"
+            if(ZRTorZNE.eq."ZRT") tmpfile=trim(resultDir)//'/'//trim(list)//".synR.dat"
             open(unit=31,file=tmpfile,status='unknown',form='formatted')
             do it=iWindowStart,iWindowEnd
                 write(31,*) dot_product(GreenArray(it,2,1:6),Mij_synthetic(1:6))
             enddo
             close(31)
 
-            if(ZRTorZNE.eq."ZNE") tmpfile=trim(workingDir)//'/'//trim(list)//".synE.dat"
-            if(ZRTorZNE.eq."ZRT") tmpfile=trim(workingDir)//'/'//trim(list)//".synT.dat"
+            if(ZRTorZNE.eq."ZNE") tmpfile=trim(resultDir)//'/'//trim(list)//".synE.dat"
+            if(ZRTorZNE.eq."ZRT") tmpfile=trim(resultDir)//'/'//trim(list)//".synT.dat"
             open(unit=31,file=tmpfile,status='unknown',form='formatted')
             do it=iWindowStart,iWindowEnd
                 write(31,*) dot_product(GreenArray(it,3,1:6),Mij_synthetic(1:6))
