@@ -74,6 +74,8 @@ subroutine pinput
         if(dummy(1:12).eq.'lightMonitor') calculMode=4
         if(dummy(1:12).eq.'heavyMonitor') calculMode=5
         if(dummy(1:9).eq.'synthetic') calculMode=10
+        
+
         nmt=6
 
         if(calculMode.eq.5) then
