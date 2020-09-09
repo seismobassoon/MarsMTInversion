@@ -11,6 +11,10 @@
 # computation mode (normal:normal; test:filter the GF and stop: fort.11-14)
 #   versionSGT is completely different
 calculMode = versionSGT
+
+# inversionMode = 5components if you want, otherwise 6components
+inversionMode=5components
+
 #calculMode=synthetic
 #  for synthetic mode, you can add momentTensor in rr, tt, pp, rt, rp, tp order (optionnal) like below
 #momentTensor = 1.0 0.5 -0.5 2.0 3.0 -4.0
