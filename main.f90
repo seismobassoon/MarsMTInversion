@@ -276,6 +276,7 @@ if(calculMode.eq.2) then
                         tmparray(iWindowStart:iWindowEnd,3,mtcomp)=eastTemp(iWindowStart:iWindowEnd)
                     enddo
                 elseif(ZRTorZNE.eq."ZRT") then
+                    obsFiltTaperedRotated(0:npData,1) = obsFiltTapered(0:npData,1)
                     obsFiltTaperedRotated(0:npData,2) = &
                         -cqr(iConfPhi,iConfTheta)*obsFiltTapered(0:npData,2) &
                         -sqr(iConfPhi,iConfTheta)*obsFiltTapered(0:npData,3)
@@ -290,7 +291,7 @@ if(calculMode.eq.2) then
                 open(23,file="obsTtreated.txt",status='unknown')
                 do it=0,npData
                     write(21,*) dble(it)*dt,obsFiltTaperedRotated(it,1)
-                    write(22,*) dble(it)*dt,obsFiltTaperedRotated(it,2),"a"
+                    write(22,*) dble(it)*dt,obsFiltTaperedRotated(it,2)
                     write(23,*) dble(it)*dt,obsFiltTaperedRotated(it,3)
                 enddo
                 close(21)
