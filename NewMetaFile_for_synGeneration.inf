@@ -7,7 +7,7 @@
 #
 #   usage:   ./MarsInversion NewMetaFile.inf dataDir resultDir inversionName
 #
-# synthetics <moment tensor>_sta_<station_number>.txt, col 1 = time, col 2 = N, col 3 = E, col 4 = Z 
+# synthetics <moment tensor>_sta_<station_number>.txt, col 1 = time, col 2 = Z, col 3 = N, col 4 = E
 # computation mode (normal:normal; test:filter the GF and stop: fort.11-14)
 #   versionSGT is completely different
 calculMode = synthetic
