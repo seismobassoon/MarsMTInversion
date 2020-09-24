@@ -368,13 +368,20 @@ if(calculMode.eq.2) then
                     elseif(inversionMode.eq."5components") then
                         ! MT inversion by CG for 5 components (without Mpp)
 
-                        ataFive(
-
+                        ataFive(1:2,1:2)=ata(1:2,1:2)
+                        ataFive(3:5,3:5)=ata(4:6,4:6)
+                        ataFive(1:2,3:5)=ata(1:2,4:6)
+                        ataFive(3:5,1:2)=ata(4:6,1:2)
+                        atdFive(1:2)=atd(1:2)
+                        atdFive(3:5)=atd(4:6)
+                        mtInverted(1:6,iMovingWindowStep,iConfiguration)=0.d0
                         call invbyCG(5,ataFive,atdFive,eps, &
                             mtInverted(1:5,iMovingWindowStep,iConfiguration))
-                        mtInverted(6,iMovingWindowStep,iConfiguration)= &
+                        mtInverted(4:6,iMovingWindowStep,iConfiguration)= &
+                            mtInverted(3:5,iMovingWindowStep,iConfiguration)
+                        mtInverted(3,iMovingWindowStep,iConfiguration)= &
                             -(mtInverted(1,iMovingWindowStep,iConfiguration) &
-                            + mtInverted(4,iMovingWindowStep,iConfiguration))
+                            - mtInverted(2,iMovingWindowStep,iConfiguration))
 
                     endif
                     
