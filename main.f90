@@ -381,7 +381,7 @@ if(calculMode.eq.2) then
                             mtInverted(3:5,iMovingWindowStep,iConfiguration)
                         mtInverted(3,iMovingWindowStep,iConfiguration)= &
                             -(mtInverted(1,iMovingWindowStep,iConfiguration) &
-                            - mtInverted(2,iMovingWindowStep,iConfiguration))
+                            + mtInverted(2,iMovingWindowStep,iConfiguration))
 
                     endif
                     
