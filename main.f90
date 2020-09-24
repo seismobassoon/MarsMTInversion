@@ -289,9 +289,9 @@ if(calculMode.eq.2) then
                 open(22,file="obsRtreated.txt",status='unknown')
                 open(23,file="obsTtreated.txt",status='unknown')
                 do it=0,npData
-                    write(21,*) dble(it)*dt,obsRaw(it,1),obsFilt(it,1)
-                    write(22,*) dble(it)*dt,obsRaw(it,2),obsFilt(it,2)
-                    write(23,*) dble(it)*dt,obsRaw(it,3),obsFilt(it,3)
+                    write(21,*) dble(it)*dt,obsFiltTaperedRotated(it,1)
+                    write(22,*) dble(it)*dt,obsFiltTaperedRotated(it,2),"a"
+                    write(23,*) dble(it)*dt,obsFiltTaperedRotated(it,3)
                 enddo
                 close(21)
                 close(22)
