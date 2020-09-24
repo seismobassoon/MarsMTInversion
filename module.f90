@@ -24,6 +24,7 @@ module mainparameters
     real(kind(0d0)), allocatable :: filtbefore(:),filtafter(:)
     real(kind(0d0)) :: xfwin
     real(kind(0d0)), allocatable :: ata(:,:),atd(:),ata_nondiagonal(:,:)!,atainv(:,:)
+    real(kind(0d0)) :: ataFive(5,5),atdFive(5)
     real(kind(0d0)), allocatable :: mtInverted(:,:,:),mtInverted_total(:),mtInverted_local(:)
     real(kind(0d0)), allocatable :: mtInverted_total_previous_iteration(:),mtInverted_local_previous_iteration(:)
     real(kind(0e0)), allocatable :: mtInverted_total_single(:)

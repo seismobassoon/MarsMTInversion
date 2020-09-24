@@ -78,7 +78,7 @@ subroutine pinput
         paramName="inversionMode"
         inversionMode="6components"
         call searchForParamsOption(tmpfile,paramName,inversionMode,0,iFind)
-        print *, "inversionMode", inversionMode
+        print *, "inversionMode =  ", inversionMode
 
         if(calculMode.eq.10) then
             Mij_synthetic=0.d0
