@@ -282,6 +282,23 @@ if(calculMode.eq.2) then
                     obsFiltTaperedRotated(0:npData,3) = &
                         +sqr(iConfPhi,iConfTheta)*obsFiltTapered(0:npData,2) &
                         -cqr(iConfPhi,iConfTheta)*obsFiltTapered(0:npData,3)
+
+
+                ! NF will soon remove the following ASCII fils (see above)
+                open(21,file="obsZZtreated.txt",status='unknown')
+                open(22,file="obsRtreated.txt",status='unknown')
+                open(23,file="obsTtreated.txt",status='unknown')
+                do it=0,npData
+                    write(21,*) dble(it)*dt,obsRaw(it,1),obsFilt(it,1)
+                    write(22,*) dble(it)*dt,obsRaw(it,2),obsFilt(it,2)
+                    write(23,*) dble(it)*dt,obsRaw(it,3),obsFilt(it,3)
+                enddo
+                close(21)
+                close(22)
+                close(23)
+
+
+
                 endif
             
                 
